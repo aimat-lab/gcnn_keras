@@ -28,6 +28,14 @@ kgcnn.utils.serial module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.utils.tests module
+------------------------
+
+.. automodule:: kgcnn.utils.tests
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

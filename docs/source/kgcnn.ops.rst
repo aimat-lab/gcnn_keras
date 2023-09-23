@@ -20,50 +20,10 @@ kgcnn.ops.axis module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.ops.casting module
-------------------------
+kgcnn.ops.core module
+---------------------
 
-.. automodule:: kgcnn.ops.casting
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.ops.initializer module
-----------------------------
-
-.. automodule:: kgcnn.ops.initializer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.ops.numpy module
-----------------------
-
-.. automodule:: kgcnn.ops.numpy
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.ops.partition module
---------------------------
-
-.. automodule:: kgcnn.ops.partition
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.ops.polynom module
-------------------------
-
-.. automodule:: kgcnn.ops.polynom
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.ops.ragged module
------------------------
-
-.. automodule:: kgcnn.ops.ragged
+.. automodule:: kgcnn.ops.core
    :members:
    :undoc-members:
    :show-inheritance:
@@ -72,22 +32,6 @@ kgcnn.ops.scatter module
 ------------------------
 
 .. automodule:: kgcnn.ops.scatter
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.ops.segment module
-------------------------
-
-.. automodule:: kgcnn.ops.segment
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.ops.sorting module
-------------------------
-
-.. automodule:: kgcnn.ops.sorting
    :members:
    :undoc-members:
    :show-inheritance:

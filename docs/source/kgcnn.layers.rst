@@ -4,18 +4,26 @@ kgcnn.layers package
 Submodules
 ----------
 
-kgcnn.layers.attention module
------------------------------
+kgcnn.layers.activ module
+-------------------------
 
-.. automodule:: kgcnn.layers.attention
+.. automodule:: kgcnn.layers.activ
    :members:
    :undoc-members:
    :show-inheritance:
 
-kgcnn.layers.base module
+kgcnn.layers.aggr module
 ------------------------
 
-.. automodule:: kgcnn.layers.base
+.. automodule:: kgcnn.layers.aggr
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.attention module
+-----------------------------
+
+.. automodule:: kgcnn.layers.attention
    :members:
    :undoc-members:
    :show-inheritance:
@@ -52,14 +60,6 @@ kgcnn.layers.geom module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.layers.message module
----------------------------
-
-.. automodule:: kgcnn.layers.message
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kgcnn.layers.mlp module
 -----------------------
 
@@ -92,26 +92,10 @@ kgcnn.layers.pooling module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.layers.relational module
-------------------------------
+kgcnn.layers.scale module
+-------------------------
 
-.. automodule:: kgcnn.layers.relational
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.layers.set2set module
----------------------------
-
-.. automodule:: kgcnn.layers.set2set
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.layers.update module
---------------------------
-
-.. automodule:: kgcnn.layers.update
+.. automodule:: kgcnn.layers.scale
    :members:
    :undoc-members:
    :show-inheritance:

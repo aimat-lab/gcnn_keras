@@ -69,6 +69,14 @@ kgcnn.molecule.methods module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.molecule.preprocessor module
+----------------------------------
+
+.. automodule:: kgcnn.molecule.preprocessor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.molecule.serial module
 ----------------------------
 

@@ -37,6 +37,14 @@ kgcnn.data.download module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.force module
+-----------------------
+
+.. automodule:: kgcnn.data.force
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.moleculenet module
 -----------------------------
 

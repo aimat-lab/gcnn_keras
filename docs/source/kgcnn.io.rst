@@ -4,6 +4,22 @@ kgcnn.io package
 Submodules
 ----------
 
+kgcnn.io.file module
+--------------------
+
+.. automodule:: kgcnn.io.file
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.io.graphlist module
+-------------------------
+
+.. automodule:: kgcnn.io.graphlist
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.io.loader module
 ----------------------
 
