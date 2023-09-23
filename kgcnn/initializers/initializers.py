@@ -1,4 +1,5 @@
-import keras as ks
+import keras_core as ks
+from keras_core import ops
 
 
 def _compute_fans(shape):

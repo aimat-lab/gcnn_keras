@@ -1,7 +1,7 @@
 import numpy as np
 
-from keras import ops
-from keras import testing
+from keras_core import ops
+from keras_core import testing
 from kgcnn.layers.gather import GatherNodes
 
 
