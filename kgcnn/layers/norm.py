@@ -1,7 +1,7 @@
 import keras_core as ks
 from keras_core.layers import Layer
 from keras_core import ops
-from keras_core.layers.input_spec import InputSpec
+from keras_core import InputSpec
 from kgcnn.ops.scatter import scatter_reduce_sum
 from keras_core.layers import LayerNormalization as _LayerNormalization
 from keras_core.layers import BatchNormalization as _BatchNormalization
