@@ -1,7 +1,7 @@
 import kgcnn.backend as kgcnn_backend
-from keras_core.backend import KerasTensor
-from keras_core.backend import any_symbolic_tensors
-from keras_core.ops.operation import Operation
+from keras_core import KerasTensor
+from kgcnn.backend import any_symbolic_tensors
+from keras_core import Operation
 
 
 class ScatterMax(Operation):
