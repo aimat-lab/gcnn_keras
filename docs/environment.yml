@@ -22,7 +22,6 @@ dependencies:
     - scikit-learn
     - pyyaml
     - rdkit  # Or via channels rdkit and conda rdkit
-    - tensorflow_addons
     - pymatgen
     - pyxtal
     - ase
