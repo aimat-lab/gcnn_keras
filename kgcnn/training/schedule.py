@@ -1,11 +1,11 @@
 import keras_core as ks
 import keras_core.saving
-import keras_core.optimizers.schedules.learning_rate_schedule
+import keras_core.optimizers.schedules
 # from keras_core import ops
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialDecay')
-class LinearWarmupExponentialDecay(ks.optimizers.schedules.learning_rate_schedule.LearningRateSchedule):
+class LinearWarmupExponentialDecay(ks.optimizers.schedules.LearningRateSchedule):
     r"""This schedule combines a linear warmup with an exponential decay.
     Combines :obj:` tf.optimizers.schedules.PolynomialDecay` with an actual increase during warmup
     and :obj:`tf.optimizers.schedules.ExponentialDecay` after.

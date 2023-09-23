@@ -2,7 +2,7 @@ import keras_core as ks
 import keras_core.saving
 from typing import Union
 from kgcnn.models.utils import get_model_class
-from keras_core.saving.serialization_lib import deserialize_keras_object, serialize_keras_object
+from keras_core.saving import deserialize_keras_object, serialize_keras_object
 from keras_core.backend import backend
 
 

@@ -81,7 +81,7 @@ class LinearWarmUpScheduler(ks.callbacks.LearningRateScheduler):
         if self.__warming_up and self.steps_per_epoch is not None:
             if not hasattr(self.model.optimizer, "learning_rate"):
                 raise ValueError('Optimizer must have a "lr" attribute.')
-            lr = float(ks.backend.convert_to_numpy(self.model.optimizer.learning_rate))
+            lr = float(ks.ops.convert_to_numpy(self.model.optimizer.learning_rate))
             lr = lr + self.lr_start / self.epo_warmup / self.steps_per_epoch
             if batch > self.steps_per_epoch:
                 module_logger.warning("Found `batch` > `steps_per_epoch` during warmup.")
