@@ -73,7 +73,7 @@ class GlorotOrthogonal(ks.initializers.Orthogonal):
             scale /= max(1., fan_out)
         else:
             scale /= max(1., (fan_in + fan_out) / 2.)
-        stddev = ops.sqrt(scale/tf.math.reduce_variance(weight_kernel))
+        stddev = ops.sqrt(scale/ops.var(weight_kernel))
         weight_kernel *= stddev
         return weight_kernel
 
@@ -110,7 +110,7 @@ class HeOrthogonal(ks.initializers.Orthogonal):
         self.scale = scale
         self.mode = mode
 
-    def __call__(self, shape, dtype=tf.float32, **kwargs):
+    def __call__(self, shape, dtype="float32", **kwargs):
         weight_kernel = super(HeOrthogonal, self).__call__(shape, dtype=dtype, **kwargs)
 
         # Original reference implementation was designed for kernel rank={2,3}.
@@ -133,7 +133,7 @@ class HeOrthogonal(ks.initializers.Orthogonal):
 
         # Original reference implementation with 1/fan_in changed to scale=scale/fan_in
         # W *= tf.sqrt(1 / fan_in)  # variance decrease is addressed in the dense layers
-        weight_kernel *= tf.math.sqrt(scale)
+        weight_kernel *= ops.sqrt(scale)
 
         return weight_kernel
 
@@ -159,9 +159,9 @@ class HeOrthogonal(ks.initializers.Orthogonal):
             axis = [i for i in range(len(shape)-1)]
         else:
             axis = 0
-        mean = tf.reduce_mean(kernel, axis=axis, keepdims=True)
-        var = tf.math.reduce_variance(kernel, axis=axis, keepdims=True)
-        kernel = (kernel - mean) / tf.sqrt(var + eps)
+        mean = ops.mean(kernel, axis=axis, keepdims=True)
+        var = ops.var(kernel, axis=axis, keepdims=True)
+        kernel = (kernel - mean) / ops.sqrt(var + eps)
         return kernel
 
     def get_config(self):
