@@ -2,24 +2,24 @@ OS: nt_win32
 backend: torch
 cuda_available: 'True'
 data_unit: ''
-date_time: '2023-09-23 18:06:43'
+date_time: '2023-09-24 00:32:57'
 device_id: '[0]'
-device_memory: '[{''allocated'': 0.0, ''cached'': 7.2}]'
+device_memory: '[{''allocated'': 4.3, ''cached'': 6.9}]'
 device_name: '[''NVIDIA GeForce GTX 1060 6GB'']'
 energy_scaled_mean_absolute_error:
-- 0.6620805859565735
+- 0.6705390214920044
 epochs:
 - 1000
 execute_folds: null
 force_scaled_mean_absolute_error:
-- 0.9776934385299683
+- 0.9870715141296387
 kgcnn_version: 4.0.0
 learning_rate:
 - 6.721010777255287e-06
 loss:
-- 7.421228408813477
+- 7.491568088531494
 max_energy_scaled_mean_absolute_error:
-- 44.137596130371094
+- 43.9420280456543
 max_force_scaled_mean_absolute_error:
 - 23.12982177734375
 max_learning_rate:
@@ -27,25 +27,25 @@ max_learning_rate:
 max_loss:
 - 175.07359313964844
 max_val_energy_scaled_mean_absolute_error:
-- 99.35033416748047
+- 89.704345703125
 max_val_force_scaled_mean_absolute_error:
-- 22.607444763183594
+- 22.60744285583496
 max_val_loss:
 - 174.02117919921875
 min_energy_scaled_mean_absolute_error:
-- 0.5289925336837769
+- 0.5308452248573303
 min_force_scaled_mean_absolute_error:
-- 0.9759277701377869
+- 0.9855858087539673
 min_learning_rate:
 - 6.721010777255287e-06
 min_loss:
-- 7.398296356201172
+- 7.472635269165039
 min_val_energy_scaled_mean_absolute_error:
-- 0.5913619995117188
+- 0.5970931053161621
 min_val_force_scaled_mean_absolute_error:
-- 1.20387601852417
+- 1.2160941362380981
 min_val_loss:
-- 9.16006851196289
+- 9.253174781799316
 model_class: EnergyForceModel
 model_name: Schnet
 model_version: ''
@@ -53,11 +53,11 @@ multi_target_indices: null
 number_histories: 1
 seed: 42
 time_list:
-- '0:54:44.886272'
+- '1:00:13.748350'
 trajectory_name: aspirin_ccsd
 val_energy_scaled_mean_absolute_error:
-- 0.7657562494277954
+- 0.8168062567710876
 val_force_scaled_mean_absolute_error:
-- 1.2044456005096436
+- 1.2173408269882202
 val_loss:
-- 9.189851760864258
+- 9.295524597167969

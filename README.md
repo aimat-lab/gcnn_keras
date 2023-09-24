@@ -62,17 +62,23 @@ Auto-documentation is generated at https://kgcnn.readthedocs.io/en/latest/index.
 
 ### Representation
 
-TODO
+A graph of `N` nodes and `M` edges is commonly represented by a list of node or edge attributes: `node_attr` or `edge_attr`, respectively, 
+plus a list of indices pairs *(i, j)* that represents a directed edge in the graph: `edge_index`. 
+Alternatively, an adjacency matrix `A` of shape `(N, N)` can be ascribed that has ones 
+where there is an edge between nodes and 0 elsewhere. Consequently, sum of `A` will give `M` edges.
 
 <a name="implementation-details-input"></a>
 ### Input
 
-TODO
+For learning on batches or single graphs, following tensor representation can be chosen:
+
+###### Batched Graphs
+
+The 
 
 
 ### Model
 
-Models can be set up in a functional way. Example message passing from fundamental operations:
 
 TODO
 
