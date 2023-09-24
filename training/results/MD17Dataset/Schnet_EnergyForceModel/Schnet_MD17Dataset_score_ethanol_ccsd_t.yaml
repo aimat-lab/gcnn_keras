@@ -1,0 +1,63 @@
+OS: nt_win32
+backend: torch
+cuda_available: 'True'
+data_unit: ''
+date_time: '2023-09-24 20:02:46'
+device_id: '[0]'
+device_memory: '[{''allocated'': 1.1, ''cached'': 2.0}]'
+device_name: '[''NVIDIA GeForce GTX 1060 6GB'']'
+energy_scaled_mean_absolute_error:
+- 0.10144944489002228
+epochs:
+- 1000
+execute_folds: null
+force_scaled_mean_absolute_error:
+- 0.43136435747146606
+kgcnn_version: 4.0.0
+learning_rate:
+- 6.721010777255287e-06
+loss:
+- 4.682512283325195
+max_energy_scaled_mean_absolute_error:
+- 18.63657569885254
+max_force_scaled_mean_absolute_error:
+- 20.372093200683594
+max_learning_rate:
+- 0.0010000000474974513
+max_loss:
+- 218.02919006347656
+max_val_energy_scaled_mean_absolute_error:
+- 42.55447006225586
+max_val_force_scaled_mean_absolute_error:
+- 19.512859344482422
+max_val_loss:
+- 210.20559692382812
+min_energy_scaled_mean_absolute_error:
+- 0.10144944489002228
+min_force_scaled_mean_absolute_error:
+- 0.42984306812286377
+min_learning_rate:
+- 6.721010777255287e-06
+min_loss:
+- 4.597670555114746
+min_val_energy_scaled_mean_absolute_error:
+- 0.11362900584936142
+min_val_force_scaled_mean_absolute_error:
+- 0.5426991581916809
+min_val_loss:
+- 5.838818550109863
+model_class: EnergyForceModel
+model_name: Schnet
+model_version: ''
+multi_target_indices: null
+number_histories: 1
+seed: 42
+time_list:
+- '0:38:16.073065'
+trajectory_name: ethanol_ccsd_t
+val_energy_scaled_mean_absolute_error:
+- 0.12116196006536484
+val_force_scaled_mean_absolute_error:
+- 0.5470988750457764
+val_loss:
+- 5.8777289390563965
