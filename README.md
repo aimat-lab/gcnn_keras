@@ -63,9 +63,10 @@ Auto-documentation is generated at https://kgcnn.readthedocs.io/en/latest/index.
 ### Representation
 
 A graph of `N` nodes and `M` edges is commonly represented by a list of node or edge attributes: `node_attr` or `edge_attr`, respectively, 
-plus a list of indices pairs *(i, j)* that represents a directed edge in the graph: `edge_index`. 
-Alternatively, an adjacency matrix `A` of shape `(N, N)` can be ascribed that has ones 
-where there is an edge between nodes and 0 elsewhere. Consequently, sum of `A` will give `M` edges.
+plus a list of indices pairs `(i, j)` that represents a directed edge in the graph: `edge_index`. 
+The feature dimension of attributes is denoted by `F`. 
+Alternatively, an adjacency matrix `A_ij` of shape `(N, N)` can be ascribed that has 'ones' entries
+where there is an edge between nodes and 'zeros' elsewhere. Consequently, sum of `A_ij` will give `M` edges.
 
 <a name="implementation-details-input"></a>
 ### Input
@@ -74,7 +75,21 @@ For learning on batches or single graphs, following tensor representation can be
 
 ###### Batched Graphs
 
-The 
+* `node_attr`: Tensor of shape `(batch, N, F)`
+* `edge_attr`: Tensor of shape `(batch, M, F)`
+* `edge_index`: Tensor of shape `(batch, M, 2)`
+* `graph_attr`: Tensor of shape `(batch, F)`
+
+Note that for flexible sized graphs the tensor has to be padded up to a max `N`/`M` or ragged tensors are used,
+with a ragged rank of one.
+
+###### Disjoint Graphs
+
+* `node_attr`: Tensor of shape `([N], F)`
+* `edge_attr`: Tensor of shape `([M], F)`
+* `edge_index`: Tensor of shape `(2, [M])`
+* `graph_attr`: Tensor of shape `(F, )`
+
 
 
 ### Model
