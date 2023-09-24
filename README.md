@@ -62,9 +62,9 @@ Auto-documentation is generated at https://kgcnn.readthedocs.io/en/latest/index.
 
 ### Representation
 
-A graph of `N` nodes and `M` edges is commonly represented by a list of node or edge attributes: `node_attr` or `edge_attr`, respectively, 
-plus a list of indices pairs `(i, j)` that represents a directed edge in the graph: `edge_index`. 
-The feature dimension of attributes is denoted by `F`. 
+A graph of `N` nodes and `M` edges is commonly represented by a list of node or edge attributes: `node_attr` or `edge_attr`, respectively. 
+Plus a list of indices pairs `(i, j)` that represents a directed edge in the graph: `edge_index`. 
+The feature dimension of the attributes is denoted by `F`. 
 Alternatively, an adjacency matrix `A_ij` of shape `(N, N)` can be ascribed that has 'ones' entries
 where there is an edge between nodes and 'zeros' elsewhere. Consequently, sum of `A_ij` will give `M` edges.
 
@@ -75,27 +75,81 @@ For learning on batches or single graphs, following tensor representation can be
 
 ###### Batched Graphs
 
-* `node_attr`: Tensor of shape `(batch, N, F)`
-* `edge_attr`: Tensor of shape `(batch, M, F)`
-* `edge_index`: Tensor of shape `(batch, M, 2)`
-* `graph_attr`: Tensor of shape `(batch, F)`
+* `node_attr`: Tensor of shape `(batch, N, F)` and dtype *float*
+* `edge_attr`: Tensor of shape `(batch, M, F)` and dtype *float*
+* `edge_index`: Tensor of shape `(batch, M, 2)` and dtype *int*
+* `graph_attr`: Tensor of shape `(batch, F)` and dtype *float*
 
-Note that for flexible sized graphs the tensor has to be padded up to a max `N`/`M` or ragged tensors are used,
+Graphs are stacked along the batch dimension `batch`. Note that for flexible sized graphs the tensor has to be padded up to a max `N`/`M` or ragged tensors are used,
 with a ragged rank of one.
 
 ###### Disjoint Graphs
 
-* `node_attr`: Tensor of shape `([N], F)`
-* `edge_attr`: Tensor of shape `([M], F)`
-* `edge_index`: Tensor of shape `(2, [M])`
-* `graph_attr`: Tensor of shape `(F, )`
+* `node_attr`: Tensor of shape `([N], F)` and dtype *float*
+* `edge_attr`: Tensor of shape `([M], F)` and dtype *float*
+* `edge_index`: Tensor of shape `(2, [M])` and dtype *int*
+* `graph_attr`: Tensor of shape `(F, )` and dtype *float*
+* `batch_ID`: Tensor of shape `([N], )` and dtype *int*
 
-
+Here, the lists essentially represent one graph but which consists of disjoint sub-graphs from the batch, 
+which has been introduced by PytorchGeometric (PyG). 
+For pooling the graph assignment is stored in `batch_ID`. 
+Note, that for Jax, we can not have dynamic shapes, so we use a padded disjoint representation assigning 
+all padded nodes to a discarded graph with zero index.
 
 ### Model
 
+The keras layers can be used with PyG compatible tensor representation. 
+Or even by simply wrapping a PyG model with `TorchModuleWrapper`.
+Here an example of a minimal message passing GNN with either direct disjoint input from a PyG dataloader,
+or with a simple padded input and conversion layer:
 
-TODO
+```python
+import keras_core as ks
+from kgcnn.layers.casting import CastBatchedIndicesToDisjoint
+from kgcnn.layers.gather import GatherNodes
+from kgcnn.layers.pooling import PoolingNodes
+from kgcnn.layers.aggr import AggregateLocalEdges
+
+ns = ks.layers.Input(shape=(None, 64), dtype="float32")
+e_idx = ks.layers.Input(shape=(None, 2), dtype="int64")
+total_n = ks.layers.Input(shape=(), dtype="int64")
+total_e = ks.layers.Input(shape=(), dtype="int64")
+
+# Here [n, idx, batch_id, total_n] could also be used as model input for direct disjoint representation.
+n, idx, batch_id, _, _, _,total_n, _ = CastBatchedIndicesToDisjoint()([ns, e_idx, total_n, total_e])
+
+n_in_out = GatherNodes()([n, idx])
+node_messages = ks.layers.Dense(64, activation='relu')(n_in_out)
+node_updates = AggregateLocalEdges()([n, node_messages, idx])
+n_node_updates = ks.layers.Concatenate()([n, node_updates])
+n_embedding = ks.layers.Dense(1)(n_node_updates)
+g_embedding = PoolingNodes()([total_n, n_embedding, batch_id])
+
+message_passing = ks.models.Model(inputs=[n, idx, e_idx, total_n, total_e], outputs=g_embedding)
+```
+
+The actual message passing model can further be structured by e.g. subclassing the message passing base layer:
+
+```python
+import keras_core as ks
+from kgcnn.layers.message import MessagePassingBase
+
+class MyMessageNN(MessagePassingBase):
+
+    def __init__(self, units, **kwargs):
+        super(MyMessageNN, self).__init__(**kwargs)
+        self.dense = ks.layers.Dense(units)
+        self.add = ks.layers.Add(axis=-1)
+
+    def message_function(self, inputs, **kwargs):
+        n_in, n_out, edges = inputs
+        return self.dense(n_out, **kwargs)
+
+    def update_nodes(self, inputs, **kwargs):
+        nodes, nodes_update = inputs
+        return self.add([nodes, nodes_update], **kwargs)
+```
 
 <a name="literature"></a>
 # Literature
@@ -151,8 +205,8 @@ from kgcnn.data.base import MemoryGraphList
 graph_list = MemoryGraphList([{"edge_indices": [[0, 1], [1, 0]]}, {"edge_indices": [[0, 0]]}, {}])
 graph_list.clean(["edge_indices"])  # Remove graphs without property
 graph_list.get("edge_indices")  # opposite is set()
-# Easily cast to (ragged) tf-tensor; makes copy.
-tensor = graph_list.tensor([{"name": "edge_indices", "ragged": True}])  # config of keras `Input` layer
+# Easily cast to tensor; makes copy.
+tensor = graph_list.tensor([{"name": "edge_indices"}])  # config of keras `Input` layer
 # Or directly modify list.
 for i, x in enumerate(graph_list):
     x.set("graph_number", [i])

@@ -5,7 +5,7 @@ The training scripts are called via:
 
 ```bash
 python3 train_node.py --hyper hyper/hyper_cora.py --category GCN
-python3 train_hraph.py --hyper hyper/hyper_esol.py --category GIN
+python3 train_graph.py --hyper hyper/hyper_esol.py --category GIN
 ```
 
 Where `hyper_esol.py` stores hyperparameter and must be in the same folder or a path to a `.py`. 
@@ -21,7 +21,7 @@ on how it is structured. In short the config file contains a python dictionary o
 hyper = {
     "info":{ 
         # General information for training run
-        "kgcnn_version": "2.0.0", # Version 
+        "kgcnn_version": "4.0.0", # Version 
         "postfix": "" # Postfix for output folder.
     },
     "model": { 

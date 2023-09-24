@@ -1,3 +1,6 @@
+# toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
+trajectory_name = "toluene_ccsd_t"
+
 hyper = {
     "Schnet.EnergyForceModel": {
         "model": {
@@ -68,8 +71,7 @@ hyper = {
                 "class_name": "MD17Dataset",
                 "module_name": "kgcnn.data.datasets.MD17Dataset",
                 "config": {
-                    # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
-                    "trajectory_name": "aspirin_ccsd"
+                    "trajectory_name": trajectory_name
                 },
                 "methods": [
                     {"rename_property_on_graphs": {"old_property_name": "E", "new_property_name": "energy"}},
@@ -86,7 +88,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_aspirin_ccsd",
+            "postfix_file": "_"+trajectory_name,
             "kgcnn_version": "4.0.0"
         }
     },
