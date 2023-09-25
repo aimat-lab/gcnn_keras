@@ -16,6 +16,7 @@ setup(
     install_requires=[
         "keras-core",
         "tensorflow>=2.13",
+        "torch>=2.0.0",
         "numpy>=1.23.0",
         "scikit-learn>=1.1.3",
         "pandas>=1.5.2",

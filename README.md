@@ -75,25 +75,24 @@ For learning on batches or single graphs, following tensor representation can be
 
 ###### Batched Graphs
 
-* `node_attr`: Tensor of shape `(batch, N, F)` and dtype *float*
-* `edge_attr`: Tensor of shape `(batch, M, F)` and dtype *float*
-* `edge_index`: Tensor of shape `(batch, M, 2)` and dtype *int*
-* `graph_attr`: Tensor of shape `(batch, F)` and dtype *float*
+* `node_attr`: Node attributes of shape `(batch, N, F)` and dtype *float*
+* `edge_attr`: Edge attributes of shape `(batch, M, F)` and dtype *float*
+* `edge_index`: Indices of shape `(batch, M, 2)` and dtype *int*
+* `graph_attr`: Graph attributes of shape `(batch, F)` and dtype *float*
 
 Graphs are stacked along the batch dimension `batch`. Note that for flexible sized graphs the tensor has to be padded up to a max `N`/`M` or ragged tensors are used,
 with a ragged rank of one.
 
 ###### Disjoint Graphs
 
-* `node_attr`: Tensor of shape `([N], F)` and dtype *float*
-* `edge_attr`: Tensor of shape `([M], F)` and dtype *float*
-* `edge_index`: Tensor of shape `(2, [M])` and dtype *int*
-* `graph_attr`: Tensor of shape `(F, )` and dtype *float*
-* `batch_ID`: Tensor of shape `([N], )` and dtype *int*
+* `node_attr`: Node attributes of shape `([N], F)` and dtype *float*
+* `edge_attr`: Edge attributes of shape `([M], F)` and dtype *float*
+* `edge_index`: Indices of shape `(2, [M])` and dtype *int*
+* `batch_ID`: Graph ID of shape `([N], )` and dtype *int*
 
 Here, the lists essentially represent one graph but which consists of disjoint sub-graphs from the batch, 
 which has been introduced by PytorchGeometric (PyG). 
-For pooling the graph assignment is stored in `batch_ID`. 
+For pooling, the graph assignment is stored in `batch_ID`. 
 Note, that for Jax, we can not have dynamic shapes, so we use a padded disjoint representation assigning 
 all padded nodes to a discarded graph with zero index.
 
