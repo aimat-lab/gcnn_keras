@@ -204,6 +204,10 @@ class _StandardScalerSklearnMixin:
         self.fit_dataset(dataset=dataset)
         return self.transform_dataset(dataset=dataset, copy=copy, copy_dataset=copy_dataset)
 
+    @property
+    def scale_(self):
+        return self._scaler_reference.scale_
+
 
 class StandardScaler(_StandardScalerSklearnMixin):
     r"""Standard scaler that uses obj:`sklearn.preprocessing.StandardScaler` .
