@@ -56,7 +56,7 @@ model_default = {
 }
 
 
-@update_model_kwargs(model_default)
+@update_model_kwargs(model_default, update_recursive=0)
 def make_model(name: str = None,
                inputs: list = None,
                cast_disjoint_kwargs: dict = None,
