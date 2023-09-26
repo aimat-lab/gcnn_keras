@@ -117,10 +117,8 @@ class GatherEdgesPairs(Layer):
     def __init__(self, **kwargs):
         """Initialize layer."""
         super(GatherEdgesPairs, self).__init__(**kwargs)
-        self.gather_layer = GatherNodesOutgoing()
 
     def build(self, input_shape):
-        self.gather_layer.build(input_shape)
         self.built = True
 
     def call(self, inputs, **kwargs):
@@ -136,7 +134,9 @@ class GatherEdgesPairs(Layer):
             Tensor: Gathered edge embeddings that match the reverse edges of shape ([M], F) for index.
         """
         edges, pair_index = inputs
-        index_corrected = ops.where(pair_index >= 0, pair_index, ops.zeros_like(pair_index))
-        edges_paired = self.gather_layer([edges, index_corrected], **kwargs)
-        edges_corrected = ops.where(ops.transpose(pair_index) >= 0, edges_paired, ops.zeros_like(edges_paired))
+        indices_take = pair_index[0] if global_indices_first else pair_index[:, 0]
+        index_corrected = ops.where(indices_take >= 0, indices_take, ops.zeros_like(indices_take))
+        edges_paired = ops.take(edges, index_corrected, axis=0)
+        edges_corrected = ops.where(
+            ops.expand_dims(indices_take, axis=-1) >= 0, edges_paired, ops.zeros_like(edges_paired))
         return edges_corrected
