@@ -4,6 +4,7 @@ from keras_core.layers import Layer
 from keras_core import ops
 from kgcnn.ops.scatter import (
     scatter_reduce_min, scatter_reduce_mean, scatter_reduce_max, scatter_reduce_sum, scatter_reduce_softmax)
+from kgcnn import __indices_first__ as global_indices_first
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='Aggregate')
@@ -56,17 +57,20 @@ class AggregateLocalEdges(Layer):
     def build(self, input_shape):
         assert len(input_shape) == 3
         node_shape, edges_shape, edge_index_shape = input_shape
-        self.to_aggregate.build((edges_shape, edge_index_shape[1:], node_shape))
+        indices_length = edge_index_shape[1:] if global_indices_first else edge_index_shape[:1]
+        self.to_aggregate.build((edges_shape, indices_length, node_shape))
         self.built = True
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 3
         node_shape, edges_shape, edge_index_shape = input_shape
-        return self.to_aggregate.compute_output_shape([edges_shape, edge_index_shape[1:], node_shape])
+        indices_length = edge_index_shape[1:] if global_indices_first else edge_index_shape[:1]
+        return self.to_aggregate.compute_output_shape([edges_shape, indices_length, node_shape])
 
     def call(self, inputs, **kwargs):
         n, edges, edge_index = inputs
-        return self.to_aggregate([edges, edge_index[self.pooling_index], n])
+        receive_indices = edge_index[self.pooling_index] if global_indices_first else edge_index[:, self.pooling_index]
+        return self.to_aggregate([edges, receive_indices, n])
 
 
 class AggregateWeightedLocalEdges(AggregateLocalEdges):
@@ -81,23 +85,25 @@ class AggregateWeightedLocalEdges(AggregateLocalEdges):
     def build(self, input_shape):
         assert len(input_shape) == 4
         node_shape, edges_shape, edge_index_shape, weights_shape = input_shape
-        self.to_aggregate.build((edges_shape, edge_index_shape[1:], node_shape))
-        self.to_aggregate_weights.build((weights_shape, edge_index_shape[1:], node_shape))
+        indices_length = edge_index_shape[1:] if global_indices_first else edge_index_shape[:1]
+        self.to_aggregate.build((edges_shape, indices_length, node_shape))
+        self.to_aggregate_weights.build((weights_shape, indices_length, node_shape))
         self.built = True
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 4
         node_shape, edges_shape, edge_index_shape, weights_shape = input_shape
-        return self.to_aggregate.compute_output_shape([edges_shape, edge_index_shape[1:], node_shape])
+        indices_length = edge_index_shape[1:] if global_indices_first else edge_index_shape[:1]
+        return self.to_aggregate.compute_output_shape([edges_shape, indices_length, node_shape])
 
     def call(self, inputs, **kwargs):
         n, edges, edge_index, weights = inputs
         edges = edges*weights
-
-        out = self.to_aggregate([edges, edge_index[self.pooling_index], n])
+        receive_indices = edge_index[self.pooling_index] if global_indices_first else edge_index[:, self.pooling_index]
+        out = self.to_aggregate([edges, receive_indices, n])
 
         if self.normalize_by_weights:
-            norm = self.to_aggregate_weights([weights, edge_index[self.pooling_index], n])
+            norm = self.to_aggregate_weights([weights, receive_indices, n])
             out = out/norm
         return out
 
@@ -140,13 +146,15 @@ class AggregateLocalEdgesAttention(Layer):
     def build(self, input_shape):
         assert len(input_shape) == 4
         node_shape, edges_shape, attention_shape, edge_index_shape = input_shape
-        self.to_aggregate.build((edges_shape, edge_index_shape[1:], node_shape))
+        indices_length = edge_index_shape[1:] if global_indices_first else edge_index_shape[:1]
+        self.to_aggregate.build((edges_shape, indices_length, node_shape))
         self.built = True
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 4
         node_shape, edges_shape, attention_shape, edge_index_shape = input_shape
-        return self.to_aggregate.compute_output_shape([edges_shape, edge_index_shape[1:], node_shape])
+        indices_length = edge_index_shape[1:] if global_indices_first else edge_index_shape[:1]
+        return self.to_aggregate.compute_output_shape([edges_shape, indices_length, node_shape])
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -162,8 +170,8 @@ class AggregateLocalEdgesAttention(Layer):
         Returns:
             Tensor: Embedding tensor of aggregated edge attentions for each node of shape (N, F)
         """
-        reference, x, attention, disjoint_indices = inputs
-        receive_indices = disjoint_indices[self.pooling_index]
+        reference, x, attention, edge_index = inputs
+        receive_indices = edge_index[self.pooling_index] if global_indices_first else edge_index[:, self.pooling_index]
         shape_attention = ops.shape(reference)[:1] + ops.shape(attention)[1:]
         a = scatter_reduce_softmax(receive_indices, attention, shape=shape_attention, normalize=self.normalize)
         x = x * ops.broadcast_to(a, ops.shape(x))
@@ -279,8 +287,8 @@ class AggregateLocalEdgesLSTM(Layer):
 
     def call(self, inputs, **kwargs):
 
-        n, edges, disjoint_indices, edge_id = inputs
-        receive_indices = disjoint_indices[self.pooling_index]
+        n, edges, edge_index, edge_id = inputs
+        receive_indices = edge_index[self.pooling_index] if global_indices_first else edge_index[:, self.pooling_index]
 
         dim_n = ops.shape(n)[0]
         dim_e_per_n = self.max_edges_per_node if self.max_edges_per_node is not None else 2*dim_n+1

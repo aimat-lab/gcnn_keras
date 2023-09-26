@@ -3,6 +3,7 @@ from keras_core.layers import Layer
 from keras_core import ops
 from kgcnn.ops.core import repeat_static_length
 from kgcnn.ops.scatter import scatter_reduce_sum
+from kgcnn import __indices_first__ as global_indices_first
 
 
 def pad_left(t):
@@ -118,6 +119,14 @@ class CastBatchedIndicesToDisjoint(Layer):
                              ops.shape(node_len)[0], axis=0)
         edge_id = ops.repeat(ops.expand_dims(ops.arange(ops.shape(edge_indices)[1], dtype=dtype_batch), axis=0),
                              ops.shape(edge_len)[0], axis=0)
+
+        # def make_mask_flatten(len_per_dim, target_shape):
+        #     mask = ops.reshape(ops.repeat(
+        #         ops.convert_to_tensor([[True, False]], dtype="bool"), ops.shape(len_per_dim)[0], axis=0), (-1,))
+        #     mask = ops.repeat(mask, ops.reshape(ops.concatenate([ops.expand_dims(len_per_dim, axis=-1),
+        #            ops.expand_dims(target_shape[1] - len_per_dim, axis=-1)], axis=-1), [-1]), axis=0)
+        #     return mask
+
         node_mask = node_id < ops.expand_dims(node_len, axis=-1)
         edge_mask = edge_id < ops.expand_dims(edge_len, axis=-1)
 
@@ -176,7 +185,8 @@ class CastBatchedIndicesToDisjoint(Layer):
             edge_len = ops.concatenate([ops.sum(edge_len_flat[1:] - edge_len, axis=0, keepdims=True), edge_len], axis=0)
 
         # Transpose edge indices.
-        disjoint_indices = ops.transpose(disjoint_indices)
+        if global_indices_first:
+            disjoint_indices = ops.transpose(disjoint_indices)
         if self.reverse_indices:
             disjoint_indices = ops.flip(disjoint_indices, axis=0)
 
@@ -330,7 +340,6 @@ class CastDisjointToGraphState(Layer):
         config = super(CastDisjointToGraphState, self).get_config()
         config.update({"dtype_batch": self.dtype_batch})
         return config
-
 
 
 class CastDisjointToBatchedAttributes(Layer):

@@ -1,6 +1,7 @@
 from typing import Union
 from keras_core.layers import Layer, Concatenate
 from keras_core import ops
+from kgcnn import __indices_first__ as global_indices_first
 
 
 class GatherNodes(Layer):
@@ -15,8 +16,9 @@ class GatherNodes(Layer):
         assert len(input_shape) == 2
         x_shape, indices_shape = list(input_shape[0]), list(input_shape[1])
         xs = []
+        indices_length = indices_shape[1:] if global_indices_first else indices_shape[:1]
         for _ in self.split_indices:
-            xs.append(indices_shape[1:] + x_shape[1:])
+            xs.append(indices_length + x_shape[1:])
         return xs
 
     def build(self, input_shape):
@@ -36,7 +38,8 @@ class GatherNodes(Layer):
         x, index = inputs
         gathered = []
         for i in self.split_indices:
-            x_i = ops.take(x, index[i], axis=0)
+            indices_take = index[i] if global_indices_first else index[:, i]
+            x_i = ops.take(x, indices_take, axis=0)
             gathered.append(x_i)
         if self.concat_axis is not None:
             gathered = self._concat(gathered)
@@ -55,11 +58,13 @@ class GatherNodesOutgoing(Layer):
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 2
         x_shape, indices_shape = list(input_shape[0]),  list(input_shape[1])
-        return tuple(indices_shape[1:] + x_shape[1:])
+        indices_length = indices_shape[1:] if global_indices_first else indices_shape[:1]
+        return tuple(indices_length + x_shape[1:])
 
     def call(self, inputs, **kwargs):
         x, index = inputs
-        return ops.take(x, index[self.selection_index], axis=0)
+        indices_take = index[self.selection_index] if global_indices_first else index[:, self.selection_index]
+        return ops.take(x, indices_take, axis=0)
 
 
 class GatherNodesIngoing(Layer):
@@ -74,11 +79,13 @@ class GatherNodesIngoing(Layer):
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 2
         x_shape, indices_shape = list(input_shape[0]),  list(input_shape[1])
-        return tuple(indices_shape[1:] + x_shape[1:])
+        indices_length = indices_shape[1:] if global_indices_first else indices_shape[:1]
+        return tuple(indices_length + x_shape[1:])
 
     def call(self, inputs, **kwargs):
         x, index = inputs
-        return ops.take(x, index[self.selection_index], axis=0)
+        indices_take = index[self.selection_index] if global_indices_first else index[:, self.selection_index]
+        return ops.take(x, indices_take, axis=0)
 
 
 class GatherState(Layer):
@@ -91,8 +98,8 @@ class GatherState(Layer):
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 2
-        state_shape, _ = list(input_shape[0]),  list(input_shape[1])
-        return tuple([None] + state_shape[1:])
+        state_shape, id_shape = list(input_shape[0]),  list(input_shape[1])
+        return tuple(id_shape + state_shape[1:])
 
     def call(self, inputs, **kwargs):
         env, batch_id = inputs
