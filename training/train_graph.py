@@ -6,7 +6,7 @@ import time
 import kgcnn.training.scheduler  # noqa
 from datetime import timedelta
 import kgcnn.losses.losses
-import kgcnn.metrics.metrics
+from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from kgcnn.training.history import save_history_score, load_history_list, load_time_list
 from kgcnn.data.transform.scaler.serial import deserialize as deserialize_scaler
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
@@ -22,7 +22,7 @@ from kgcnn.data.utils import save_pickle_file
 parser = argparse.ArgumentParser(description='Train a GNN on a graph regression or classification task.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
                     default="hyper/hyper_esol.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="GCN")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="DMPNN")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
@@ -74,10 +74,19 @@ label_names, label_units = dataset.set_multi_target_labels(
 
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.
+if "cross_validation" in hyper["training"]:
+    from sklearn.model_selection import KFold
+    splitter = KFold(**hyper["training"]["cross_validation"]["config"])
+    train_test_indices = [
+        (train_index, test_index) for train_index, test_index in splitter.split(X=np.zeros((data_length, 1)))]
+else:
+    train_test_indices = dataset.get_train_test_indices(train="train", test="test")
+train_indices_all, test_indices_all = [], []
+
+# Run splits.
 execute_folds = args["fold"] if "execute_folds" not in hyper["training"] else hyper["training"]["execute_folds"]
 model, current_split, scaled_predictions = None, None, False
-train_indices_all, test_indices_all = [], []
-for current_split, (train_index, test_index) in enumerate(dataset.get_train_test_indices(train="train", test="test")):
+for current_split, (train_index, test_index) in enumerate(train_test_indices):
 
     # Keep list of train/test indices.
     test_indices_all.append(test_index)
@@ -111,10 +120,8 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
             # If scaler was used we add rescaled standard metrics to compile, since otherwise the keras history will not
             # directly log the original target values, but the scaled ones.
             scaler_scale = scaler.get_scaling()
-            mae_metric = kgcnn.metrics_core.metrics.ScaledMeanAbsoluteError(
-                scaler_scale.shape, name="scaled_mean_absolute_error")
-            rms_metric = kgcnn.metrics_core.metrics.ScaledRootMeanSquaredError(
-                scaler_scale.shape, name="scaled_root_mean_squared_error")
+            mae_metric = ScaledMeanAbsoluteError(scaler_scale.shape, name="scaled_mean_absolute_error")
+            rms_metric = ScaledRootMeanSquaredError(scaler_scale.shape, name="scaled_root_mean_squared_error")
             if scaler_scale is not None:
                 mae_metric.set_scale(scaler_scale)
                 rms_metric.set_scale(scaler_scale)

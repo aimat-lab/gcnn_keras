@@ -83,9 +83,8 @@ class GatherNodesIngoing(Layer):
 
 class GatherState(Layer):
 
-    def __init__(self, selection_index: int = 1, **kwargs):
+    def __init__(self, **kwargs):
         super(GatherState, self).__init__(**kwargs)
-        self.selection_index = selection_index
 
     def build(self, input_shape):
         super(GatherState, self).build(input_shape)
@@ -96,6 +95,41 @@ class GatherState(Layer):
         return tuple([None] + state_shape[1:])
 
     def call(self, inputs, **kwargs):
-        env, target_len = inputs
-        out = ops.repeat(env, target_len, axis=0)
+        env, batch_id = inputs
+        out = ops.take(env, batch_id, axis=0)
         return out
+
+
+class GatherEdgesPairs(Layer):
+    """Gather edge pairs that also works for invalid indices given a certain pair, i.e. if an edge does not have its
+    reverse counterpart in the edge indices list.
+
+    This class is used in `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`__ .
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize layer."""
+        super(GatherEdgesPairs, self).__init__(**kwargs)
+        self.gather_layer = GatherNodesOutgoing()
+
+    def build(self, input_shape):
+        self.gather_layer.build(input_shape)
+        self.built = True
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): [edges, pair_index]
+
+                - edges (Tensor): Edge embeddings of shape ([M], F)
+                - pair_index (Tensor): Edge indices referring to edges of shape (1, [M])
+
+        Returns:
+            Tensor: Gathered edge embeddings that match the reverse edges of shape ([M], F) for index.
+        """
+        edges, pair_index = inputs
+        index_corrected = ops.where(pair_index >= 0, pair_index, ops.zeros_like(pair_index))
+        edges_paired = self.gather_layer([edges, index_corrected], **kwargs)
+        edges_corrected = ops.where(ops.transpose(pair_index) >= 0, edges_paired, ops.zeros_like(edges_paired))
+        return edges_corrected

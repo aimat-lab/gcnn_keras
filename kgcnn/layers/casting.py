@@ -382,3 +382,43 @@ class CastDisjointToBatchedAttributes(Layer):
         config = super(CastDisjointToBatchedAttributes, self).get_config()
         config.update({"dtype_batch": self.dtype_batch})
         return config
+
+
+class CastGraphStateToDisjoint(Layer):
+
+    def __init__(self, reverse_indices: bool = True, dtype_batch: str = "int64", dtype_index=None,
+                 padded_disjoint: bool = False, **kwargs):
+        super(CastGraphStateToDisjoint, self).__init__(**kwargs)
+        self.reverse_indices = reverse_indices
+        self.dtype_batch = dtype_batch
+        self.dtype_index = dtype_index
+        self.supports_jit = True
+        self.padded_disjoint = padded_disjoint
+
+    def build(self, input_shape):
+        self.built = True
+
+    def compute_output_shape(self, input_shape):
+        if self.padded_disjoint:
+            if input_shape[0] is not None:
+                return tuple([input_shape[0] + 1] + list(input_shape[1:]))
+        return input_shape
+
+    def call(self, inputs: list, **kwargs):
+        """Changes graph tensor from disjoint representation.
+
+        Args:
+            inputs (Tensor): Graph labels from a disjoint representation of shape `(batch, ...)` .
+
+        Returns:
+            Tensor: Graph labels of shape `(batch, ...)` .
+        """
+        if self.padded_disjoint:
+            return pad_left(inputs)
+        return inputs
+
+    def get_config(self):
+        """Get config dictionary for this layer."""
+        config = super(CastGraphStateToDisjoint, self).get_config()
+        config.update({"dtype_batch": self.dtype_batch})
+        return config

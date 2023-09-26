@@ -148,6 +148,7 @@ hyper = {
                 "name": "GAT",
                 "inputs": [
                     {"shape": [None, 41], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": (None, 11), "name": "edge_attributes", "dtype": "float32"},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"}
@@ -209,6 +210,68 @@ hyper = {
             "kgcnn_version": "4.0.0"
         }
     },
+    "GATv2": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.GATv2",
+            "config": {
+                "name": "GATv2",
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": (None, 11), "name": "edge_attributes", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
+                ],
+                "cast_disjoint_kwargs": {},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 8, "output_dim": 64},
+                "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
+                                   "use_final_activation": False, "has_self_loops": True},
+                "pooling_nodes_args": {"pooling_method": "scatter_sum"},
+                "depth": 4, "attention_heads_num": 10,
+                "attention_heads_concat": False, "verbose": 10,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
+                               "activation": ["relu", "relu", "linear"]},
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 32, "epochs": 500, "validation_freq": 2, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 250, "epo": 500,
+                        "verbose": 0}
+                     }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 5e-03}},
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}}
+        },
+        "data": {
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "module_name": "kgcnn.data.datasets.ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"set_train_test_indices_k_fold": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+                    {"map_list": {"method": "count_nodes_and_edges"}},
+                ]
+            },
+            "data_unit": "mol/L"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "4.0.0"
+        }
+    },
     "GIN": {
         "model": {
             "class_name": "make_model",
@@ -241,6 +304,7 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam",
                               "config": {"learning_rate": {
+                                  "module": "keras_core.optimizers.schedules",
                                   "class_name": "ExponentialDecay",
                                   "config": {"initial_learning_rate": 0.001,
                                              "decay_steps": 1600,
@@ -248,7 +312,7 @@ hyper = {
                               },
                 "loss": "mean_absolute_error",
             },
-            "scaler": {"class_name": "StandardScaler",
+            "scaler": {"class_name": "StandardLabelScaler",
                        "module_name": "kgcnn.data.transform.scaler.standard",
                        "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
@@ -259,6 +323,77 @@ hyper = {
             "methods": [
                 {"set_attributes": {}},
                 {"set_train_test_indices_k_fold": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+                {"map_list": {"method": "count_nodes_and_edges"}},
+            ]
+        },
+        "data": {
+            "data_unit": "mol/L"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "4.0.0"
+        }
+    },
+    "DMPNN": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.DMPNN",
+            "config": {
+                "name": "DMPNN",
+                "inputs": [
+                    {"shape": (None, 41), "name": "node_attributes", "dtype": "float32"},
+                    {"shape": (None, 11), "name": "edge_attributes", "dtype": "float32"},
+                    {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (None, 1), "name": "edge_indices_reverse", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
+                ],
+                "cast_disjoint_kwargs": {},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
+                "input_graph_embedding": {"input_dim": 100, "output_dim": 64},
+                "pooling_args": {"pooling_method": "scatter_sum"},
+                "edge_initialize": {"units": 128, "use_bias": True, "activation": "relu"},
+                "edge_dense": {"units": 128, "use_bias": True, "activation": "linear"},
+                "edge_activation": {"activation": "relu"},
+                "node_dense": {"units": 128, "use_bias": True, "activation": "relu"},
+                "verbose": 10, "depth": 5,
+                "dropout": {"rate": 0.1},
+                "output_embedding": "graph",
+                "output_mlp": {
+                    "use_bias": [True, True, False], "units": [64, 32, 1],
+                    "activation": ["relu", "relu", "linear"]
+                }
+            }
+        },
+        "training": {
+            "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []},
+            "compile": {
+                "optimizer": {
+                    "class_name": "Adam",
+                    "config": {
+                        "learning_rate":
+                            {"module": "keras_core.optimizers.schedules",
+                             "class_name": "ExponentialDecay",
+                             "config": {"initial_learning_rate": 0.001,
+                                        "decay_steps": 1600,
+                                        "decay_rate": 0.5, "staircase": False}}
+                    }
+                },
+                "loss": "mean_absolute_error",
+            },
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}}
+        },
+        "dataset": {
+            "class_name": "ESOLDataset",
+            "module_name": "kgcnn.data.datasets.ESOLDataset",
+            "config": {},
+            "methods": [
+                {"set_attributes": {}},
+                {"set_train_test_indices_k_fold": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+                {"map_list": {"method": "set_edge_indices_reverse"}},
                 {"map_list": {"method": "count_nodes_and_edges"}},
             ]
         },

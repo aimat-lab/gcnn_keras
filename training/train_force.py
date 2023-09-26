@@ -77,10 +77,18 @@ postfix_file = hyper["info"]["postfix_file"]
 
 # Training on splits. Since training on Force datasets can be expensive, there is a 'execute_splits' parameter to not
 # train on all splits for testing. Can be set via command line or hyperparameter.
-execute_folds = args["fold"] if "execute_folds" not in hyper["training"] else hyper["training"]["execute_folds"]
-splits_done, current_split = 0, None
+if "cross_validation" in hyper["training"]:
+    from sklearn.model_selection import KFold
+    splitter = KFold(**hyper["training"]["cross_validation"]["config"])
+    train_test_indices = [
+        (train_index, test_index) for train_index, test_index in splitter.split(X=np.zeros((data_length, 1)))]
+else:
+    train_test_indices = dataset.get_train_test_indices(train="train", test="test")
 train_indices_all, test_indices_all = [], []
-model, scaled_predictions = None, False
+
+# Run Splits.
+execute_folds = args["fold"] if "execute_folds" not in hyper["training"] else hyper["training"]["execute_folds"]
+model, scaled_predictions, splits_done, current_split = None, False, 0, None
 for current_split, (train_index, test_index) in enumerate(dataset.get_train_test_indices(train="train", test="test")):
 
     # Keep list of train/test indices.

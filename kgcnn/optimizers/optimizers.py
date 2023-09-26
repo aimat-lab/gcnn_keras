@@ -1,9 +1,7 @@
-import tensorflow as tf
-
-ks = tf.keras
+import keras_core as ks
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='Adan')
+@ks.saving.register_keras_serializable(package='kgcnn', name='Adan')
 class Adan(ks.optimizers.Optimizer):
     r"""Optimizer `Adan <https://arxiv.org/abs/2208.06677>`_: Adaptive Nesterov Momentum Algorithm for
     Faster Optimizing Deep Models.
@@ -96,7 +94,7 @@ class Adan(ks.optimizers.Optimizer):
     def _prepare_local(self, var_device, var_dtype, apply_state):
         super(Adan, self)._prepare_local(var_device, var_dtype, apply_state)
 
-        local_step = tf.cast(self.iterations + 1, var_dtype)
+        local_step = ops.cast(self.iterations + 1, var_dtype)
         beta_1_t = tf.identity(self._get_hyper('beta_1', var_dtype))
         beta_2_t = tf.identity(self._get_hyper('beta_2', var_dtype))
         beta_3_t = tf.identity(self._get_hyper('beta_3', var_dtype))

@@ -107,8 +107,8 @@ class ShiftPeriodicLattice(Layer):
         Returns:
             tf.RaggedTensor: Gathered node position number of indices of shape `(batch, [M], 1)`
         """
-        x_val, ei, lattice, num_edges = inputs
-        lattice_rep = self.layer_state([lattice, num_edges], **kwargs)
+        x_val, ei, lattice, batch_id_edge = inputs
+        lattice_rep = self.layer_state([lattice, batch_id_edge], **kwargs)
         # 1. Implementation: Manual multiplication.
         x_val = x_val + ops.sum(ops.cast(lattice_rep, dtype=x_val.dtype) * ops.expand_dims(
             ops.cast(ei, dtype=x_val.dtype), axis=-1), axis=1)
@@ -1027,8 +1027,9 @@ class FracToRealCoordinates(Layer):
         Returns:
             tf.RaggedTensor: Real-space node coordinates of shape `(batch, [N], 3)`.
         """
-        frac_coords, lattice_matrices, row_lengths = inputs
-        lattice_matrices_ = ops.repeat(lattice_matrices, row_lengths, axis=0)
+        frac_coords, lattice_matrices, batch_id_edge = inputs
+        # lattice_matrices_ = ops.repeat(lattice_matrices, row_lengths, axis=0)
+        lattice_matrices_ = self.gather_state()([lattice_matrices, batch_id_edge])
         frac_to_real = ops.einsum('ij,ijk->ik', frac_coords, lattice_matrices_)
         # frac_to_real_coords = ks.backend.batch_dot(frac_coords, lattice_matrices_)
         return frac_to_real
@@ -1057,7 +1058,7 @@ class RealToFracCoordinates(Layer):
         """
         super(RealToFracCoordinates, self).__init__(**kwargs)
         self.is_inverse_lattice_matrix = is_inverse_lattice_matrix
-        # self.gather_state = GatherState()
+        self.gather_state = GatherState()
 
     def build(self, input_shape):
         """Build layer."""
@@ -1075,11 +1076,12 @@ class RealToFracCoordinates(Layer):
         Returns:
             tf.RaggedTensor: Fractional node coordinates of shape `(batch, [N], 3)`.
         """
-        real_coordinates, inv_lattice_matrices, row_lengths = inputs
+        real_coordinates, inv_lattice_matrices, batch_id_edge = inputs
         if not self.is_inverse_lattice_matrix:
             # inv_lattice_matrices = tf.linalg.inv(inv_lattice_matrices)
             raise NotImplementedError()
-        inv_lattice_matrices_ = ops.repeat(inv_lattice_matrices, row_lengths, axis=0)
+        # inv_lattice_matrices_ = ops.repeat(inv_lattice_matrices, row_lengths, axis=0)
+        inv_lattice_matrices_ = self.gather_state([inv_lattice_matrices, batch_id_edge])
         # real_to_frac_coords = ks.backend.batch_dot(real_coordinates, inv_lattice_matrices_)
         real_to_frac_coords = ops.einsum('ij,ijk->ik', real_coordinates, inv_lattice_matrices_)
         return real_to_frac_coords
