@@ -63,21 +63,21 @@ benchmark_datasets = {
     #          "is_min_max": True}
     #     ]
     # },
-    # "MatProjectJdft2dDataset": {
-    #     "general_info": [
-    #         "Materials Project dataset from Matbench with 636 crystal structures ",
-    #         "and their corresponding Exfoliation energy (meV/atom). ",
-    #         "We use a random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [meV/atom]", "find_best": "min"},
-    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [meV/atom]", "find_best": "min"},
-    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
-    #          "is_min_max": True},
-    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
-    #          "is_min_max": True}
-    #     ]
-    # },
+    "MatProjectJdft2dDataset": {
+        "general_info": [
+            "Materials Project dataset from Matbench with 636 crystal structures ",
+            "and their corresponding Exfoliation energy (meV/atom). ",
+            "We use a random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [meV/atom]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [meV/atom]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
+        ]
+    },
     # "MatProjectPhononsDataset": {
     #     "general_info": [
     #         "Materials Project dataset from Matbench with 1,265 crystal structures ",

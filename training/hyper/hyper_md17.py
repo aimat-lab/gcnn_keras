@@ -32,7 +32,7 @@ hyper = {
                             {"shape": (), "name": "total_ranges", "dtype": "int64"}
                         ],
                         "cast_disjoint_kwargs": {"padded_disjoint": False},
-                        "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                        "input_node_embedding": {"input_dim": 95, "output_dim": 128},
                         "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
                                      "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
                         "interaction_args": {

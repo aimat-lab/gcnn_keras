@@ -41,6 +41,14 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 | GCN     | 4.0.0   |      800 | 0.4613 &pm; 0.0205 | 0.6534 &pm; 0.0513 |
 | Schnet  | 4.0.0   |      800 | nan &pm; nan       | nan &pm; nan       |
 
+#### MatProjectJdft2dDataset
+
+Materials Project dataset from Matbench with 636 crystal structures and their corresponding Exfoliation energy (meV/atom). We use a random 5-fold cross-validation. 
+
+| model                     | kgcnn   |   epochs | MAE [meV/atom]           | RMSE [meV/atom]           |
+|:--------------------------|:--------|---------:|:-------------------------|:--------------------------|
+| Schnet.make_crystal_model | 4.0.0   |      800 | **47.0970 &pm; 12.1636** | **121.0402 &pm; 38.7995** |
+
 #### MD17Dataset
 
 Energies and forces for molecular dynamics trajectories of eight organic molecules. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. Results are for the CCSD and CCSD(T) data in MD17. 
