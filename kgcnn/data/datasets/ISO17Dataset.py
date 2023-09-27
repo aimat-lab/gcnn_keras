@@ -110,7 +110,7 @@ class ISO17Dataset(DownloadDataset, MemoryGraphDataset):
                     data["formula"].append(str(row.toatoms().symbols))
                     data["positions"].append(row.positions)
                     data["symbols"].append(row.symbols)
-                    data["total_energy"].append(row['total_energy'])
+                    data["total_energy"].append(np.expand_dims(row['total_energy'], axis=-1))
                     data["atomic_forces"].append(row.data['atomic_forces'])
                     data["train"].append(train)
                     data["test"].append(test)

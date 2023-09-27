@@ -49,6 +49,15 @@ Materials Project dataset from Matbench with 636 crystal structures and their co
 |:--------------------------|:--------|---------:|:-------------------------|:--------------------------|
 | Schnet.make_crystal_model | 4.0.0   |      800 | **47.0970 &pm; 12.1636** | **121.0402 &pm; 38.7995** |
 
+#### ClinToxDataset
+
+ClinTox (MoleculeNet) consists of 1478 compounds as smiles and data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. We use random 5-fold cross-validation. The first label 'approved' is chosen as target.
+
+| model   | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
+|:--------|:--------|---------:|:-----------------------|:-----------------------|
+| GCN     | 4.0.0   |      200 | **0.6911 &pm; 0.1028** | 0.7910 &pm; 0.0593     |
+| GIN     | 4.0.0   |       50 | 0.3447 &pm; 0.1142     | **0.8066 &pm; 0.0636** |
+
 #### MD17Dataset
 
 Energies and forces for molecular dynamics trajectories of eight organic molecules. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. Results are for the CCSD and CCSD(T) data in MD17. 

@@ -38,7 +38,8 @@ hyper = {
                 # "loss": "kgcnn>BinaryCrossentropyNoNaN",
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
                 #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
-                "loss": "binary_crossentropy", "metrics": ["accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
+                "loss": "binary_crossentropy",
+                "metrics": ["binary_accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
             },
             "multi_target_indices": None
         },
@@ -91,6 +92,7 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam",
                               "config": {"learning_rate": {
+                                  "module": "keras_core.optimizers.schedules",
                                   "class_name": "ExponentialDecay",
                                   "config": {"initial_learning_rate": 0.001,
                                              "decay_steps": 5800,
@@ -102,7 +104,8 @@ hyper = {
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
                 #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
-                "loss": "binary_crossentropy", "metrics": ["accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
+                "loss": "binary_crossentropy",
+                "metrics": ["binary_accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
             },
         },
         "dataset": {
@@ -132,8 +135,8 @@ hyper = {
                 "name": "GAT",
                 "inputs": [
                     {"shape": [None, 41], "name": "node_attributes", "dtype": "float32"},
-                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
                     {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
@@ -141,6 +144,7 @@ hyper = {
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 8, "output_dim": 64},
                 "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
+                                    "activation": "kgcnn>leaky_relu",
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "scatter_sum"},
                 "depth": 1, "attention_heads_num": 10,
@@ -166,7 +170,8 @@ hyper = {
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
                 #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
-                "loss": "binary_crossentropy", "metrics": ["accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
+                "loss": "binary_crossentropy",
+                "metrics": ["binary_accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
             },
         },
         "data": {
@@ -196,8 +201,8 @@ hyper = {
                 "name": "GATv2",
                 "inputs": [
                     {"shape": [None, 41], "name": "node_attributes", "dtype": "float32"},
-                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
                     {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
@@ -205,6 +210,7 @@ hyper = {
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 8, "output_dim": 64},
                 "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
+                                   "activation": "kgcnn>leaky_relu",
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "scatter_sum"},
                 "depth": 4, "attention_heads_num": 10,
@@ -230,7 +236,8 @@ hyper = {
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
                 #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
-                "loss": "binary_crossentropy", "metrics": ["accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
+                "loss": "binary_crossentropy",
+                "metrics": ["binary_accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
             },
         },
         "data": {
@@ -297,22 +304,88 @@ hyper = {
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
                 #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
-                "loss": "binary_crossentropy", "metrics": ["accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
+                "loss": "binary_crossentropy",
+                "metrics": ["binary_accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
             }
         },
+        "dataset": {
+            "class_name": "ClinToxDataset",
+            "module_name": "kgcnn.data.datasets.ClinToxDataset",
+            "config": {},
+            "methods": [
+                {"set_attributes": {}},
+                {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 10000}},
+                {"set_train_test_indices_k_fold": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+                {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
+                              "count_edges": "range_indices"}},
+            ]
+        },
         "data": {
-            "dataset": {
-                "class_name": "ClinToxDataset",
-                "module_name": "kgcnn.data.datasets.ClinToxDataset",
-                "config": {},
-                "methods": [
-                    {"set_attributes": {}},
-                    {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 10000}},
-                    {"set_train_test_indices_k_fold": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-                    {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
-                                  "count_edges": "range_indices"}},
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "4.0.0"
+        }
+    },
+    "GCN": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.GCN",
+            "config": {
+                "name": "GCN",
+                "inputs": [
+                    {"shape": (None, 41), "name": "node_attributes", "dtype": "float32"},
+                    {"shape": (None, 1), "name": "edge_weights", "dtype": "float32"},
+                    {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
+                ],
+                "cast_disjoint_kwargs": {"padded_disjoint": False},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 25, "output_dim": 1},
+                "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
+                "depth": 5, "verbose": 10,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 1],
+                               "activation": ["relu", "relu", "sigmoid"]},
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 32,
+                "epochs": 50,
+                "validation_freq": 10,
+                "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 1e-03, "learning_rate_stop": 5e-05, "epo_min": 250, "epo": 800,
+                        "verbose": 0}}
                 ]
             },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 0.0005}},
+                # "loss": "kgcnn>BinaryCrossentropyNoNaN",
+                # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
+                #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                "loss": "binary_crossentropy",
+                "metrics": ["binary_accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
+            },
+        },
+        "dataset": {
+            "class_name": "ClinToxDataset",
+            "module_name": "kgcnn.data.datasets.ClinToxDataset",
+            "config": {},
+            "methods": [
+                {"set_attributes": {}},
+                {"set_train_test_indices_k_fold": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+                {"map_list": {"method": "normalize_edge_weights_sym"}},
+                {"map_list": {"method": "count_nodes_and_edges"}},
+            ]
+        },
+        "data": {
+            "data_unit": ""
         },
         "info": {
             "postfix": "",
