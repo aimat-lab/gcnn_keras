@@ -19,7 +19,7 @@ class TestCastBatchedIndicesToDisjoint(TestCase):
 
     def test_correctness(self):
 
-        layer = CastBatchedIndicesToDisjoint()
+        layer = CastBatchedIndicesToDisjoint(reverse_indices=True)
         layer_input = [self.nodes, ops.cast(self.edge_indices, dtype="int64"), self.node_len, self.edge_len]
         node_attr, edge_index, batch_node, batch_edge, node_id, edge_id, node_count, edge_count = layer(layer_input)
         self.assertAllClose(node_attr, [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0]])
@@ -38,7 +38,7 @@ class TestCastBatchedIndicesToDisjoint(TestCase):
 
     def test_correctness_padding(self):
 
-        layer = CastBatchedIndicesToDisjoint(padded_disjoint=True)
+        layer = CastBatchedIndicesToDisjoint(padded_disjoint=True, reverse_indices=True)
         layer_input = [self.nodes, ops.cast(self.edge_indices, dtype="int64"), self.node_len, self.edge_len]
         node_attr, edge_index, batch_node, batch_edge, node_id, edge_id, node_count, edge_count = layer(layer_input)
 
@@ -71,7 +71,7 @@ class TestCastBatchedAttributesToDisjoint(TestCase):
 
     def test_correctness(self):
 
-        layer = CastBatchedAttributesToDisjoint()
+        layer = CastBatchedAttributesToDisjoint(reverse_indices=True)
         layer_input = [self.nodes, self.node_len]
         node_attr, graph_id_node, node_id, node_len = layer(layer_input)
         self.assertAllClose(node_attr, [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0]])
@@ -84,7 +84,7 @@ class TestCastBatchedAttributesToDisjoint(TestCase):
         for f, e in zip(output_shape, expected_output_shape):
             self.assertTrue(compare_static_shapes(f, e), msg=f"Shape mismatch: {f} vs. {e}")
 
-        layer = CastBatchedAttributesToDisjoint()
+        layer = CastBatchedAttributesToDisjoint(reverse_indices=True)
         layer_input = [self.edges, self.edge_len]
         edge_attr, graph_id_edge, edge_id, edge_len = layer(layer_input)
         self.assertAllClose(edge_attr, [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0]])
@@ -99,7 +99,7 @@ class TestCastBatchedAttributesToDisjoint(TestCase):
 
     def test_correctness_padding(self):
 
-        layer = CastBatchedAttributesToDisjoint(padded_disjoint=True)
+        layer = CastBatchedAttributesToDisjoint(padded_disjoint=True, reverse_indices=True)
         layer_input = [self.nodes, self.node_len]
         node_attr, graph_id_node, node_id, node_len = layer(layer_input)
         self.assertAllClose(node_attr, [[0.0, 0.0], [0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]])

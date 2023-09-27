@@ -22,6 +22,14 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attribu
 | GIN       | 4.0.0   |      500 | 0.8279 &pm; 0.0170     |
 | GraphSAGE | 4.0.0   |      500 | **0.8497 &pm; 0.0100** |
 
+#### CoraDataset
+
+Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. Here we use random 5-fold cross-validation on nodes. 
+
+| model   | kgcnn   |   epochs | Categorical accuracy   |
+|:--------|:--------|---------:|:-----------------------|
+| GCN     | 4.0.0   |      300 | **0.6232 &pm; 0.0054** |
+
 #### ESOLDataset
 
 ESOL consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation. 

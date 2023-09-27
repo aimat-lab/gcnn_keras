@@ -108,8 +108,10 @@ class MD17RevisedDataset(DownloadDataset, MemoryGraphDataset):
         """
         data = self._get_trajectory_from_npz()
         self.data_keys = list(data.keys())
-        for key in ["coords", "energies", "forces", "old_indices", "old_energies", "old_forces"]:
+
+        for key in ["coords", "forces", "old_indices", "old_energies", "old_forces"]:
             self.assign_property(key, [x for x in data[key]])
+        self.assign_property("energies", [np.expand_dims(x, axis=-1) for x in data["energies"]])
         node_number = data["nuclear_charges"]
         self.assign_property("nuclear_charges", [np.array(node_number) for _ in range(len(self))])
 

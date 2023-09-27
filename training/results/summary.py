@@ -23,17 +23,17 @@ benchmark_datasets = {
              "is_min_max": True},
         ]
     },
-    # "CoraDataset": {
-    #     "general_info": [
-    #         "Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. ",
-    #         "Here we use random 5-fold cross-validation on nodes. ",
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"},
-    #         {"metric": "max_val_categorical_accuracy", "name": "*Max. Categorical accuracy*", "find_best": "max",
-    #          "is_min_max": True},
-    #     ]
-    # },
+    "CoraDataset": {
+        "general_info": [
+            "Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. ",
+            "Here we use random 5-fold cross-validation on nodes. ",
+        ],
+        "targets": [
+            {"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"},
+            {"metric": "max_val_categorical_accuracy", "name": "*Max. Categorical accuracy*", "find_best": "max",
+             "is_min_max": True},
+        ]
+    },
     "ESOLDataset": {
         "general_info": [
             "ESOL consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). ",

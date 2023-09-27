@@ -249,7 +249,13 @@ class EnergyForceExtensiveLabelScaler(_ExtensiveMolecularScalerBase):
     def get_config(self) -> dict:
         """Get configuration for scaler."""
         config = super(EnergyForceExtensiveLabelScaler, self).get_config()
-        config.update({"standardize_coordinates": self._standardize_coordinates})
+        config.update({
+            "standardize_coordinates": self._standardize_coordinates,
+            "energy": self._energy,
+            "force": self._force,
+            "atomic_number": self._atomic_number,
+            "sample_weight": self._sample_weight
+        })
         return config
 
     def set_config(self, config: dict):
@@ -259,7 +265,12 @@ class EnergyForceExtensiveLabelScaler(_ExtensiveMolecularScalerBase):
             config (dict): Config dictionary.
         """
         self._standardize_coordinates = config["standardize_coordinates"]
-        config_super = {key: value for key, value in config.items() if key not in ["standardize_coordinates"]}
+        self._energy = config["energy"]
+        self._force = config["force"]
+        self._atomic_number = config["atomic_number"]
+        self._sample_weight = config["sample_weight"]
+        config_super = {key: value for key, value in config.items() if key not in [
+            "standardize_coordinates", "energy", "force", "atomic_number", "sample_weight"]}
         return super(EnergyForceExtensiveLabelScaler, self).set_config(config_super)
 
     # Similar functions that work on dataset plus property names.

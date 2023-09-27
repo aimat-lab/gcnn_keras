@@ -102,7 +102,7 @@ class ShiftPeriodicLattice(Layer):
                 - position (tf.RaggedTensor): Positions of shape `(M, 3)`
                 - edge_image (tf.RaggedTensor): Position in which image to shift of shape `(M, 3)`
                 - lattice (tf.tensor): Lattice vector matrix of shape `(batch, 3, 3)`
-                - num_edges (Tensor): Number of edges per graph of shape `(batch, )`
+                - batch_id_edge (Tensor): Number of edges per graph of shape `(batch, )`
 
         Returns:
             tf.RaggedTensor: Gathered node position number of indices of shape `(batch, [M], 1)`

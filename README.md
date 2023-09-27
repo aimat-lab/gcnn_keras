@@ -125,7 +125,7 @@ n_node_updates = ks.layers.Concatenate()([n, node_updates])
 n_embedding = ks.layers.Dense(1)(n_node_updates)
 g_embedding = PoolingNodes()([total_n, n_embedding, batch_id])
 
-message_passing = ks.models.Model(inputs=[n, idx, e_idx, total_n, total_e], outputs=g_embedding)
+message_passing = ks.models.Model(inputs=[n, e_idx, total_n, total_e], outputs=g_embedding)
 ```
 
 The actual message passing model can further be structured by e.g. subclassing the message passing base layer:
@@ -240,7 +240,7 @@ dataset = MemoryGraphDataset(data_directory="ExampleDir/",
 dataset.save()  # opposite is load(). 
 ```
 
-The subclasses `QMDataset`, `ForceDataset`, `MoleculeNetDataset`, `CrystalDataset`, `VisualGraphDataset` and `GraphTUDataset` further have functions required for the specific dataset type to convert and process files such as '.txt', '.sdf', '.xyz' etc. 
+The subclasses `QMDataset`, `ForceDataset`, `MoleculeNetDataset`, `CrystalDataset` and `GraphTUDataset` further have functions required for the specific dataset type to convert and process files such as '.txt', '.sdf', '.xyz' etc. 
 Most subclasses implement `prepare_data()` and `read_in_memory()` with dataset dependent arguments.
 An example for `MoleculeNetDataset` is shown below. 
 For more details find tutorials in [notebooks](notebooks).

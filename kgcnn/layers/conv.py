@@ -277,7 +277,7 @@ class SchNetInteraction(Layer):
 
 class GIN(Layer):
     r"""Convolutional unit of `Graph Isomorphism Network from: How Powerful are Graph Neural Networks?
-    <https://arxiv.org/abs/1810.00826>`_ .
+    <https://arxiv.org/abs/1810.00826>`__ .
 
     Computes graph convolution at step :math:`k` for node embeddings :math:`h_\nu` as:
 
@@ -347,12 +347,13 @@ class GIN(Layer):
 
 
 class GINE(Layer):
-    r"""Convolutional unit of `Strategies for Pre-training Graph Neural Networks <https://arxiv.org/abs/1905.12265>`_ .
+    r"""Convolutional unit of `Strategies for Pre-training Graph Neural Networks <https://arxiv.org/abs/1905.12265>`__ .
 
     Computes graph convolution with node embeddings :math:`\mathbf{h}` and compared to :obj:`GIN_conv`,
     adds edge embeddings of :math:`\mathbf{e}_{ij}`.
 
     .. math::
+
         \mathbf{h}^{\prime}_i = f_{\mathbf{\Theta}} \left( (1 + \epsilon) \cdot
         \mathbf{h}_i + \sum_{j \in \mathcal{N}(i)} \phi \; ( \mathbf{h}_j + \mathbf{e}_{ij} ) \right),
 
@@ -360,8 +361,8 @@ class GINE(Layer):
     but defaults to RELU.
 
     .. note::
-        The final non-linear mapping :math:`f_{\mathbf{\Theta}}`, usually an :obj:`MLP`, is not included in this layer.
 
+        The final non-linear mapping :math:`f_{\mathbf{\Theta}}`, usually an :obj:`MLP`, is not included in this layer.
     """
 
     def __init__(self,
