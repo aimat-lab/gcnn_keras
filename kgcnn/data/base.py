@@ -678,7 +678,9 @@ class MemoryGraphDataset(MemoryGraphList):
 
         if split_index is None:
             train_to_check = self.obtain_property(train)
-            split_index = list(np.sort(np.unique(np.concatenate([x for x in train_to_check if x is not None], axis=0))))
+            train_to_check = [
+                np.expand_dims(x, axis=0) if len(x.shape) < 1 else x for x in train_to_check if x is not None]
+            split_index = list(np.sort(np.unique(np.concatenate(train_to_check, axis=0))))
         if not isinstance(split_index, (list, tuple)):
             split_index_list: List[int] = [split_index]
         else:
