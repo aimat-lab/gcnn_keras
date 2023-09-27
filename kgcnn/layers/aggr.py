@@ -59,16 +59,16 @@ class AggregateLocalEdges(Layer):
 
     def build(self, input_shape):
         assert len(input_shape) == 3
-        node_shape, edges_shape, edge_index_shape = input_shape
+        node_shape, edges_shape, edge_index_shape = [list(x) for x in input_shape]
         edge_index_shape.pop(self.axis_indices)
-        self.to_aggregate.build((edges_shape, edge_index_shape, node_shape))
+        self.to_aggregate.build([tuple(x) for x in [edges_shape, edge_index_shape, node_shape]])
         self.built = True
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 3
-        node_shape, edges_shape, edge_index_shape = input_shape
+        node_shape, edges_shape, edge_index_shape = [list(x) for x in input_shape]
         edge_index_shape.pop(self.axis_indices)
-        return self.to_aggregate.compute_output_shape([edges_shape, edge_index_shape, node_shape])
+        return self.to_aggregate.compute_output_shape([tuple(x) for x in [edges_shape, edge_index_shape, node_shape]])
 
     def call(self, inputs, **kwargs):
         n, edges, edge_index = inputs
@@ -89,17 +89,17 @@ class AggregateWeightedLocalEdges(AggregateLocalEdges):
 
     def build(self, input_shape):
         assert len(input_shape) == 4
-        node_shape, edges_shape, edge_index_shape, weights_shape = input_shape
+        node_shape, edges_shape, edge_index_shape, weights_shape = [list(x) for x in input_shape]
         edge_index_shape.pop(self.axis_indices)
-        self.to_aggregate.build((edges_shape, edge_index_shape, node_shape))
-        self.to_aggregate_weights.build((weights_shape, edge_index_shape, node_shape))
+        self.to_aggregate.build([tuple(x) for x in [edges_shape, edge_index_shape, node_shape]])
+        self.to_aggregate_weights.build([tuple(x) for x in [weights_shape, edge_index_shape, node_shape]])
         self.built = True
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 4
-        node_shape, edges_shape, edge_index_shape, weights_shape = input_shape
+        node_shape, edges_shape, edge_index_shape, weights_shape = [list(x) for x in input_shape]
         edge_index_shape.pop(self.axis_indices)
-        return self.to_aggregate.compute_output_shape([edges_shape, edge_index_shape, node_shape])
+        return self.to_aggregate.compute_output_shape([tuple(x) for x in [edges_shape, edge_index_shape, node_shape]])
 
     def call(self, inputs, **kwargs):
         n, edges, edge_index, weights = inputs
@@ -152,16 +152,16 @@ class AggregateLocalEdgesAttention(Layer):
 
     def build(self, input_shape):
         assert len(input_shape) == 4
-        node_shape, edges_shape, attention_shape, edge_index_shape = input_shape
+        node_shape, edges_shape, attention_shape, edge_index_shape = [list(x) for x in input_shape]
         edge_index_shape.pop(self.axis_indices)
-        self.to_aggregate.build((edges_shape, edge_index_shape, node_shape))
+        self.to_aggregate.build([tuple(x) for x in [edges_shape, edge_index_shape, node_shape]])
         self.built = True
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 4
-        node_shape, edges_shape, attention_shape, edge_index_shape = input_shape
+        node_shape, edges_shape, attention_shape, edge_index_shape = [list(x) for x in input_shape]
         edge_index_shape.pop(self.axis_indices)
-        return self.to_aggregate.compute_output_shape([edges_shape, edge_index_shape, node_shape])
+        return self.to_aggregate.compute_output_shape([tuple(x) for x in [edges_shape, edge_index_shape, node_shape]])
 
     def call(self, inputs, **kwargs):
         """Forward pass.
