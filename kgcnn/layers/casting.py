@@ -3,7 +3,7 @@ from keras_core.layers import Layer
 from keras_core import ops
 from kgcnn.ops.core import repeat_static_length
 from kgcnn.ops.scatter import scatter_reduce_sum
-from kgcnn import __indices_first__ as global_indices_first
+from kgcnn import __indices_axis__ as global_axis_indices
 
 
 def pad_left(t):
@@ -185,10 +185,11 @@ class CastBatchedIndicesToDisjoint(Layer):
             edge_len = ops.concatenate([ops.sum(edge_len_flat[1:] - edge_len, axis=0, keepdims=True), edge_len], axis=0)
 
         # Transpose edge indices.
-        if global_indices_first:
+        if global_axis_indices == 0:
             disjoint_indices = ops.transpose(disjoint_indices)
+
         if self.reverse_indices:
-            disjoint_indices = ops.flip(disjoint_indices, axis=0)
+            disjoint_indices = ops.flip(disjoint_indices, axis=global_axis_indices)
 
         return [nodes_flatten, disjoint_indices, graph_id_node, graph_id_edge, node_id, edge_id, node_len, edge_len]
 

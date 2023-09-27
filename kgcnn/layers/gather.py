@@ -1,24 +1,29 @@
 from typing import Union
 from keras_core.layers import Layer, Concatenate
 from keras_core import ops
-from kgcnn import __indices_first__ as global_indices_first
+from kgcnn import __indices_axis__ as global_axis_indices
+from kgcnn import __index_send__ as global_index_send
+from kgcnn import __index_receive__ as global_index_receive
 
 
 class GatherNodes(Layer):
 
-    def __init__(self, split_indices=(0, 1), concat_axis: Union[int, None] = 1, **kwargs):
+    def __init__(self, split_indices=(0, 1),
+                 concat_axis: Union[int, None] = 1,
+                 axis_indices: int = global_axis_indices, **kwargs):
         super(GatherNodes, self).__init__(**kwargs)
         self.split_indices = split_indices
         self.concat_axis = concat_axis
+        self.axis_indices = axis_indices
         self._concat = Concatenate(axis=concat_axis)
 
     def _compute_gathered_shape(self, input_shape):
         assert len(input_shape) == 2
         x_shape, indices_shape = list(input_shape[0]), list(input_shape[1])
         xs = []
-        indices_length = indices_shape[1:] if global_indices_first else indices_shape[:1]
+        indices_shape.pop(self.axis_indices)
         for _ in self.split_indices:
-            xs.append(indices_length + x_shape[1:])
+            xs.append(indices_shape + x_shape[1:])
         return xs
 
     def build(self, input_shape):
@@ -38,7 +43,7 @@ class GatherNodes(Layer):
         x, index = inputs
         gathered = []
         for i in self.split_indices:
-            indices_take = index[i] if global_indices_first else index[:, i]
+            indices_take = ops.take(index, i, axis=self.axis_indices)
             x_i = ops.take(x, indices_take, axis=0)
             gathered.append(x_i)
         if self.concat_axis is not None:
@@ -48,9 +53,10 @@ class GatherNodes(Layer):
 
 class GatherNodesOutgoing(Layer):
 
-    def __init__(self, selection_index: int = 0, **kwargs):
+    def __init__(self, selection_index: int = global_index_send, axis_indices: int = global_axis_indices, **kwargs):
         super(GatherNodesOutgoing, self).__init__(**kwargs)
         self.selection_index = selection_index
+        self.axis_indices = axis_indices
 
     def build(self, input_shape):
         super(GatherNodesOutgoing, self).build(input_shape)
@@ -58,20 +64,21 @@ class GatherNodesOutgoing(Layer):
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 2
         x_shape, indices_shape = list(input_shape[0]),  list(input_shape[1])
-        indices_length = indices_shape[1:] if global_indices_first else indices_shape[:1]
-        return tuple(indices_length + x_shape[1:])
+        indices_shape.pop(self.axis_indices)
+        return tuple(indices_shape + x_shape[1:])
 
     def call(self, inputs, **kwargs):
         x, index = inputs
-        indices_take = index[self.selection_index] if global_indices_first else index[:, self.selection_index]
+        indices_take = ops.take(index, self.selection_index, axis=self.axis_indices)
         return ops.take(x, indices_take, axis=0)
 
 
 class GatherNodesIngoing(Layer):
 
-    def __init__(self, selection_index: int = 1, **kwargs):
+    def __init__(self, selection_index: int = global_index_receive, axis_indices: int = global_axis_indices, **kwargs):
         super(GatherNodesIngoing, self).__init__(**kwargs)
         self.selection_index = selection_index
+        self.axis_indices = axis_indices
 
     def build(self, input_shape):
         super(GatherNodesIngoing, self).build(input_shape)
@@ -79,12 +86,12 @@ class GatherNodesIngoing(Layer):
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 2
         x_shape, indices_shape = list(input_shape[0]),  list(input_shape[1])
-        indices_length = indices_shape[1:] if global_indices_first else indices_shape[:1]
-        return tuple(indices_length + x_shape[1:])
+        indices_shape.pop(self.axis_indices)
+        return tuple(indices_shape + x_shape[1:])
 
     def call(self, inputs, **kwargs):
         x, index = inputs
-        indices_take = index[self.selection_index] if global_indices_first else index[:, self.selection_index]
+        indices_take = ops.take(index, self.selection_index, axis=self.axis_indices)
         return ops.take(x, indices_take, axis=0)
 
 
@@ -111,14 +118,20 @@ class GatherEdgesPairs(Layer):
     """Gather edge pairs that also works for invalid indices given a certain pair, i.e. if an edge does not have its
     reverse counterpart in the edge indices list.
 
-    This class is used in `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`__ .
+    This class is used in e.g. `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`__ .
     """
 
-    def __init__(self, **kwargs):
-        """Initialize layer."""
+    def __init__(self, axis_indices: int = global_axis_indices, **kwargs):
+        """Initialize layer.
+
+        Args:
+            axis_indices (int): Axis of indices. Default is 0.
+        """
         super(GatherEdgesPairs, self).__init__(**kwargs)
+        self.axis_indices = axis_indices
 
     def build(self, input_shape):
+        """Build this layer."""
         self.built = True
 
     def call(self, inputs, **kwargs):
@@ -134,7 +147,7 @@ class GatherEdgesPairs(Layer):
             Tensor: Gathered edge embeddings that match the reverse edges of shape ([M], F) for index.
         """
         edges, pair_index = inputs
-        indices_take = pair_index[0] if global_indices_first else pair_index[:, 0]
+        indices_take = ops.take(pair_index, 0, self.axis_indices)
         index_corrected = ops.where(indices_take >= 0, indices_take, ops.zeros_like(indices_take))
         edges_paired = ops.take(edges, index_corrected, axis=0)
         edges_corrected = ops.where(
