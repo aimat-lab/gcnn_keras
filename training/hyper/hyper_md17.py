@@ -1,5 +1,5 @@
 # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
-trajectory_name = "ethanol_ccsd_t"
+trajectory_name = "toluene_ccsd_t"
 
 hyper = {
     "Schnet.EnergyForceModel": {

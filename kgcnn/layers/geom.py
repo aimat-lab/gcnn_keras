@@ -657,7 +657,7 @@ class PositionEncodingBasisLayer(Layer):
 
         Args:
             inputs (tf.Tensor, tf.RaggedTensor): Tensor input with position or distance to expand into encodings.
-                Tensor must have a broadcastable dimension at last axis, e.g. shape (N, 1). Tensor must be type 'float'.
+                Tensor must have a broadcasting dimension at last axis, e.g. shape (N, 1). Tensor must be type 'float'.
             dim_half (int): Dimension of the half output embedding space. Defaults to 10.
             wave_length_min (float): Wavelength for positional sin and cos expansion. Defaults to 1.
             num_mult (int, float): Number of the geometric expansion multiplier. Default is 100.

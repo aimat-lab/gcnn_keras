@@ -24,7 +24,7 @@ class CastBatchedIndicesToDisjoint(Layer):
     batched tensors is currently built in the framework.
     """
 
-    def __init__(self, reverse_indices: bool = True, dtype_batch: str = "int64", dtype_index=None,
+    def __init__(self, reverse_indices: bool = False, dtype_batch: str = "int64", dtype_index=None,
                  padded_disjoint: bool = False, ragged: bool = False, **kwargs):
         super(CastBatchedIndicesToDisjoint, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
@@ -203,7 +203,7 @@ class CastBatchedIndicesToDisjoint(Layer):
 
 class CastBatchedAttributesToDisjoint(Layer):
 
-    def __init__(self, reverse_indices: bool = True, dtype_batch: str = "int64", dtype_index=None,
+    def __init__(self, reverse_indices: bool = False, dtype_batch: str = "int64", dtype_index=None,
                  padded_disjoint: bool = False, ragged: bool = False, **kwargs):
         super(CastBatchedAttributesToDisjoint, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
@@ -305,7 +305,7 @@ class CastBatchedAttributesToDisjoint(Layer):
 
 class CastDisjointToGraphState(Layer):
 
-    def __init__(self, reverse_indices: bool = True, dtype_batch: str = "int64", dtype_index=None,
+    def __init__(self, reverse_indices: bool = False, dtype_batch: str = "int64", dtype_index=None,
                  padded_disjoint: bool = False, **kwargs):
         super(CastDisjointToGraphState, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
@@ -345,7 +345,7 @@ class CastDisjointToGraphState(Layer):
 
 class CastDisjointToBatchedAttributes(Layer):
 
-    def __init__(self, reverse_indices: bool = True, dtype_batch: str = "int64", dtype_index=None,
+    def __init__(self, reverse_indices: bool = False, dtype_batch: str = "int64", dtype_index=None,
                  padded_disjoint: bool = False, **kwargs):
         super(CastDisjointToBatchedAttributes, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
@@ -396,7 +396,7 @@ class CastDisjointToBatchedAttributes(Layer):
 
 class CastGraphStateToDisjoint(Layer):
 
-    def __init__(self, reverse_indices: bool = True, dtype_batch: str = "int64", dtype_index=None,
+    def __init__(self, reverse_indices: bool = False, dtype_batch: str = "int64", dtype_index=None,
                  padded_disjoint: bool = False, **kwargs):
         super(CastGraphStateToDisjoint, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
