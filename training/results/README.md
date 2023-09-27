@@ -26,9 +26,18 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attribu
 
 ESOL consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation. 
 
-| model   | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
-|:--------|:--------|---------:|:-----------------------|:-----------------------|
-| GAT     | 4.0.0   |      500 | 0.4826 &pm; 0.0255     | 0.6903 &pm; 0.0705     |
-| GCN     | 4.0.0   |      800 | **0.4623 &pm; 0.0224** | **0.6567 &pm; 0.0456** |
-| Schnet  | 4.0.0   |      800 | 0.4678 &pm; 0.0227     | 0.6662 &pm; 0.0629     |
+| model   | kgcnn   |   epochs | MAE [log mol/L]    | RMSE [log mol/L]   |
+|:--------|:--------|---------:|:-------------------|:-------------------|
+| DMPNN   | 4.0.0   |      300 | 0.4556 &pm; 0.0281 | 0.6471 &pm; 0.0299 |
+| GAT     | 4.0.0   |      500 | **nan &pm; nan**   | **nan &pm; nan**   |
+| GCN     | 4.0.0   |      800 | 0.4613 &pm; 0.0205 | 0.6534 &pm; 0.0513 |
+| Schnet  | 4.0.0   |      800 | nan &pm; nan       | nan &pm; nan       |
+
+#### MD17Dataset
+
+Energies and forces for molecular dynamics trajectories of eight organic molecules. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. Results are for the CCSD and CCSD(T) data in MD17. 
+
+| model                   | kgcnn   |   epochs | Aspirin             | Toluene             | Malonaldehyde       | Benzene             | Ethanol             |
+|:------------------------|:--------|---------:|:--------------------|:--------------------|:--------------------|:--------------------|:--------------------|
+| Schnet.EnergyForceModel | 4.0.0   |     1000 | **1.2173 &pm; nan** | **0.7395 &pm; nan** | **0.8444 &pm; nan** | **0.3429 &pm; nan** | **0.5471 &pm; nan** |
 
