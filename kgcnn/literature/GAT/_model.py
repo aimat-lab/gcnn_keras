@@ -29,14 +29,14 @@ if backend_to_use() not in __kgcnn_model_backend_supported__:
 model_default = {
     "name": "GAT",
     "inputs": [
-        {"shape": (None, ), "name": "node_attributes", "dtype": "float32"},
-        {"shape": (None, ), "name": "edge_attributes", "dtype": "float32"},
+        {"shape": (None,), "name": "node_attributes", "dtype": "float32"},
+        {"shape": (None,), "name": "edge_attributes", "dtype": "float32"},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
     "cast_disjoint_kwargs": {},
-    "input_node_embedding":  {"input_dim": 95, "output_dim": 64},
+    "input_node_embedding": {"input_dim": 95, "output_dim": 64},
     "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
     "attention_args": {"units": 32, "use_final_activation": False, "use_edge_features": True,
                        "has_self_loops": True, "activation": "kgcnn>leaky_relu", "use_bias": True},
@@ -114,8 +114,8 @@ def make_model(inputs: list = None,
         **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
     ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
 
-    # Disjoint core block
-    out = model_disjoint(
+    # Wrapping disjoint model.
+    out = disjoint_block(
         [n, ed, disjoint_indices, batch_id_node, count_nodes],
         use_node_embedding=len(inputs[0]['shape']) < 2, use_edge_embedding=len(inputs[1]['shape']) < 2,
         input_node_embedding=input_node_embedding, input_edge_embedding=input_edge_embedding,
@@ -143,23 +143,24 @@ def make_model(inputs: list = None,
     if output_scaling is not None:
         def set_scale(*args, **kwargs):
             scaler.set_scale(*args, **kwargs)
+
         setattr(model, "set_scale", set_scale)
 
     return model
 
 
-def model_disjoint(inputs,
-                    use_node_embedding: bool = False,
-                    use_edge_embedding: bool = False,
-                    input_node_embedding: dict = None,
-                    input_edge_embedding: dict = None,
-                    attention_args: dict = None,
-                    pooling_nodes_args: dict = None,
-                    depth: int = None,
-                    attention_heads_num: int = None,
-                    attention_heads_concat: bool = None,
-                    output_embedding: str = None,
-                    output_mlp: dict = None):
+def disjoint_block(inputs,
+                   use_node_embedding: bool = False,
+                   use_edge_embedding: bool = False,
+                   input_node_embedding: dict = None,
+                   input_edge_embedding: dict = None,
+                   attention_args: dict = None,
+                   pooling_nodes_args: dict = None,
+                   depth: int = None,
+                   attention_heads_num: int = None,
+                   attention_heads_concat: bool = None,
+                   output_embedding: str = None,
+                   output_mlp: dict = None):
     # Model implementation with disjoint representation.
     n, ed, disjoint_indices, batch_id_node, count_nodes = inputs
 
