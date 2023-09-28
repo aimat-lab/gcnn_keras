@@ -98,10 +98,12 @@ all padded nodes to a discarded graph with zero index.
 
 ### Model
 
-The keras layers can be used with PyG compatible tensor representation. 
-Or even by simply wrapping a PyG model with `TorchModuleWrapper`.
-Here an example of a minimal message passing GNN with either direct disjoint input from a PyG dataloader,
-or with a simple padded input and conversion layer:
+The keras layers in [kgcnn.layers](kgcnn/layers) can be used with PyG compatible tensor representation. 
+Or even by simply wrapping a PyG model with `TorchModuleWrapper`. Efficient model loading can be achieved 
+in multiple ways (see [kgcnn.io](kgcnn/io)).
+For most simple keras-like behaviour, the model can fed with batched padded or ragged tensor which are converted to/from
+disjoint representation wrapping the PyG equivalent model.
+Here an example of a minimal message passing GNN:
 
 ```python
 import keras_core as ks

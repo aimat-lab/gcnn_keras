@@ -28,6 +28,7 @@ if backend_to_use() not in __kgcnn_model_backend_supported__:
 # Volker Settels, Tommi Jaakkola, Klavs Jensen, and Regina Barzilay
 # https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237
 
+
 model_default = {
     "name": "DMPNN",
     "inputs": [
@@ -133,13 +134,66 @@ def make_model(name: str = None,
     _, ed_pairs, _, _, _, _, _, _ = CastBatchedIndicesToDisjoint(
         **cast_disjoint_kwargs)([batched_indices, batched_reverse, count_edges, count_edges])
 
+    out = model_disjoint(
+        [n, ed, edi, batch_id_node, ed_pairs, count_nodes, graph_state],
+        use_node_embedding=len(inputs[0]['shape']) < 2, use_edge_embedding=len(inputs[1]['shape']) < 2,
+        use_graph_embedding=len(inputs[7]["shape"]) < 1 if use_graph_state else False,
+        input_node_embedding=input_node_embedding,
+        input_edge_embedding=input_edge_embedding, input_graph_embedding=input_graph_embedding,
+        pooling_args=pooling_args, edge_initialize=edge_initialize, edge_activation=edge_activation,
+        node_dense=node_dense, dropout=dropout, depth=depth, use_graph_state=use_graph_state,
+        output_embedding=output_embedding, output_mlp=output_mlp, edge_dense=edge_dense
+    )
+
+    if output_embedding == 'graph':
+        out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
+    elif output_embedding == 'node':
+        if output_to_tensor:
+            out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
+        else:
+            out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
+
+    if output_scaling is not None:
+        scaler = get_scaler(output_scaling["name"])(**output_scaling)
+        out = scaler(out)
+
+    model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
+    model.__kgcnn_model_version__ = __model_version__
+
+    if output_scaling is not None:
+        def set_scale(*args, **kwargs):
+            scaler.set_scale(*args, **kwargs)
+
+        setattr(model, "set_scale", set_scale)
+    return model
+
+
+def model_disjoint(inputs: list = None,
+                   use_node_embedding: bool = False,
+                   use_edge_embedding: bool = False,
+                   use_graph_embedding: bool = False,
+                   input_node_embedding: dict = None,
+                   input_edge_embedding: dict = None,
+                   input_graph_embedding: dict = None,
+                   pooling_args: dict = None,
+                   edge_initialize: dict = None,
+                   edge_dense: dict = None,
+                   edge_activation: dict = None,
+                   node_dense: dict = None,
+                   dropout: dict = None,
+                   depth: int = None,
+                   use_graph_state: bool = False,
+                   output_embedding: str = None,
+                   output_mlp: dict = None):
+    n, ed, edi, batch_id_node, ed_pairs, count_nodes, graph_state = inputs
+
     # Embedding, if no feature dimension
-    if len(inputs[0]['shape']) < 2:
+    if use_node_embedding:
         n = Embedding(**input_node_embedding)(n)
-    if len(inputs[1]['shape']) < 2:
+    if use_edge_embedding:
         ed = Embedding(**input_edge_embedding)(ed)
     if use_graph_state:
-        if len(inputs[7]["shape"]) < 1:
+        if use_graph_embedding:
             graph_state = Embedding(**input_graph_embedding)(graph_state)
 
     # Make first edge hidden h0
@@ -171,28 +225,12 @@ def make_model(name: str = None,
         if use_graph_state:
             out = ks.layers.Concatenate()([graph_state, out])
         out = MLP(**output_mlp)(out)
-        out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == 'node':
         if use_graph_state:
             graph_state_node = GatherState()([graph_state, n])
             n = Concatenate()([n, graph_state_node])
         out = GraphMLP(**output_mlp)(n)
-        if output_to_tensor:
-            out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
-        else:
-            out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
     else:
         raise ValueError("Unsupported embedding mode for `DMPNN`.")
 
-    if output_scaling is not None:
-        scaler = get_scaler(output_scaling["name"])(**output_scaling)
-        out = scaler(out)
-
-    model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
-    model.__kgcnn_model_version__ = __model_version__
-
-    if output_scaling is not None:
-        def set_scale(*args, **kwargs):
-            scaler.set_scale(*args, **kwargs)
-        setattr(model, "set_scale", set_scale)
-    return model
+    return out

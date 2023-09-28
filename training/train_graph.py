@@ -21,8 +21,8 @@ from kgcnn.data.utils import save_pickle_file
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a graph regression or classification task.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
-                    default="hyper/hyper_mp_jdft2d.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet.make_crystal_model")
+                    default="hyper/hyper_esol.py")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="DMPNN")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
