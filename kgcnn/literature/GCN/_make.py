@@ -1,49 +1,49 @@
 import keras_core as ks
-from kgcnn.layers.attention import AttentionHeadGAT
+from keras_core.layers import Dense
 from kgcnn.layers.modules import Embedding
 from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
                                   CastDisjointToGraphState, CastDisjointToBatchedAttributes)
-from keras_core.layers import Concatenate, Dense, Average, Activation
+from kgcnn.layers.conv import GCN
 from kgcnn.layers.mlp import MLP, GraphMLP
+from kgcnn.layers.scale import get as get_scaler
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.models.utils import update_model_kwargs
-from kgcnn.layers.scale import get as get_scaler
 from keras_core.backend import backend as backend_to_use
-from kgcnn.ops.activ import *
+
+# from keras_core.layers import Activation
+# from kgcnn.layers.aggr import AggregateWeightedLocalEdges
+# from kgcnn.layers.gather import GatherNodesOutgoing
 
 # Keep track of model version from commit date in literature.
-# To be updated if model is changed in a significant way.
-__model_version__ = "2023-09-08"
+__kgcnn_model_version__ = "2023-09-30"
 
 # Supported backends
 __kgcnn_model_backend_supported__ = ["tensorflow", "torch", "jax"]
 if backend_to_use() not in __kgcnn_model_backend_supported__:
-    raise NotImplementedError("Backend '%s' for model 'GAT' is not supported." % backend_to_use())
+    raise NotImplementedError("Backend '%s' for model 'GCN' is not supported." % backend_to_use())
 
-# Implementation of GAT in `keras` from paper:
-# Graph Attention Networks
-# by Petar Veličković, Guillem Cucurull, Arantxa Casanova, Adriana Romero, Pietro Liò, Yoshua Bengio (2018)
-# https://arxiv.org/abs/1710.10903
-
+# Implementation of GCN in `keras` from paper:
+# Semi-Supervised Classification with Graph Convolutional Networks
+# by Thomas N. Kipf, Max Welling
+# https://arxiv.org/abs/1609.02907
+# https://github.com/tkipf/gcn
 
 model_default = {
-    "name": "GAT",
+    "name": "GCN",
     "inputs": [
         {"shape": (None,), "name": "node_attributes", "dtype": "float32"},
-        {"shape": (None,), "name": "edge_attributes", "dtype": "float32"},
+        {"shape": (None, 1), "name": "edge_weights", "dtype": "float32"},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
     "cast_disjoint_kwargs": {},
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
-    "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
-    "attention_args": {"units": 32, "use_final_activation": False, "use_edge_features": True,
-                       "has_self_loops": True, "activation": "kgcnn>leaky_relu", "use_bias": True},
-    "pooling_nodes_args": {"pooling_method": "scatter_mean"},
-    "depth": 3, "attention_heads_num": 5,
-    "attention_heads_concat": False,
+    "input_edge_embedding": {"input_dim": 25, "output_dim": 1},
+    "gcn_args": {"units": 100, "use_bias": True, "activation": "relu", "pooling_method": "sum"},
+    "depth": 3,
     "verbose": 10,
+    "node_pooling_args": {"pooling_method": "scatter_sum"},
     "output_embedding": "graph",
     "output_to_tensor": True,
     "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
@@ -57,29 +57,26 @@ def make_model(inputs: list = None,
                cast_disjoint_kwargs: dict = None,
                input_node_embedding: dict = None,
                input_edge_embedding: dict = None,
-               attention_args: dict = None,
-               pooling_nodes_args: dict = None,
                depth: int = None,
-               attention_heads_num: int = None,
-               attention_heads_concat: bool = None,
+               gcn_args: dict = None,
                name: str = None,
                verbose: int = None,
+               node_pooling_args: dict = None,
                output_embedding: str = None,
                output_to_tensor: bool = None,
                output_mlp: dict = None,
-               output_scaling: dict = None
-               ):
-    r"""Make `GAT <https://arxiv.org/abs/1710.10903>`_ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.GAT.model_default`.
+               output_scaling: dict = None):
+    r"""Make `GCN <https://arxiv.org/abs/1609.02907>`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.GCN.model_default`.
 
     Inputs:
-        list: `[node_attributes, edge_attributes, edge_indices, total_nodes, total_edges]`
+        list: `[node_attributes, edge_weights, edge_indices, total_nodes, total_edges]`
 
-            - node_attributes (Tensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+            - node_attributes (Tensor): Node attributes of shape `(batch, N, F)` or `(batch, N)`
               using an embedding layer.
-            - edge_attributes (Tensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
-              using an embedding layer.
-            - edge_indices (Tensor): Index list for edges of shape `(batch, None, 2)`.
+            - edge_weights (Tensor): Edge weights of shape `(batch, M, 1)` , that are entries of a scaled
+              adjacency matrix.
+            - edge_indices (Tensor): Index list for edges of shape `(batch, M, 2)` .
             - total_nodes(Tensor, optional): Number of Nodes in graph if not same sized graphs of shape `(batch, )` .
             - total_edges(Tensor, optional): Number of Edges in graph if not same sized graphs of shape `(batch, )` .
 
@@ -87,19 +84,17 @@ def make_model(inputs: list = None,
         Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
-        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        inputs (list): List of dictionaries unpacked in :obj:`ks.layers.Input`. Order must match model definition.
         cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
-        input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
-        input_edge_embedding (dict): Dictionary of arguments for edge unpacked in :obj:`Embedding` layers.
-        attention_args (dict): Dictionary of layer arguments unpacked in :obj:`AttentionHeadGAT` layer.
-        pooling_nodes_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layer.
+        input_node_embedding (dict): Dictionary of embedding arguments unpacked in :obj:`Embedding` layers.
+        input_edge_embedding (dict): Dictionary of embedding arguments unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
-        attention_heads_num (int): Number of attention heads to use.
-        attention_heads_concat (bool): Whether to concat attention heads, or simply average heads.
+        gcn_args (dict): Dictionary of layer arguments unpacked in :obj:`GCN` convolutional layer.
         name (str): Name of the model.
         verbose (int): Level of print output.
+        node_pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layer.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
-        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
+        output_to_tensor (bool): Whether to cast model output to :obj:`Tensor`.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
         output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
@@ -107,27 +102,29 @@ def make_model(inputs: list = None,
     Returns:
         :obj:`ks.models.Model`
     """
+    if inputs[1]['shape'][-1] != 1:
+        raise ValueError("No edge features available for GCN, only edge weights of pre-scaled adjacency matrix, \
+                         must be shape (batch, None, 1), but got (without batch-dimension): %s." % inputs[1]['shape'])
+
     # Make input
     model_inputs = [ks.layers.Input(**x) for x in inputs]
     batched_nodes, batched_edges, batched_indices, total_nodes, total_edges = model_inputs
     n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
         **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
-    ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
+    e, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
 
-    # Wrapping disjoint model.
-    out = disjoint_block(
-        [n, ed, disjoint_indices, batch_id_node, count_nodes],
+    out = model_disjoint(
+        [n, e, disjoint_indices, batch_id_node, count_nodes],
         use_node_embedding=len(inputs[0]['shape']) < 2, use_edge_embedding=len(inputs[1]['shape']) < 2,
         input_node_embedding=input_node_embedding, input_edge_embedding=input_edge_embedding,
-        attention_args=attention_args, pooling_nodes_args=pooling_nodes_args, depth=depth,
-        attention_heads_num=attention_heads_num, attention_heads_concat=attention_heads_concat,
-        output_embedding=output_embedding, output_mlp=output_mlp
+        depth=depth, gcn_args=gcn_args, node_pooling_args=node_pooling_args, output_embedding=output_embedding,
+        output_mlp=output_mlp
     )
 
-    # Output embedding choice
-    if output_embedding == 'graph':
+    # Cast to tensor
+    if output_embedding == "graph":
         out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
-    elif output_embedding == 'node':
+    elif output_embedding == "node":
         if output_to_tensor:
             out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
         else:
@@ -138,56 +135,53 @@ def make_model(inputs: list = None,
         out = scaler(out)
 
     model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
-    model.__kgcnn_model_version__ = __model_version__
+    model.__kgcnn_model_version__ = __kgcnn_model_version__
 
     if output_scaling is not None:
         def set_scale(*args, **kwargs):
             scaler.set_scale(*args, **kwargs)
 
         setattr(model, "set_scale", set_scale)
-
     return model
 
 
-def disjoint_block(inputs,
-                   use_node_embedding: bool = False,
-                   use_edge_embedding: bool = False,
+def model_disjoint(inputs,
+                   use_node_embedding: bool = None,
+                   use_edge_embedding: bool = None,
                    input_node_embedding: dict = None,
                    input_edge_embedding: dict = None,
-                   attention_args: dict = None,
-                   pooling_nodes_args: dict = None,
                    depth: int = None,
-                   attention_heads_num: int = None,
-                   attention_heads_concat: bool = None,
+                   gcn_args: dict = None,
+                   node_pooling_args: dict = None,
                    output_embedding: str = None,
-                   output_mlp: dict = None):
-    # Model implementation with disjoint representation.
-    n, ed, disjoint_indices, batch_id_node, count_nodes = inputs
+                   output_mlp: dict = None,
+                   ):
+    n, e, disjoint_indices, batch_id_node, count_nodes = inputs
 
     # Embedding, if no feature dimension
     if use_node_embedding:
         n = Embedding(**input_node_embedding)(n)
     if use_edge_embedding:
-        ed = Embedding(**input_edge_embedding)(ed)
+        e = Embedding(**input_edge_embedding)(e)
 
     # Model
-    nk = Dense(units=attention_args["units"], activation="linear")(n)
+    n = Dense(gcn_args["units"], use_bias=True, activation='linear')(n)  # Map to units
     for i in range(0, depth):
-        heads = [AttentionHeadGAT(**attention_args)([nk, ed, disjoint_indices]) for _ in range(attention_heads_num)]
-        if attention_heads_concat:
-            nk = Concatenate(axis=-1)(heads)
-        else:
-            nk = Average()(heads)
-            nk = Activation(activation=attention_args["activation"])(nk)
-    n = nk
+        n = GCN(**gcn_args)([n, e, disjoint_indices])
+
+        # # Equivalent as:
+        # no = Dense(gcn_args["units"], activation="linear")(n)
+        # no = GatherNodesOutgoing()([no, disjoint_indices])
+        # nu = AggregateWeightedLocalEdges()([n, no, disjoint_indices, e])
+        # n = Activation(gcn_args["activation"])(nu)
 
     # Output embedding choice
-    if output_embedding == 'graph':
-        out = PoolingNodes(**pooling_nodes_args)([count_nodes, n, batch_id_node])
+    if output_embedding == "graph":
+        out = PoolingNodes(**node_pooling_args)([count_nodes, n, batch_id_node])  # will return tensor
         out = MLP(**output_mlp)(out)
-    elif output_embedding == 'node':
+    elif output_embedding == "node":
         out = GraphMLP(**output_mlp)([n, batch_id_node, count_nodes])
     else:
-        raise ValueError("Unsupported output embedding for `GAT` .")
+        raise ValueError("Unsupported output embedding for `GCN` .")
 
     return out

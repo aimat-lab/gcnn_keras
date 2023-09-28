@@ -135,7 +135,7 @@ def make_model(name: str = None,
         **cast_disjoint_kwargs)([batched_indices, batched_reverse, count_edges, count_edges])
 
     # Wrapping disjoint model.
-    out = disjoint_block(
+    out = model_disjoint(
         [n, ed, edi, batch_id_node, ed_pairs, count_nodes, graph_state],
         use_node_embedding=len(inputs[0]['shape']) < 2, use_edge_embedding=len(inputs[1]['shape']) < 2,
         use_graph_embedding=len(inputs[7]["shape"]) < 1 if use_graph_state else False,
@@ -169,10 +169,10 @@ def make_model(name: str = None,
     return model
 
 
-def disjoint_block(inputs: list = None,
-                   use_node_embedding: bool = False,
-                   use_edge_embedding: bool = False,
-                   use_graph_embedding: bool = False,
+def model_disjoint(inputs: list = None,
+                   use_node_embedding: bool = None,
+                   use_edge_embedding: bool = None,
+                   use_graph_embedding: bool = None,
                    input_node_embedding: dict = None,
                    input_edge_embedding: dict = None,
                    input_graph_embedding: dict = None,
