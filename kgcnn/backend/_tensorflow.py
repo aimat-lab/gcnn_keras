@@ -21,7 +21,7 @@ def scatter_reduce_max(indices, values, shape):
 def scatter_reduce_mean(indices, values, shape):
     indices = tf.expand_dims(indices, axis=-1)
     counts = tf.scatter_nd(indices, tf.ones_like(values), shape)
-    return tf.scatter_nd(indices, values, shape)/counts
+    return tf.math.divide_no_nan(tf.scatter_nd(indices, values, shape), counts)
 
 
 def scatter_reduce_softmax(indices, values, shape, normalize: bool = False):

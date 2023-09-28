@@ -108,7 +108,7 @@ def make_model(inputs: list = None,
 
     # Wrapping disjoint model.
     out = model_disjoint(
-        inputs,
+        [n, disjoint_indices, batch_id_node, count_nodes],
         use_node_embedding=len(inputs[0]['shape']) < 2, input_node_embedding=input_node_embedding,
         depth=depth, gin_args=gin_args, gin_mlp=gin_mlp, last_mlp=last_mlp, dropout=dropout,
         output_embedding=output_embedding, output_mlp=output_mlp

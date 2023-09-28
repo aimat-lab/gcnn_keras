@@ -10,17 +10,19 @@ due to their file size.
 To show overall best test error run ``python3 summary.py --min_max True``.
 If not noted otherwise, we use a (fixed) random k-fold split for validation errors.
 
-#### CoraLuDataset
+#### ClinToxDataset
 
-Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes. 
+ClinTox (MoleculeNet) consists of 1478 compounds as smiles and data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. We use random 5-fold cross-validation. The first label 'approved' is chosen as target.
 
-| model     | kgcnn   |   epochs | Categorical accuracy   |
-|:----------|:--------|---------:|:-----------------------|
-| GAT       | 4.0.0   |      250 | 0.8464 &pm; 0.0105     |
-| GATv2     | 4.0.0   |      250 | 0.8331 &pm; 0.0104     |
-| GCN       | 4.0.0   |      300 | 0.8072 &pm; 0.0109     |
-| GIN       | 4.0.0   |      500 | 0.8279 &pm; 0.0170     |
-| GraphSAGE | 4.0.0   |      500 | **0.8497 &pm; 0.0100** |
+| model     | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|
+| DMPNN     | 4.0.0   |       50 | 0.9480 &pm; 0.0138     | 0.8297 &pm; 0.0568     |
+| GAT       | 4.0.0   |       50 | **0.9480 &pm; 0.0070** | 0.8512 &pm; 0.0468     |
+| GATv2     | 4.0.0   |       50 | 0.9372 &pm; 0.0155     | **0.8587 &pm; 0.0754** |
+| GCN       | 4.0.0   |       50 | 0.9432 &pm; 0.0155     | 0.8555 &pm; 0.0593     |
+| GIN       | 4.0.0   |       50 | 0.9412 &pm; 0.0034     | 0.8066 &pm; 0.0636     |
+| GraphSAGE | 4.0.0   |      100 | 0.9412 &pm; 0.0073     | 0.8013 &pm; 0.0422     |
+| Schnet    | 4.0.0   |       50 | 0.9277 &pm; 0.0102     | 0.6562 &pm; 0.0760     |
 
 #### CoraDataset
 
@@ -28,18 +30,34 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 
 | model   | kgcnn   |   epochs | Categorical accuracy   |
 |:--------|:--------|---------:|:-----------------------|
+| GAT     | 4.0.0   |      250 | 0.6132 &pm; 0.0115     |
 | GCN     | 4.0.0   |      300 | **0.6232 &pm; 0.0054** |
+| GIN     | 4.0.0   |      800 | 0.5170 &pm; 0.2336     |
+
+#### CoraLuDataset
+
+Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes. 
+
+| model     | kgcnn   |   epochs | Categorical accuracy   |
+|:----------|:--------|---------:|:-----------------------|
+| DMPNN     | 4.0.0   |      300 | 0.8357 &pm; 0.0156     |
+| GAT       | 4.0.0   |      250 | 0.8464 &pm; 0.0105     |
+| GATv2     | 4.0.0   |      250 | 0.8331 &pm; 0.0104     |
+| GCN       | 4.0.0   |      300 | 0.8072 &pm; 0.0109     |
+| GIN       | 4.0.0   |      500 | 0.8279 &pm; 0.0170     |
+| GraphSAGE | 4.0.0   |      500 | **0.8497 &pm; 0.0100** |
 
 #### ESOLDataset
 
 ESOL consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation. 
 
-| model   | kgcnn   |   epochs | MAE [log mol/L]    | RMSE [log mol/L]   |
-|:--------|:--------|---------:|:-------------------|:-------------------|
-| DMPNN   | 4.0.0   |      300 | 0.4556 &pm; 0.0281 | 0.6471 &pm; 0.0299 |
-| GAT     | 4.0.0   |      500 | **nan &pm; nan**   | **nan &pm; nan**   |
-| GCN     | 4.0.0   |      800 | 0.4613 &pm; 0.0205 | 0.6534 &pm; 0.0513 |
-| Schnet  | 4.0.0   |      800 | nan &pm; nan       | nan &pm; nan       |
+| model     | kgcnn   |   epochs | MAE [log mol/L]    | RMSE [log mol/L]   |
+|:----------|:--------|---------:|:-------------------|:-------------------|
+| DMPNN     | 4.0.0   |      300 | 0.4556 &pm; 0.0281 | 0.6471 &pm; 0.0299 |
+| GAT       | 4.0.0   |      500 | **nan &pm; nan**   | **nan &pm; nan**   |
+| GCN       | 4.0.0   |      800 | 0.4613 &pm; 0.0205 | 0.6534 &pm; 0.0513 |
+| GraphSAGE | 4.0.0   |      500 | 0.4874 &pm; 0.0228 | 0.6982 &pm; 0.0608 |
+| Schnet    | 4.0.0   |      800 | nan &pm; nan       | nan &pm; nan       |
 
 #### MatProjectJdft2dDataset
 
@@ -48,15 +66,6 @@ Materials Project dataset from Matbench with 636 crystal structures and their co
 | model                     | kgcnn   |   epochs | MAE [meV/atom]           | RMSE [meV/atom]           |
 |:--------------------------|:--------|---------:|:-------------------------|:--------------------------|
 | Schnet.make_crystal_model | 4.0.0   |      800 | **47.0970 &pm; 12.1636** | **121.0402 &pm; 38.7995** |
-
-#### ClinToxDataset
-
-ClinTox (MoleculeNet) consists of 1478 compounds as smiles and data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. We use random 5-fold cross-validation. The first label 'approved' is chosen as target.
-
-| model   | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
-|:--------|:--------|---------:|:-----------------------|:-----------------------|
-| GCN     | 4.0.0   |      200 | **0.6911 &pm; 0.1028** | 0.7910 &pm; 0.0593     |
-| GIN     | 4.0.0   |       50 | 0.3447 &pm; 0.1142     | **0.8066 &pm; 0.0636** |
 
 #### MD17Dataset
 

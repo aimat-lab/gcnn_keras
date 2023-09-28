@@ -12,9 +12,22 @@ print("Input of argparse:", args)
 show_min_max = args["min_max"]
 
 benchmark_datasets = {
-    "CoraLuDataset": {
+    "ClinToxDataset": {
         "general_info": [
-            "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. ",
+            "ClinTox (MoleculeNet) consists of 1478 compounds as smiles and ",
+            "data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. ",
+            "We use random 5-fold cross-validation. The first label 'approved' is chosen as target."
+        ],
+        "targets": [
+            {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
+            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
+            {"metric": "max_val_binary_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
+            {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
+        ]
+    },
+    "CoraDataset": {
+        "general_info": [
+            "Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. ",
             "Here we use random 5-fold cross-validation on nodes. ",
         ],
         "targets": [
@@ -23,9 +36,9 @@ benchmark_datasets = {
              "is_min_max": True},
         ]
     },
-    "CoraDataset": {
+    "CoraLuDataset": {
         "general_info": [
-            "Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. ",
+            "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. ",
             "Here we use random 5-fold cross-validation on nodes. ",
         ],
         "targets": [
@@ -268,19 +281,6 @@ benchmark_datasets = {
     #         {"metric": "max_val_AUC_no_nan", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
     #     ]
     # },
-    "ClinToxDataset": {
-        "general_info": [
-            "ClinTox (MoleculeNet) consists of 1478 compounds as smiles and ",
-            "data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. ",
-            "We use random 5-fold cross-validation. The first label 'approved' is chosen as target."
-        ],
-        "targets": [
-            {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
-            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
-            {"metric": "max_val_binary_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
-            {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
-        ]
-    },
     # "QM7Dataset": {
     #     "general_info": [
     #         "QM7 dataset is a subset of GDB-13. ",

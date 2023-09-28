@@ -30,14 +30,14 @@ if backend_to_use() not in __kgcnn_model_backend_supported__:
 model_default = {
     'name': "GraphSAGE",
     'inputs': [
-        {"shape": (None, ), "name": "node_attributes", "dtype": "float32"},
-        {"shape": (None, ), "name": "edge_attributes", "dtype": "float32"},
+        {"shape": (None,), "name": "node_attributes", "dtype": "float32"},
+        {"shape": (None,), "name": "edge_attributes", "dtype": "float32"},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
     "cast_disjoint_kwargs": {},
-    "input_node_embedding":  {"input_dim": 95, "output_dim": 64},
+    "input_node_embedding": {"input_dim": 95, "output_dim": 64},
     "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
     'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
     'edge_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
@@ -121,47 +121,24 @@ def make_model(inputs: list = None,
         **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
     ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
 
-    # Embedding, if no feature dimension
-    if len(inputs[0]['shape']) < 2:
-        n = Embedding(**input_node_embedding)(n)
-    if len(inputs[1]['shape']) < 2:
-        ed = Embedding(**input_edge_embedding)(ed)
-
-    for i in range(0, depth):
-
-        eu = GatherNodesOutgoing(**gather_args)([n, disjoint_indices])
-        if use_edge_features:
-            eu = Concatenate(**concat_args)([eu, ed])
-
-        eu = GraphMLP(**edge_mlp_args)([eu, batch_id_edge, count_edges])
-
-        # Pool message
-        if pooling_args['pooling_method'] in ["LSTM", "lstm"]:
-            nu = AggregateLocalEdgesLSTM(**pooling_args)([n, eu, disjoint_indices])
-        else:
-            nu = AggregateLocalEdges(**pooling_args)([n, eu, disjoint_indices])  # Summing for each node connection
-
-        nu = Concatenate(**concat_args)([n, nu])  # Concatenate node features with new edge updates
-
-        n = GraphMLP(**node_mlp_args)([nu, batch_id_node, count_nodes])
-
-        n = GraphLayerNormalization()([n, batch_id_node, count_nodes])
+    out = model_disjoint(
+        [n, ed, disjoint_indices, batch_id_node, batch_id_edge, count_nodes, count_edges],
+        use_node_embedding=len(inputs[0]['shape']) < 2, use_edge_embedding=len(inputs[1]['shape']) < 2,
+        input_node_embedding=input_node_embedding, input_edge_embedding=input_edge_embedding,
+        node_mlp_args=node_mlp_args, edge_mlp_args=edge_mlp_args, pooling_args=pooling_args,
+        pooling_nodes_args=pooling_nodes_args, gather_args=gather_args, concat_args=concat_args,
+        use_edge_features=use_edge_features, depth=depth, output_embedding=output_embedding,
+        output_mlp=output_mlp,
+    )
 
     # Regression layer on output
     if output_embedding == 'graph':
-        out = PoolingNodes(**pooling_nodes_args)([count_nodes, n, batch_id_node])
-        out = MLP(**output_mlp)(out)
         out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
-
     elif output_embedding == 'node':
-        out = GraphMLP(**output_mlp)([n, batch_id_node, count_nodes])
         if output_to_tensor:
             out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
         else:
             out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
-
-    else:
-        raise ValueError("Unsupported output embedding for `GraphSAGE`")
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
@@ -173,6 +150,7 @@ def make_model(inputs: list = None,
     if output_scaling is not None:
         def set_scale(*args, **kwargs):
             scaler.set_scale(*args, **kwargs)
+
         setattr(model, "set_scale", set_scale)
 
     return model
@@ -194,7 +172,7 @@ def model_disjoint(
         depth: int = None,
         output_embedding: str = None,
         output_mlp: dict = None,
-    ):
+):
     n, ed, disjoint_indices, batch_id_node, batch_id_edge, count_nodes, count_edges = inputs
 
     # Embedding, if no feature dimension
