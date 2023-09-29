@@ -31,8 +31,8 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 | model   | kgcnn   |   epochs | Categorical accuracy   |
 |:--------|:--------|---------:|:-----------------------|
 | GAT     | 4.0.0   |      250 | 0.6132 &pm; 0.0115     |
-| GCN     | 4.0.0   |      300 | **0.6232 &pm; 0.0054** |
-| GIN     | 4.0.0   |      800 | 0.5367 &pm; 0.1847     |
+| GCN     | 4.0.0   |      300 | 0.6232 &pm; 0.0054     |
+| GIN     | 4.0.0   |      800 | **0.6263 &pm; 0.0080** |
 
 #### CoraLuDataset
 
@@ -57,7 +57,7 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 | GAT       | 4.0.0   |      500 | **nan &pm; nan**   | **nan &pm; nan**   |
 | GCN       | 4.0.0   |      800 | 0.4613 &pm; 0.0205 | 0.6534 &pm; 0.0513 |
 | GraphSAGE | 4.0.0   |      500 | 0.4874 &pm; 0.0228 | 0.6982 &pm; 0.0608 |
-| Schnet    | 4.0.0   |      800 | nan &pm; nan       | nan &pm; nan       |
+| Schnet    | 4.0.0   |      800 | 0.4677 &pm; 0.0223 | 0.7002 &pm; 0.0910 |
 
 #### MatProjectJdft2dDataset
 

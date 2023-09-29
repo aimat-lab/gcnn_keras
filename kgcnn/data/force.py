@@ -76,7 +76,7 @@ class ForceDataset(QMDataset):
             raise TypeError("Wrong type for `file_name_force_xyz` : '%s'." % self.file_name_force_xyz)
 
     def prepare_data(self, overwrite: bool = False, file_column_name: str = None, file_column_name_force: str = None,
-                     make_sdf: bool = True):
+                     make_sdf: bool = False):
         r"""Pre-computation of molecular structure information in a sdf-file from a xyz-file or a folder of xyz-files.
 
         If there is no single xyz-file, it will be created with the information of a csv-file with the same name.
@@ -91,7 +91,8 @@ class ForceDataset(QMDataset):
         Returns:
             self
         """
-        super(ForceDataset, self).prepare_data(overwrite=overwrite, file_column_name=file_column_name)
+        super(ForceDataset, self).prepare_data(overwrite=overwrite, file_column_name=file_column_name,
+                                               make_sdf=make_sdf)
 
         # Try collect single xyz files in directory
         file_path_forces = self.file_path_force_xyz

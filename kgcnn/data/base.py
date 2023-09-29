@@ -774,7 +774,7 @@ class MemoryGraphDataset(MemoryGraphList):
             if label_units is not None:
                 label_units = [label_units[i] for i in multi_target_indices]
         self.info("Labels '%s' in '%s' have shape '%s'." % (label_names, label_units, labels.shape))
-        self.assign_property("graph_labels", [x for x in labels])
+        self.assign_property(graph_labels, [x for x in labels])
         return label_names, label_units
 
     def set_train_test_indices_k_fold(self, n_splits: int = 5, shuffle: bool = False, random_state: int = None,

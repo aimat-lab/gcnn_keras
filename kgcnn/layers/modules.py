@@ -43,3 +43,20 @@ class Embedding(ks.layers.Layer):
     def get_config(self):
         return super(Embedding, self).get_config()
 
+
+class ExpandDims(ks.layers.Layer):
+
+    def __init__(self, axis, **kwargs):
+        super(ExpandDims, self).__init__(**kwargs)
+        self.axis = axis
+
+    def build(self, input_shape):
+        self.built = True
+
+    def call(self, inputs):
+        return ops.expand_dims(inputs, axis=self.axis)
+
+    def get_config(self):
+        config = super(ExpandDims, self).get_config()
+        config.update({"axis": self.axis})
+        return config
