@@ -25,7 +25,7 @@ parser.add_argument("--model", required=False, help="Graph model to train.", def
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
 parser.add_argument("--gpu", required=False, help="GPU index used for training.", default=None, nargs="+", type=int)
-parser.add_argument("--seed", required=False, help="Set random seed.", default=42, type=int)
+parser.add_argument("--seed", required=False, help="Set random seed.", default=43, type=int)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -74,7 +74,8 @@ kf = KFold(**hyper["training"]["cross_validation"]["config"])
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.
 history_list, train_indices_all, test_indices_all, model, hist = [], [], [], None, None
-for train_index, test_index in kf.split(X=np.arange(len(labels[0]))[:, None]):
+for i, (train_index, test_index) in enumerate(kf.split(X=np.arange(len(labels[0]))[:, None])):
+
     test_indices_all.append(test_index)
     train_indices_all.append(train_index)
 

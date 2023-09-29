@@ -2,50 +2,50 @@ OS: nt_win32
 backend: torch
 cuda_available: 'True'
 data_unit: ''
-date_time: '2023-09-27 13:45:32'
+date_time: '2023-09-29 13:59:15'
 device_id: '[0]'
-device_memory: '[{''allocated'': 1.1, ''cached'': 2.3}]'
+device_memory: '[{''allocated'': 0.0, ''cached'': 1.9}]'
 device_name: '[''NVIDIA GeForce GTX 1060 6GB'']'
 energy_scaled_mean_absolute_error:
-- 0.11347325146198273
+- 0.08433718234300613
 epochs:
 - 1000
 execute_folds: null
 force_scaled_mean_absolute_error:
-- 0.3377276360988617
+- 0.33310848474502563
 kgcnn_version: 4.0.0
 learning_rate:
 - 6.721010777255287e-06
 loss:
-- 6.808226108551025
+- 6.704593181610107
 max_energy_scaled_mean_absolute_error:
-- 51.546913146972656
+- 63.68236541748047
 max_force_scaled_mean_absolute_error:
-- 15.35454273223877
+- 15.355721473693848
 max_learning_rate:
 - 0.0010000000474974513
 max_loss:
-- 313.6912536621094
+- 312.07867431640625
 max_val_energy_scaled_mean_absolute_error:
-- 86.67850494384766
+- 132.3892822265625
 max_val_force_scaled_mean_absolute_error:
-- 13.10451602935791
+- 13.420501708984375
 max_val_loss:
-- 288.5015869140625
+- 276.77655029296875
 min_energy_scaled_mean_absolute_error:
-- 0.07632415741682053
+- 0.07615616172552109
 min_force_scaled_mean_absolute_error:
-- 0.33730044960975647
+- 0.3325134217739105
 min_learning_rate:
 - 6.721010777255287e-06
 min_loss:
-- 6.783166408538818
+- 6.694307804107666
 min_val_energy_scaled_mean_absolute_error:
-- 0.06625224649906158
+- 0.06437469273805618
 min_val_force_scaled_mean_absolute_error:
-- 0.3418278992176056
+- 0.33527231216430664
 min_val_loss:
-- 6.917301654815674
+- 6.770595550537109
 model_class: EnergyForceModel
 model_name: Schnet
 model_version: ''
@@ -53,11 +53,11 @@ multi_target_indices: null
 number_histories: 1
 seed: 42
 time_list:
-- '0:40:18.911566'
+- '1:08:03.139785'
 trajectory_name: benzene_ccsd_t
 val_energy_scaled_mean_absolute_error:
-- 0.07445240020751953
+- 0.06532268971204758
 val_force_scaled_mean_absolute_error:
-- 0.34286922216415405
+- 0.33527231216430664
 val_loss:
-- 6.9254841804504395
+- 6.770595550537109

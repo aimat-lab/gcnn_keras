@@ -32,7 +32,7 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 |:--------|:--------|---------:|:-----------------------|
 | GAT     | 4.0.0   |      250 | 0.6132 &pm; 0.0115     |
 | GCN     | 4.0.0   |      300 | **0.6232 &pm; 0.0054** |
-| GIN     | 4.0.0   |      800 | 0.5170 &pm; 0.2336     |
+| GIN     | 4.0.0   |      800 | 0.5367 &pm; 0.1847     |
 
 #### CoraLuDataset
 
@@ -73,5 +73,5 @@ Energies and forces for molecular dynamics trajectories of eight organic molecul
 
 | model                   | kgcnn   |   epochs | Aspirin             | Toluene             | Malonaldehyde       | Benzene             | Ethanol             |
 |:------------------------|:--------|---------:|:--------------------|:--------------------|:--------------------|:--------------------|:--------------------|
-| Schnet.EnergyForceModel | 4.0.0   |     1000 | **1.2173 &pm; nan** | **0.7395 &pm; nan** | **0.8444 &pm; nan** | **0.3429 &pm; nan** | **0.5471 &pm; nan** |
+| Schnet.EnergyForceModel | 4.0.0   |     1000 | **1.2173 &pm; nan** | **0.7395 &pm; nan** | **0.8444 &pm; nan** | **0.3353 &pm; nan** | **0.5471 &pm; nan** |
 

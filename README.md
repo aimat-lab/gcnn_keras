@@ -43,12 +43,7 @@ However, you must make sure to install the GPU/TPU acceleration for the backend 
 <a name="installation"></a>
 # Installation
 
-Clone [repository](https://github.com/aimat-lab/gcnn_keras) or latest [release](https://github.com/aimat-lab/gcnn_keras/releases) and install with editable mode:
-
-```bash
-pip install -e ./gcnn_keras
-```
-or latest release via [Python Package Index](https://pypi.org/project/kgcnn/).
+Clone [repository](https://github.com/aimat-lab/gcnn_keras) or latest [release](https://github.com/aimat-lab/gcnn_keras/releases) and install with editable mode or latest release via [Python Package Index](https://pypi.org/project/kgcnn/).
 ```bash
 pip install kgcnn
 ```

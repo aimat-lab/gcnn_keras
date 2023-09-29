@@ -5,17 +5,19 @@ hyper = {
             "module_name": "kgcnn.literature.DMPNN",
             "config": {
                 "name": "DMPNN",
-                "inputs": [
-                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
-                    {"shape": [None, 1], "name": "edge_indices_reverse", "dtype": "int64", "ragged": True}
+                                "inputs": [
+                    {"shape": (None, 41), "name": "node_attributes", "dtype": "float32"},
+                    {"shape": (None, 11), "name": "edge_attributes", "dtype": "float32"},
+                    {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (None, 1), "name": "edge_indices_reverse", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
-                "input_embedding": {
-                    "node": {"input_dim": 95, "output_dim": 64},
-                    "edge": {"input_dim": 5, "output_dim": 64}
-                },
-                "pooling_args": {"pooling_method": "sum"},
+                "cast_disjoint_kwargs": {},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
+                "input_graph_embedding": {"input_dim": 100, "output_dim": 64},
+                "pooling_args": {"pooling_method": "scatter_sum"},
                 "edge_initialize": {"units": 128, "use_bias": True, "activation": "relu"},
                 "edge_dense": {"units": 128, "use_bias": True, "activation": "linear"},
                 "edge_activation": {"activation": "relu"},
@@ -35,6 +37,7 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam",
                               "config": {"lr": {
+                                  "module": "keras_core.optimizers.schedules",
                                   "class_name": "ExponentialDecay",
                                   "config": {"initial_learning_rate": 0.001,
                                              "decay_steps": 5800,
@@ -46,7 +49,8 @@ hyper = {
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
             "dataset": {
@@ -55,7 +59,8 @@ hyper = {
                 "config": {},
                 "methods": [
                     {"set_attributes": {}},
-                    {"map_list": {"method": "set_edge_indices_reverse"}}
+                    {"map_list": {"method": "set_edge_indices_reverse"}},
+                    {"map_list": {"method": "count_nodes_and_edges"}},
                 ]
             },
             "data_unit": ""
@@ -63,7 +68,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.3"
+            "kgcnn_version": "4.0.0"
         }
     },
     "AttentiveFP": {
@@ -186,13 +191,19 @@ hyper = {
             "module_name": "kgcnn.literature.GIN",
             "config": {
                 "name": "GIN",
-                "inputs": [{"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                           {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
-                "input_embedding": {"node": {"input_dim": 96, "output_dim": 64}},
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
+                ],
+                "cast_disjoint_kwargs": {"padded_disjoint": False},
+                "input_node_embedding": {"input_dim": 96, "output_dim": 64},
                 "depth": 5,
                 "dropout": 0.05,
                 "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
-                            "use_normalization": True, "normalization_technique": "graph_batch"},
+                            "use_normalization": True, "padded_disjoint": False,
+                            "normalization_technique": "graph_batch"},
                 "gin_args": {},
                 "last_mlp": {"use_bias": True, "units": [64, 32, 1], "activation": ["relu", "relu", "linear"]},
                 "output_embedding": "graph",
@@ -203,7 +214,8 @@ hyper = {
             "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []},
             "compile": {
                 "optimizer": {"class_name": "Adam",
-                    "config": {"lr": {
+                    "config": {"learning_rate": {
+                        "module": "keras_core.optimizers.schedules",
                         "class_name": "ExponentialDecay",
                         "config": {"initial_learning_rate": 0.001,
                                    "decay_steps": 5800,
@@ -215,7 +227,8 @@ hyper = {
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
             "dataset": {
@@ -223,7 +236,8 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.LipopDataset",
                 "config": {},
                 "methods": [
-                    {"set_attributes": {}}
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "count_nodes_and_edges"}},
                 ]
             },
             "data_unit": ""
@@ -231,7 +245,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.3"
+            "kgcnn_version": "4.0.0"
         }
     },
     "GAT": {
@@ -241,16 +255,19 @@ hyper = {
             "config": {
                 "name": "GAT",
                 "inputs": [
-                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": (None, 11), "name": "edge_attributes", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
-                "input_embedding": {
-                    "node": {"input_dim": 95, "output_dim": 64},
-                    "edge": {"input_dim": 8, "output_dim": 64}},
+                "cast_disjoint_kwargs": {},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 8, "output_dim": 64},
                 "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
+                                   "activation": "kgcnn>leaky_relu",
                                    "use_final_activation": False, "has_self_loops": True},
-                "pooling_nodes_args": {"pooling_method": "sum"},
+                "pooling_nodes_args": {"pooling_method": "scatter_sum"},
                 "depth": 1, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "graph",
@@ -269,12 +286,13 @@ hyper = {
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 5e-03}},
                 "loss": "mean_absolute_error"
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
             "dataset": {
@@ -282,7 +300,8 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.LipopDataset",
                 "config": {},
                 "methods": [
-                    {"set_attributes": {}}
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "count_nodes_and_edges"}},
                 ]
             },
             "data_unit": ""
@@ -290,7 +309,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.3"
+            "kgcnn_version": "4.0.0"
         }
     },
     "GATv2": {
@@ -300,16 +319,19 @@ hyper = {
             "config": {
                 "name": "GATv2",
                 "inputs": [
-                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": (None, 11), "name": "edge_attributes", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
-                "input_embedding": {
-                    "node": {"input_dim": 95, "output_dim": 64},
-                    "edge": {"input_dim": 8, "output_dim": 64}},
+                "cast_disjoint_kwargs": {},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 8, "output_dim": 64},
                 "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
+                                   "activation": "kgcnn>leaky_relu",
                                    "use_final_activation": False, "has_self_loops": True},
-                "pooling_nodes_args": {"pooling_method": "sum"},
+                "pooling_nodes_args": {"pooling_method": "scatter_sum"},
                 "depth": 4, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "graph",
@@ -328,12 +350,13 @@ hyper = {
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 5e-03}},
                 "loss": "mean_absolute_error"
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
             "dataset": {
@@ -341,7 +364,8 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.LipopDataset",
                 "config": {},
                 "methods": [
-                    {"set_attributes": {}}
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "count_nodes_and_edges"}}
                 ]
             },
             "data_unit": ""
@@ -349,7 +373,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.3"
+            "kgcnn_version": "4.0.0"
         }
     },
     "Schnet": {
@@ -359,11 +383,14 @@ hyper = {
             "config": {
                 "name": "Schnet",
                 "inputs": [
-                    {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                    {"shape": [None], "name": "node_number", "dtype": "int32"},
+                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_ranges", "dtype": "int64"}
                 ],
-                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
+                "cast_disjoint_kwargs": {"padded_disjoint": False},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "output_embedding": "graph",
                 'output_mlp': {"use_bias": [True, True], "units": [64, 1],
                                "activation": ['kgcnn>shifted_softplus', "linear"]},
@@ -372,7 +399,7 @@ hyper = {
                 "interaction_args": {
                     "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
                 },
-                "node_pooling_args": {"pooling_method": "sum"},
+                "node_pooling_args": {"pooling_method": "scatter_sum"},
                 "depth": 4,
                 "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 10
             }
@@ -380,7 +407,8 @@ hyper = {
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}},
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -391,7 +419,7 @@ hyper = {
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 0.0005}},
                 "loss": "mean_absolute_error"
             }
         },
@@ -409,7 +437,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "4.0.0"
         }
     },
 }

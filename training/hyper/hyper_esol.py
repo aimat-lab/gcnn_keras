@@ -182,9 +182,9 @@ hyper = {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 5e-03}},
                 "loss": {"class_name": "kgcnn>MeanAbsoluteError", "config": {"dtype": "float64"}},
                 "metrics": [
-                    {"class_name": "MeanAbsoluteError",
+                    {"class_name": "kgcnn>MeanAbsoluteError",
                      "config": {"dtype": "float64", "name": "scaled_mean_absolute_error"}},
-                    {"class_name": "RootMeanSquaredError",
+                    {"class_name": "kgcnn>RootMeanSquaredError",
                      "config": {"dtype": "float64", "name": "scaled_root_mean_squared_error"}}
                 ]
             },
@@ -262,7 +262,7 @@ hyper = {
                 "methods": [
                     {"set_attributes": {}},
                     {"set_train_test_indices_k_fold": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-                    {"map_list": {"method": "count_nodes_and_edges"}},
+                    {"map_list": {"method": "count_nodes_and_edges"}}
                 ]
             },
             "data_unit": "mol/L"

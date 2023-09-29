@@ -1,13 +1,8 @@
 import keras_core as ks
-from keras_core.layers import Dense
 from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
                                   CastDisjointToGraphState, CastDisjointToBatchedAttributes, CastGraphStateToDisjoint)
-from kgcnn.layers.conv import SchNetInteraction
-from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition, ShiftPeriodicLattice
-from kgcnn.layers.modules import Embedding
-from kgcnn.layers.mlp import MLP, GraphMLP
 from kgcnn.layers.scale import get as get_scaler
-from kgcnn.layers.pooling import PoolingNodes
+from ._model import model_disjoint, model_disjoint_crystal
 from kgcnn.models.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
 
@@ -127,44 +122,27 @@ def make_model(inputs: list = None,
     batched_nodes, batched_x, batched_indices, total_nodes, total_edges = model_inputs
     n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
         **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
-
-    # Optional Embedding.
-    if len(inputs[0]['shape']) < 2:
-        n = Embedding(**input_node_embedding)(n)
-
     if make_distance:
         x, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_nodes])
-        pos1, pos2 = NodePosition()([x, disjoint_indices])
-        ed = NodeDistanceEuclidean()([pos1, pos2])
     else:
-        ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_edges])
+        x, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_edges])
 
-    if expand_distance:
-        ed = GaussBasisLayer(**gauss_args)(ed)
-
-    # Model
-    n = Dense(interaction_args["units"], activation='linear')(n)
-    for i in range(0, depth):
-        n = SchNetInteraction(**interaction_args)([n, ed, disjoint_indices])
-
-    n = GraphMLP(**last_mlp)([n, batch_id_node, count_nodes])
+    out = model_disjoint(
+        [n, x, disjoint_indices, batch_id_node, count_nodes],
+        use_node_embedding=len(inputs[0]['shape']) < 2, input_node_embedding=input_node_embedding,
+        make_distance=make_distance, expand_distance=expand_distance, gauss_args=gauss_args,
+        interaction_args=interaction_args, node_pooling_args=node_pooling_args, depth=depth,
+        last_mlp=last_mlp, output_embedding=output_embedding, use_output_mlp=use_output_mlp,
+        output_mlp=output_mlp)
 
     # Output embedding choice
     if output_embedding == 'graph':
-        out = PoolingNodes(**node_pooling_args)([count_nodes, n, batch_id_node])
-        if use_output_mlp:
-            out = MLP(**output_mlp)(out)
         out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == 'node':
-        out = n
-        if use_output_mlp:
-            out = GraphMLP(**output_mlp)([out, batch_id_node, count_nodes])
         if output_to_tensor:
             out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
         else:
             out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
-    else:
-        raise ValueError("Unsupported output embedding for mode `SchNet` .")
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
@@ -288,46 +266,29 @@ def make_crystal_model(inputs: list = None,
     n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
         **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
     lattice = CastGraphStateToDisjoint(**cast_disjoint_kwargs)(lattice)
-
-    # Optional Embedding.
-    if len(inputs[0]['shape']) < 2:
-        n = Embedding(**input_node_embedding)(n)
-
     if make_distance:
         x, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_nodes])
         edge_image, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([edge_image, total_edges])
-        pos1, pos2 = NodePosition()([x, disjoint_indices])
-        pos2 = ShiftPeriodicLattice()([pos2, edge_image, lattice, batch_id_edge])
-        ed = NodeDistanceEuclidean()([pos1, pos2])
     else:
-        ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_edges])
+        x, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_edges])
 
-    if expand_distance:
-        ed = GaussBasisLayer(**gauss_args)(ed)
-
-    # Model
-    n = Dense(interaction_args["units"], activation='linear')(n)
-    for i in range(0, depth):
-        n = SchNetInteraction(**interaction_args)([n, ed, disjoint_indices])
-
-    n = GraphMLP(**last_mlp)([n, batch_id_node, count_nodes])
+    # Wrapp disjoint model
+    out = model_disjoint_crystal(
+        [n, x, disjoint_indices, edge_image, lattice, batch_id_node, batch_id_edge, count_nodes],
+        use_node_embedding=len(inputs[0]['shape']) < 2, input_node_embedding=input_node_embedding,
+        make_distance=make_distance, expand_distance=expand_distance, gauss_args=gauss_args,
+        interaction_args=interaction_args, node_pooling_args=node_pooling_args, depth=depth, last_mlp=last_mlp,
+        output_embedding=output_embedding, use_output_mlp=use_output_mlp, output_mlp=output_mlp
+    )
 
     # Output embedding choice
     if output_embedding == 'graph':
-        out = PoolingNodes(**node_pooling_args)([count_nodes, n, batch_id_node])
-        if use_output_mlp:
-            out = MLP(**output_mlp)(out)
         out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == 'node':
-        out = n
-        if use_output_mlp:
-            out = GraphMLP(**output_mlp)([out, batch_id_node, count_nodes])
         if output_to_tensor:
             out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
         else:
             out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
-    else:
-        raise ValueError("Unsupported output embedding for mode `SchNet` .")
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
