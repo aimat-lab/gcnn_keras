@@ -31,11 +31,11 @@ class ForceMeanAbsoluteError(Loss):
         # Shape: (batch, N, 3, S)
         check_nonzero = ops.logical_not(
             ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2))
-        row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=y_pred.dtype)
+        row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=y_true.dtype)
         diff = ops.abs(y_true-y_pred)
-        if not self.squeeze_states:
-            diff = ops.mean(diff, axis=3)
         out = ops.sum(ops.mean(diff, axis=2), axis=1)/row_count
+        if not self.squeeze_states:
+            out = ops.mean(out, axis=-1)
         return out
 
     def get_config(self):

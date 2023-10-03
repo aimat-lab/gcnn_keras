@@ -110,16 +110,14 @@ class ScaledForceMeanAbsoluteError(ks.metrics.MeanMetricWrapper):
     def fn_force_mae(self, y_true, y_pred):
         check_nonzero = ops.logical_not(
             ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2))
-        row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=y_pred.dtype)
+        row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=self.scale.dtype)
 
         y_true = self.scale * ops.cast(y_true, dtype=self.scale.dtype)
         y_pred = self.scale * ops.cast(y_pred, dtype=self.scale.dtype)
         diff = ops.abs(y_true-y_pred)
-
-        if not self.squeeze_states:
-            diff = ops.mean(diff, axis=3)
-
         out = ops.sum(ops.mean(diff, axis=2), axis=1)/row_count
+        if not self.squeeze_states:
+            out = ops.mean(out, axis=-1)
         return out
 
     def get_config(self):
