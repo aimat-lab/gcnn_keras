@@ -114,6 +114,7 @@ class ScaledForceMeanAbsoluteError(ks.metrics.MeanMetricWrapper):
 
         y_true = self.scale * ops.cast(y_true, dtype=self.scale.dtype)
         y_pred = self.scale * ops.cast(y_pred, dtype=self.scale.dtype)
+
         diff = ops.abs(y_true-y_pred)
         out = ops.sum(ops.mean(diff, axis=2), axis=1)/row_count
         if not self.squeeze_states:
