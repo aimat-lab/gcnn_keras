@@ -108,12 +108,19 @@ class ScaledForceMeanAbsoluteError(ks.metrics.MeanMetricWrapper):
                 v.assign(ops.zeros(v.shape, dtype=v.dtype))
 
     def fn_force_mae(self, y_true, y_pred):
-        y_true = self.scale * ops.cast(y_true, dtype=self.scale.dtype)
-        y_pred = self.scale * ops.cast(y_pred, dtype=self.scale.dtype)
         check_nonzero = ops.logical_not(
             ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2))
         row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=y_pred.dtype)
-        return ops.sum(ops.mean(ops.abs(y_true-y_pred), axis=2), axis=1)/row_count
+
+        y_true = self.scale * ops.cast(y_true, dtype=self.scale.dtype)
+        y_pred = self.scale * ops.cast(y_pred, dtype=self.scale.dtype)
+        diff = ops.abs(y_true-y_pred)
+
+        if not self.squeeze_states:
+            diff = ops.mean(diff, axis=3)
+
+        out = ops.sum(ops.mean(diff, axis=2), axis=1)/row_count
+        return out
 
     def get_config(self):
         """Returns the serializable config of the metric."""
