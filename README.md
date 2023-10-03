@@ -13,8 +13,6 @@
   <img src="https://github.com/aimat-lab/gcnn_keras/blob/master/docs/source/_static/icon.svg" height="80"/>
 </p>
 
-A set of layers for graph convolutions in Keras.
-
 > [!IMPORTANT]  
 > The versions of kgcnn<=3.1.0 were focused on ragged tensors of tensorflow.
 > The current main branch is developed for Keras 3.0 and kgcnn version 4.0. 
@@ -180,10 +178,11 @@ Data handling classes are given in `kgcnn.data` which stores graphs as `List[Dic
 
 Graphs are represented by a dictionary `GraphDict` of (numpy) arrays which behaves like a python `dict`.
 There are graph pre- and postprocessors in ``kgcnn.graph`` which take specific properties by name and apply a
-processing function or transformation.
+processing function or transformation. 
+They can do any operation but note that `GraphDict` does not impose an actual graph structure !
 
 ```python
-from kgcnn.data.base import GraphDict
+from kgcnn.graph import GraphDict
 # Single graph.
 graph = GraphDict({"edge_indices": [[1, 0], [0, 1]], "node_label": [[0], [1]]})
 graph.set("graph_labels", [0])  # use set(), get() to assign (tensor) properties.
@@ -199,7 +198,7 @@ SortEdgeIndices(edge_indices="edge_indices", edge_attributes="^edge_(?!indices$)
 A `MemoryGraphList` should behave identical to a python list but contain only `GraphDict` items.
 
 ```python
-from kgcnn.data.base import MemoryGraphList
+from kgcnn.data import MemoryGraphList
 # List of graph dicts.
 graph_list = MemoryGraphList([{"edge_indices": [[0, 1], [1, 0]]}, {"edge_indices": [[0, 0]]}, {}])
 graph_list.clean(["edge_indices"])  # Remove graphs without property
@@ -230,7 +229,7 @@ The `data_directory` can have a subdirectory for files and/or single file such a
 A base dataset class is created with path and name information:
 
 ```python
-from kgcnn.data.base import MemoryGraphDataset
+from kgcnn.data import MemoryGraphDataset
 dataset = MemoryGraphDataset(data_directory="ExampleDir/", 
                              dataset_name="Example",
                              file_name=None, file_directory=None)

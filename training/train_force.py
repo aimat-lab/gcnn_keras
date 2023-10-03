@@ -14,7 +14,8 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.models.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.training.hyper import HyperParameter
-from kgcnn.metrics.metrics import ScaledMeanAbsoluteError
+from kgcnn.losses.losses import ForceMeanAbsoluteError
+from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledForceMeanAbsoluteError
 from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
 
 # Input arguments from command line.
@@ -128,8 +129,8 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
             # If scaler was used we add rescaled standard metrics to compile, since otherwise the keras history will not
             # directly log the original target values, but the scaled ones.
             scaler_scale = scaler.get_scaling()
-            mae_metric_energy = ScaledMeanAbsoluteError((1, 1), name="scaled_mean_absolute_error")
-            mae_metric_force = ScaledMeanAbsoluteError((1, 1), name="scaled_mean_absolute_error")
+            mae_metric_energy = ScaledMeanAbsoluteError(scaler_scale.shape, name="scaled_mean_absolute_error")
+            mae_metric_force = ScaledForceMeanAbsoluteError(scaler_scale.shape, name="scaled_mean_absolute_error")
             if scaler_scale is not None:
                 mae_metric_energy.set_scale(scaler_scale)
                 mae_metric_force.set_scale(scaler_scale)
@@ -145,7 +146,7 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
 
     # Compile model with optimizer and loss
     model.compile(**hyper.compile(
-        loss={"energy": "mean_absolute_error", "force": "mean_absolute_error"},
+        loss={"energy": "mean_absolute_error", "force": ForceMeanAbsoluteError()},
         metrics=scaled_metrics))
 
     model.predict(x_test)

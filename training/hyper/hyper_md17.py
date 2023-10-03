@@ -1,5 +1,5 @@
 # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
-trajectory_name = "benzene_ccsd_t"
+trajectory_name = "ethanol_ccsd_t"
 
 hyper = {
     "Schnet.EnergyForceModel": {
@@ -61,7 +61,7 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
-                "loss_weights": {"energy": 1.0, "force": 49.0}
+                "loss_weights": {"energy": 0.1, "force": 4.9}
             },
             "scaler": {"class_name": "EnergyForceExtensiveLabelScaler",
                        "config": {"standardize_scale": True}},

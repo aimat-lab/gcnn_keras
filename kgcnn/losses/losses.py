@@ -22,13 +22,15 @@ class MeanAbsoluteError(Loss):
 @ks.saving.register_keras_serializable(package='kgcnn', name='ForceMeanAbsoluteError')
 class ForceMeanAbsoluteError(Loss):
 
-    def __init__(self, reduction="sum_over_batch_size", name="mean_absolute_error", dtype=None):
+    def __init__(self, reduction="sum_over_batch_size", name="force_mean_absolute_error", dtype=None):
         super(ForceMeanAbsoluteError, self).__init__(reduction=reduction, name=name, dtype=dtype)
 
     def call(self, y_true, y_pred):
-        check_nonzero = ops.all(ops.isclose(y_true, 0.), axis=2)
-        row_count = ops.sum(check_nonzero, axis=1)
-        return ops.sum(ops.abs(y_true-y_pred), axis=(1, 2))/row_count
+        check_nonzero = ops.logical_not(
+            ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2))
+        row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=y_pred.dtype)
+        out = ops.sum(ops.mean(ops.abs(y_true-y_pred), axis=2), axis=1)/row_count
+        return out
 
     def get_config(self):
         config = super(ForceMeanAbsoluteError, self).get_config()
