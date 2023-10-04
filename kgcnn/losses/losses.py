@@ -23,7 +23,7 @@ class MeanAbsoluteError(Loss):
 class ForceMeanAbsoluteError(Loss):
 
     def __init__(self, reduction="sum_over_batch_size", name="force_mean_absolute_error",
-                 squeeze_states: bool = True,dtype=None):
+                 squeeze_states: bool = True, dtype=None):
         super(ForceMeanAbsoluteError, self).__init__(reduction=reduction, name=name, dtype=dtype)
         self.squeeze_states = squeeze_states
 
@@ -32,9 +32,11 @@ class ForceMeanAbsoluteError(Loss):
         check_nonzero = ops.logical_not(
             ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2))
         row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=y_true.dtype)
+        norm = 1/row_count
+        norm = ops.where(ops.isnan(norm), 0., norm)
 
         diff = ops.abs(y_true-y_pred)
-        out = ops.sum(ops.mean(diff, axis=2), axis=1)/row_count
+        out = ops.sum(ops.mean(diff, axis=2), axis=1)*norm
         if not self.squeeze_states:
             out = ops.mean(out, axis=-1)
         return out

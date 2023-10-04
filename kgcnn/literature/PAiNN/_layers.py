@@ -84,7 +84,7 @@ class PAiNNconv(ks.layers.Layer):
                 - rdf (Tensor): Radial basis expansion pair-wise distance of shape ([M], #Basis)
                 - envelope (Tensor): Distance envelope of shape ([N], 1)
                 - r_ij (Tensor): Normalized pair-wise distance of shape ([M], 3)
-                - edge_index (Tensor): Edge indices referring to nodes of shape ([M], 2)
+                - edge_index (Tensor): Edge indices referring to nodes of shape (2, [M])
 
         Returns:
             tuple: [ds, dv]
@@ -189,14 +189,14 @@ class PAiNNUpdate(ks.layers.Layer):
         Args:
             inputs: [nodes, equivariant]
 
-                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
-                - equivariant (tf.RaggedTensor): Equivariant node embedding of shape (batch, [N], 3, F)
+                - nodes (Tensor): Node embeddings of shape ([N], F)
+                - equivariant (Tensor): Equivariant node embedding of shape ([N], 3, F)
 
         Returns:
             tuple: [ds, dv]
 
-                - ds (tf.RaggedTensor) Updated node features of shape (batch, [N], F)
-                - dv (tf.RaggedTensor) Updated equivariant features of shape (batch, [N], 3, F)
+                - ds (Tensor) Updated node features of shape ([N], F)
+                - dv (Tensor) Updated equivariant features of shape ([N], 3, F)
         """
         node, equivariant = inputs
         v_v = self.lay_lin_v(equivariant, **kwargs)
@@ -251,7 +251,7 @@ class EquivariantInitialize(ks.layers.Layer):
         Args:
             inputs: nodes
 
-                - nodes (tf.RaggedTensor): Node embeddings of shape ([N], F)
+                - nodes (Tensor): Node embeddings of shape ([N], F)
 
         Returns:
             tf.RaggedTensor: Equivariant tensor of shape ([N], dim, F)
@@ -316,7 +316,7 @@ class SplitEmbedding(ks.layers.Layer):
         r"""Forward pass: Split embeddings across feature dimension e.g. `axis=-1` .
 
         Args:
-            inputs (tf.RaggedTensor): Embeddings of shape ([N], F)
+            inputs (Tensor): Embeddings of shape ([N], F)
 
         Returns:
             list: List of tensor splits of shape ([N], F/num)

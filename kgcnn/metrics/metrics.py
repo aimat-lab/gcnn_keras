@@ -84,7 +84,7 @@ class ScaledForceMeanAbsoluteError(ks.metrics.MeanMetricWrapper):
     """Metric for a scaled mean absolute error (MAE), which can undo a pre-scaling of the targets. Only intended as
     metric this allows to info the MAE with correct units or absolute values during fit."""
 
-    def __init__(self, scaling_shape=(), name='force_mean_absolute_error', dtype_scale: str = None,
+    def __init__(self, scaling_shape=(1, 1), name='force_mean_absolute_error', dtype_scale: str = None,
                  squeeze_states: bool = True, **kwargs):
         super(ScaledForceMeanAbsoluteError, self).__init__(fn=self.fn_force_mae, name=name, **kwargs)
         self.scaling_shape = scaling_shape
@@ -102,24 +102,26 @@ class ScaledForceMeanAbsoluteError(ks.metrics.MeanMetricWrapper):
             dtype=self.dtype_scale if self.dtype_scale is not None else self.dtype
         )
 
-    def reset_state(self):
-        for v in self.variables:
-            if 'kgcnn_scale_mae' not in v.name:
-                v.assign(ops.zeros(v.shape, dtype=v.dtype))
-
     def fn_force_mae(self, y_true, y_pred):
         check_nonzero = ops.logical_not(
             ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2))
         row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=self.scale.dtype)
+        norm = 1/row_count
+        norm = ops.where(ops.isnan(norm), 0., norm)
 
         y_true = self.scale * ops.cast(y_true, dtype=self.scale.dtype)
         y_pred = self.scale * ops.cast(y_pred, dtype=self.scale.dtype)
 
         diff = ops.abs(y_true-y_pred)
-        out = ops.sum(ops.mean(diff, axis=2), axis=1)/row_count
+        out = ops.sum(ops.mean(diff, axis=2), axis=1)*norm
         if not self.squeeze_states:
             out = ops.mean(out, axis=-1)
         return out
+
+    def reset_state(self):
+        for v in self.variables:
+            if 'kgcnn_scale_mae' not in v.name:
+                v.assign(ops.zeros(v.shape, dtype=v.dtype))
 
     def get_config(self):
         """Returns the serializable config of the metric."""

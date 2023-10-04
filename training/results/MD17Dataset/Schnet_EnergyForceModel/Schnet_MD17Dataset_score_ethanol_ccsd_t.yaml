@@ -1,51 +1,51 @@
 OS: nt_win32
-backend: torch
-cuda_available: 'True'
+backend: tensorflow
+cuda_available: 'False'
 data_unit: ''
-date_time: '2023-09-24 20:02:46'
-device_id: '[0]'
-device_memory: '[{''allocated'': 1.1, ''cached'': 2.0}]'
-device_name: '[''NVIDIA GeForce GTX 1060 6GB'']'
+date_time: '2023-10-04 11:57:06'
+device_id: '[LogicalDevice(name=''/device:CPU:0'', device_type=''CPU'')]'
+device_memory: '[]'
+device_name: '[{}]'
 energy_scaled_mean_absolute_error:
-- 0.10144944489002228
+- 0.16987761855125427
 epochs:
 - 1000
 execute_folds: null
 force_scaled_mean_absolute_error:
-- 0.43136435747146606
+- 0.3668699264526367
 kgcnn_version: 4.0.0
 learning_rate:
 - 6.721010777255287e-06
 loss:
-- 4.682512283325195
+- 0.3909856081008911
 max_energy_scaled_mean_absolute_error:
-- 18.63657569885254
+- 19.745065689086914
 max_force_scaled_mean_absolute_error:
-- 20.372093200683594
+- 20.290353775024414
 max_learning_rate:
 - 0.0010000000474974513
 max_loss:
-- 218.02919006347656
+- 21.753780364990234
 max_val_energy_scaled_mean_absolute_error:
-- 42.55447006225586
+- 39.790931701660156
 max_val_force_scaled_mean_absolute_error:
-- 19.512859344482422
+- 19.341556549072266
 max_val_loss:
-- 210.20559692382812
+- 21.1822509765625
 min_energy_scaled_mean_absolute_error:
-- 0.10144944489002228
+- 0.08012069761753082
 min_force_scaled_mean_absolute_error:
-- 0.42984306812286377
+- 0.3668699264526367
 min_learning_rate:
 - 6.721010777255287e-06
 min_loss:
-- 4.597670555114746
+- 0.3909856081008911
 min_val_energy_scaled_mean_absolute_error:
-- 0.11362900584936142
+- 0.09135672450065613
 min_val_force_scaled_mean_absolute_error:
-- 0.5426991581916809
+- 0.4812542498111725
 min_val_loss:
-- 5.838818550109863
+- 0.5163758397102356
 model_class: EnergyForceModel
 model_name: Schnet
 model_version: ''
@@ -53,11 +53,11 @@ multi_target_indices: null
 number_histories: 1
 seed: 42
 time_list:
-- '0:38:16.073065'
+- '1:08:06.797935'
 trajectory_name: ethanol_ccsd_t
 val_energy_scaled_mean_absolute_error:
-- 0.12116196006536484
+- 0.11028403788805008
 val_force_scaled_mean_absolute_error:
-- 0.5470988750457764
+- 0.48320215940475464
 val_loss:
-- 5.8777289390563965
+- 0.5181215405464172
