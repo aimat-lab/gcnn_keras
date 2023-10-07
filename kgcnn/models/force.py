@@ -90,6 +90,7 @@ class EnergyForceModel(ks.models.Model):
             if self.output_squeeze_states:
                 e_grad = torch.squeeze(e_grad, dim=-1)
         elif backend() == "jax":
+            raise NotImplementedError()
             from jax import grad
             import jax.numpy as jnp
             e_grad = grad(self.energy_model, argnums=self.coordinate_input)(inputs)

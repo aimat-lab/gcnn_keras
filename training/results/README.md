@@ -59,6 +59,14 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 | GraphSAGE | 4.0.0   |      500 | 0.4874 &pm; 0.0228 | 0.6982 &pm; 0.0608 |
 | Schnet    | 4.0.0   |      800 | 0.4677 &pm; 0.0223 | 0.7002 &pm; 0.0910 |
 
+#### FreeSolvDataset
+
+FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use a random 5-fold cross-validation. 
+
+| model   | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
+|:--------|:--------|---------:|:-----------------------|:-----------------------|
+| GATv2   | 4.0.0   |      500 | **0.6060 &pm; 0.0316** | **1.0442 &pm; 0.0840** |
+
 #### MatProjectJdft2dDataset
 
 Materials Project dataset from Matbench with 636 crystal structures and their corresponding Exfoliation energy (meV/atom). We use a random 5-fold cross-validation. 
@@ -73,5 +81,5 @@ Energies and forces for molecular dynamics trajectories of eight organic molecul
 
 | model                   | kgcnn   |   epochs | Aspirin             | Toluene             | Malonaldehyde       | Benzene             | Ethanol             |
 |:------------------------|:--------|---------:|:--------------------|:--------------------|:--------------------|:--------------------|:--------------------|
-| Schnet.EnergyForceModel | 4.0.0   |     1000 | **1.2173 &pm; nan** | **0.7395 &pm; nan** | **0.8444 &pm; nan** | **0.3353 &pm; nan** | **0.5471 &pm; nan** |
+| Schnet.EnergyForceModel | 4.0.0   |     1000 | **1.2173 &pm; nan** | **0.7395 &pm; nan** | **0.8444 &pm; nan** | **0.3353 &pm; nan** | **0.4832 &pm; nan** |
 
