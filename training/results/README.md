@@ -97,9 +97,12 @@ Materials Project dataset from Matbench with 636 crystal structures and their co
 
 MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5-fold cross-validation. 
 
-| model   | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
-|:--------|:--------|---------:|:-----------------------|:-----------------------|
-| DMPNN   | 4.0.0   |      300 | **0.8407 &pm; 0.0463** | 0.8567 &pm; 0.0511     |
-| GAT     | 4.0.0   |      500 | 0.8141 &pm; 0.1077     | **0.8671 &pm; 0.0923** |
-| GATv2   | 4.0.0   |      500 | 0.5825 &pm; 0.2096     | 0.4634 &pm; 0.3872     |
+| model     | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|
+| DMPNN     | 4.0.0   |      300 | **0.8407 &pm; 0.0463** | 0.8567 &pm; 0.0511     |
+| GAT       | 4.0.0   |      500 | 0.8141 &pm; 0.1077     | 0.8671 &pm; 0.0923     |
+| GATv2     | 4.0.0   |      500 | 0.8193 &pm; 0.0945     | 0.8379 &pm; 0.1074     |
+| GCN       | 4.0.0   |      800 | 0.7716 &pm; 0.0531     | 0.7956 &pm; 0.0909     |
+| GIN       | 4.0.0   |      300 | 0.8091 &pm; 0.0781     | **0.8693 &pm; 0.0855** |
+| GraphSAGE | 4.0.0   |      500 | 0.8357 &pm; 0.0798     | 0.8533 &pm; 0.0824     |
 
