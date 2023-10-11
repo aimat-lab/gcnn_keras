@@ -6,7 +6,7 @@ hyper = {
             "config": {
                 "name": "GAT",
                 "inputs": [
-                    {"shape": [None, ], "name": "node_attributes", "dtype": "int64"},
+                    {"shape": (None, ), "name": "node_attributes", "dtype": "int64"},
                     {"shape": (None, ), "name": "edge_attributes", "dtype": "int64"},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
@@ -68,7 +68,7 @@ hyper = {
             "config": {
                 "name": "GATv2",
                 "inputs": [
-                    {"shape": [None, ], "name": "node_attributes", "dtype": "int64"},
+                    {"shape": (None, ), "name": "node_attributes", "dtype": "int64"},
                     {"shape": (None, ), "name": "edge_attributes", "dtype": "int64"},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
@@ -81,7 +81,7 @@ hyper = {
                                    "activation": "kgcnn>leaky_relu",
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "scatter_sum"},
-                "depth": 4, "attention_heads_num": 10,
+                "depth": 1, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
@@ -261,8 +261,8 @@ hyper = {
             "module_name": "kgcnn.literature.AttentiveFP",
             "config": {
                 "name": "AttentiveFP",
-                "inputs": [{"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                           {"shape": [None], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                "inputs": [{"shape": (None, ), "name": "node_attributes", "dtype": "float32", "ragged": True},
+                           {"shape": (None, ), "name": "edge_attributes", "dtype": "float32", "ragged": True},
                            {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
                 "input_embedding": {"node_attributes": {"input_dim": 95, "output_dim": 64},
                                     "edge_attributes": {"input_dim": 5, "output_dim": 64}},
@@ -311,8 +311,8 @@ hyper = {
             "config": {
                 "name": "GIN",
                 "inputs": [
-                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32"},
-                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (None, ), "name": "node_attributes", "dtype": "int64"},
+                    {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
@@ -321,7 +321,8 @@ hyper = {
                 "depth": 5,
                 "dropout": 0.05,
                 "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
-                            "use_normalization": False, "normalization_technique": "graph_batch"},
+                            "use_normalization": False, "normalization_technique": "graph_batch",
+                            "padded_disjoint": False},
                 "gin_args": {},
                 "last_mlp": {"use_bias": True, "units": [64, 32, 1], "activation": ["relu", "relu", "linear"]},
                 "output_embedding": "graph",
@@ -347,15 +348,78 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
         },
+        "dataset": {
+            "class_name": "MUTAGDataset",
+            "module_name": "kgcnn.data.datasets.MUTAGDataset",
+            "config": {},
+            "methods": [
+                {"map_list": {"method": "count_nodes_and_edges"}},
+            ]
+        },
         "data": {
-            "dataset": {
-                "class_name": "MUTAGDataset",
-                "module_name": "kgcnn.data.datasets.MUTAGDataset",
-                "config": {},
-                "methods": [
-                    {"map_list": {"method": "count_nodes_and_edges"}},
+            "data_unit": ""
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "4.0.0"
+        }
+    },
+    "GCN": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.GCN",
+            "config": {
+                "name": "GCN",
+                "inputs": [
+                    {"shape": (None, ), "name": "node_attributes", "dtype": "int64"},
+                    {"shape": (None, 1), "name": "edge_weights", "dtype": "float32"},
+                    {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
+                ],
+                "cast_disjoint_kwargs": {"padded_disjoint": False},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 25, "output_dim": 1},
+                "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
+                "depth": 5, "verbose": 10,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 1],
+                               "activation": ["relu", "relu", "sigmoid"]},
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 32,
+                "epochs": 800,
+                "validation_freq": 1,
+                "verbose": 2,
+                "callbacks": [
+                    {
+                        "class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 1e-03, "learning_rate_stop": 5e-05, "epo_min": 250, "epo": 800,
+                        "verbose": 0}
+                    }
                 ]
             },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
+                "loss": "binary_crossentropy",
+                "metrics": ["binary_accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+        },
+        "dataset": {
+            "class_name": "MUTAGDataset",
+            "module_name": "kgcnn.data.datasets.MUTAGDataset",
+            "config": {},
+            "methods": [
+                {"map_list": {"method": "normalize_edge_weights_sym"}},
+                {"map_list": {"method": "count_nodes_and_edges"}},
+            ]
+        },
+        "data": {
             "data_unit": ""
         },
         "info": {

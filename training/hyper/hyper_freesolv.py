@@ -380,7 +380,7 @@ hyper = {
             "kgcnn_version": "4.0.0"
         }
     },
-"DMPNN": {
+    "DMPNN": {
         "model": {
             "class_name": "make_model",
             "module_name": "kgcnn.literature.DMPNN",

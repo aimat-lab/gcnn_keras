@@ -76,6 +76,21 @@ benchmark_datasets = {
              "is_min_max": True}
         ]
     },
+    # "ISO17Dataset": {
+    #     "general_info": [
+    #         "The database consist of 129 molecules each containing 5,000 conformational geometries, ",
+    #         "energies and forces with a resolution of 1 femtosecond in the molecular dynamics trajectories. ",
+    #         "The molecules were randomly drawn from the largest set of isomers in the QM9 dataset. "
+    #     ],
+    #     "targets": [
+    #         {"metric": "val_energy_scaled_mean_absolute_error", "name": "Energy (test_within)", "find_best": "min"},
+    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Force (test_within)", "find_best": "min"},
+    #         {"metric": "min_val_energy_scaled_mean_absolute_error", "name": "*Min. Energy* (test_within)",
+    #          "find_best": "min", "is_min_max": True},
+    #         {"metric": "min_val_force_scaled_mean_absolute_error", "name": "*Min. Force* (test_within)",
+    #          "find_best": "min", "is_min_max": True},
+    #     ]
+    # },
     # "LipopDataset": {
     #     "general_info": [
     #         "Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. ",
@@ -88,6 +103,108 @@ benchmark_datasets = {
     #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
     #          "is_min_max": True},
     #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+    #          "is_min_max": True}
+    #     ]
+    # },
+    "MD17Dataset": {
+        "general_info": [
+            "Energies and forces for molecular dynamics trajectories of eight organic molecules. ",
+            "All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. ",
+            "We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. ",
+            "Errors are MAE for forces. ",
+            "Results are for the CCSD and CCSD(T) data in MD17. "
+        ],
+        "targets": [
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Aspirin", "find_best": "min",
+             "trajectory_name": "aspirin_ccsd"},
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Toluene", "find_best": "min",
+             "trajectory_name": "toluene_ccsd_t"},
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Malonaldehyde", "find_best": "min",
+             "trajectory_name": "malonaldehyde_ccsd_t"},
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Benzene", "find_best": "min",
+             "trajectory_name": "benzene_ccsd_t"},
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Ethanol", "find_best": "min",
+             "trajectory_name": "ethanol_ccsd_t"}
+        ]
+    },
+    # "MD17RevisedDataset": {
+    #     "general_info": [
+    #         "Energies and forces for molecular dynamics trajectories. ",
+    #         "All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. ",
+    #         "We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. ",
+    #         "Errors are MAE for forces. "
+    #     ],
+    #     "targets": [
+    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Aspirin", "find_best": "min",
+    #          "trajectory_name": "aspirin"},
+    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Toluene", "find_best": "min",
+    #          "trajectory_name": "toluene"},
+    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Malonaldehyde", "find_best": "min",
+    #          "trajectory_name": "malonaldehyde"},
+    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Benzene", "find_best": "min",
+    #          "trajectory_name": "benzene"},
+    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Ethanol", "find_best": "min",
+    #          "trajectory_name": "ethanol"}
+    #     ]
+    # },
+    # "MatProjectDielectricDataset": {
+    #     "general_info": [
+    #         "Materials Project dataset from Matbench with 4764 crystal structures ",
+    #         "and their corresponding Refractive index (unitless). ",
+    #         "We use a random 5-fold cross-validation. "
+    #     ],
+    #     "targets": [
+    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [no unit]", "find_best": "min"},
+    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [no unit]", "find_best": "min"},
+    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+    #          "is_min_max": True},
+    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+    #          "is_min_max": True}
+    #     ]
+    # },
+    # "MatProjectEFormDataset": {
+    #     "general_info": [
+    #         "Materials Project dataset from Matbench with 132752 crystal structures ",
+    #         "and their corresponding formation energy in [eV/atom]. ",
+    #         "We use a random 5-fold cross-validation. "
+    #     ],
+    #     "targets": [
+    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]", "find_best": "min"},
+    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]", "find_best": "min"},
+    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+    #          "is_min_max": True},
+    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+    #          "is_min_max": True}
+    #     ]
+    # },
+    # "MatProjectGapDataset": {
+    #     "general_info": [
+    #         "Materials Project dataset from Matbench with 106113 crystal structures ",
+    #         "and their band gap as calculated by PBE DFT from the Materials Project, in eV. ",
+    #         "We use a random 5-fold cross-validation. "
+    #     ],
+    #     "targets": [
+    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV]", "find_best": "min"},
+    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV]", "find_best": "min"},
+    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+    #          "is_min_max": True},
+    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+    #          "is_min_max": True}
+    #     ]
+    # },
+    # "MatProjectIsMetalDataset": {
+    #     "general_info": [
+    #         "Materials Project dataset from Matbench with 106113 crystal structures ",
+    #         "and their corresponding Metallicity determined with pymatgen. ",
+    #         "1 if the compound is a metal, 0 if the compound is not a metal. ",
+    #         "We use a random 5-fold cross-validation. "
+    #     ],
+    #     "targets": [
+    #         {"metric": "val_acc", "name": "Accuracy", "find_best": "max"},
+    #         {"metric": "val_auc", "name": "AUC", "find_best": "max"},
+    #         {"metric": "max_val_acc", "name": "*Max. Accuracy*", "find_best": "max",
+    #          "is_min_max": True},
+    #         {"metric": "max_val_uac", "name": "*Max. AUC*", "find_best": "max",
     #          "is_min_max": True}
     #     ]
     # },
@@ -106,36 +223,6 @@ benchmark_datasets = {
              "is_min_max": True}
         ]
     },
-    # "MatProjectPhononsDataset": {
-    #     "general_info": [
-    #         "Materials Project dataset from Matbench with 1,265 crystal structures ",
-    #         "and their corresponding vibration properties in [1/cm]. ",
-    #         "We use a random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]", "find_best": "min"},
-    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]", "find_best": "min"},
-    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
-    #          "is_min_max": True},
-    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
-    #          "is_min_max": True}
-    #     ]
-    # },
-    # "MatProjectDielectricDataset": {
-    #     "general_info": [
-    #         "Materials Project dataset from Matbench with 4764 crystal structures ",
-    #         "and their corresponding Refractive index (unitless). ",
-    #         "We use a random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [no unit]", "find_best": "min"},
-    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [no unit]", "find_best": "min"},
-    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
-    #          "is_min_max": True},
-    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
-    #          "is_min_max": True}
-    #     ]
-    # },
     # "MatProjectLogGVRHDataset": {
     #     "general_info": [
     #         "Materials Project dataset from Matbench with 10987 crystal structures ",
@@ -181,41 +268,10 @@ benchmark_datasets = {
     #          "is_min_max": True}
     #     ]
     # },
-    # "MatProjectGapDataset": {
+    # "MatProjectPhononsDataset": {
     #     "general_info": [
-    #         "Materials Project dataset from Matbench with 106113 crystal structures ",
-    #         "and their band gap as calculated by PBE DFT from the Materials Project, in eV. ",
-    #         "We use a random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV]", "find_best": "min"},
-    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV]", "find_best": "min"},
-    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
-    #          "is_min_max": True},
-    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
-    #          "is_min_max": True}
-    #     ]
-    # },
-    # "MatProjectIsMetalDataset": {
-    #     "general_info": [
-    #         "Materials Project dataset from Matbench with 106113 crystal structures ",
-    #         "and their corresponding Metallicity determined with pymatgen. ",
-    #         "1 if the compound is a metal, 0 if the compound is not a metal. ",
-    #         "We use a random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_acc", "name": "Accuracy", "find_best": "max"},
-    #         {"metric": "val_auc", "name": "AUC", "find_best": "max"},
-    #         {"metric": "max_val_acc", "name": "*Max. Accuracy*", "find_best": "max",
-    #          "is_min_max": True},
-    #         {"metric": "max_val_uac", "name": "*Max. AUC*", "find_best": "max",
-    #          "is_min_max": True}
-    #     ]
-    # },
-    # "MatProjectEFormDataset": {
-    #     "general_info": [
-    #         "Materials Project dataset from Matbench with 132752 crystal structures ",
-    #         "and their corresponding formation energy in [eV/atom]. ",
+    #         "Materials Project dataset from Matbench with 1,265 crystal structures ",
+    #         "and their corresponding vibration properties in [1/cm]. ",
     #         "We use a random 5-fold cross-validation. "
     #     ],
     #     "targets": [
@@ -227,27 +283,27 @@ benchmark_datasets = {
     #          "is_min_max": True}
     #     ]
     # },
+    "MUTAGDataset": {
+        "general_info": [
+            "MUTAG dataset from TUDataset for classification with 188 graphs. ",
+            "We use random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
+            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
+            {"metric": "max_val_binary_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
+            {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
+        ]
+    },
     # "MutagenicityDataset": {
     #     "general_info": [
     #         "Mutagenicity dataset from TUDataset for classification with 4337 graphs. ",
     #         "The dataset was cleaned for unconnected atoms. We use random 5-fold cross-validation. "
     #     ],
     #     "targets": [
-    #         {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
+    #         {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
     #         {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
-    #         {"metric": "max_val_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
-    #         {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
-    #     ]
-    # },
-    # "MUTAGDataset": {
-    #     "general_info": [
-    #         "MUTAG dataset from TUDataset for classification with 188 graphs. ",
-    #         "We use random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
-    #         {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
-    #         {"metric": "max_val_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
+    #         {"metric": "max_val_binary_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
     #         {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
     #     ]
     # },
@@ -262,23 +318,6 @@ benchmark_datasets = {
     #         {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
     #         {"metric": "max_val_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
     #         {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
-    #     ]
-    # },
-    # "Tox21MolNetDataset": {
-    #     "general_info": [
-    #         "Tox21 (MoleculeNet) consists of 7831 compounds as smiles and ",
-    #         "12 different targets relevant to drug toxicity. ",
-    #         "We use random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_binary_accuracy_no_nan", "name": "Accuracy", "find_best": "max"},
-    #         {"metric": "val_AUC_no_nan", "name": "AUC(ROC)", "find_best": "max"},
-    #         {"metric": "val_balanced_binary_accuracy_no_nan", "name": "BACC", "find_best": "max"},
-    #         {"metric": "max_val_balanced_binary_accuracy_no_nan", "name": "*Max. BACC*", "find_best": "max",
-    #          "is_min_max": True},
-    #         {"metric": "max_val_binary_accuracy_no_nan", "name": "*Max. Accuracy*", "find_best": "max",
-    #          "is_min_max": True},
-    #         {"metric": "max_val_AUC_no_nan", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
     #     ]
     # },
     # "QM7Dataset": {
@@ -331,88 +370,23 @@ benchmark_datasets = {
     #         {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
     #     ]
     # },
-    "MD17Dataset": {
-        "general_info": [
-            "Energies and forces for molecular dynamics trajectories of eight organic molecules. ",
-            "All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. ",
-            "We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. ",
-            "Errors are MAE for forces. ",
-            "Results are for the CCSD and CCSD(T) data in MD17. "
-        ],
-        "targets": [
-            {"metric": "val_force_scaled_mean_absolute_error", "name": "Aspirin", "find_best": "min",
-             "trajectory_name": "aspirin_ccsd"},
-            {"metric": "val_force_scaled_mean_absolute_error", "name": "Toluene", "find_best": "min",
-             "trajectory_name": "toluene_ccsd_t"},
-            {"metric": "val_force_scaled_mean_absolute_error", "name": "Malonaldehyde", "find_best": "min",
-             "trajectory_name": "malonaldehyde_ccsd_t"},
-            {"metric": "val_force_scaled_mean_absolute_error", "name": "Benzene", "find_best": "min",
-             "trajectory_name": "benzene_ccsd_t"},
-            {"metric": "val_force_scaled_mean_absolute_error", "name": "Ethanol", "find_best": "min",
-             "trajectory_name": "ethanol_ccsd_t"}
-        ]
-    },
-    # "MD17RevisedDataset": {
+    # "Tox21MolNetDataset": {
     #     "general_info": [
-    #         "Energies and forces for molecular dynamics trajectories. ",
-    #         "All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. ",
-    #         "We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. ",
-    #         "Errors are MAE for forces. "
+    #         "Tox21 (MoleculeNet) consists of 7831 compounds as smiles and ",
+    #         "12 different targets relevant to drug toxicity. ",
+    #         "We use random 5-fold cross-validation. "
     #     ],
     #     "targets": [
-    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Aspirin", "find_best": "min",
-    #          "trajectory_name": "aspirin"},
-    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Toluene", "find_best": "min",
-    #          "trajectory_name": "toluene"},
-    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Malonaldehyde", "find_best": "min",
-    #          "trajectory_name": "malonaldehyde"},
-    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Benzene", "find_best": "min",
-    #          "trajectory_name": "benzene"},
-    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Ethanol", "find_best": "min",
-    #          "trajectory_name": "ethanol"}
+    #         {"metric": "val_binary_accuracy_no_nan", "name": "Accuracy", "find_best": "max"},
+    #         {"metric": "val_AUC_no_nan", "name": "AUC(ROC)", "find_best": "max"},
+    #         {"metric": "val_balanced_binary_accuracy_no_nan", "name": "BACC", "find_best": "max"},
+    #         {"metric": "max_val_balanced_binary_accuracy_no_nan", "name": "*Max. BACC*", "find_best": "max",
+    #          "is_min_max": True},
+    #         {"metric": "max_val_binary_accuracy_no_nan", "name": "*Max. Accuracy*", "find_best": "max",
+    #          "is_min_max": True},
+    #         {"metric": "max_val_AUC_no_nan", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
     #     ]
     # },
-    # "ISO17Dataset": {
-    #     "general_info": [
-    #         "The database consist of 129 molecules each containing 5,000 conformational geometries, ",
-    #         "energies and forces with a resolution of 1 femtosecond in the molecular dynamics trajectories. ",
-    #         "The molecules were randomly drawn from the largest set of isomers in the QM9 dataset. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_energy_scaled_mean_absolute_error", "name": "Energy (test_within)", "find_best": "min"},
-    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Force (test_within)", "find_best": "min"},
-    #         {"metric": "min_val_energy_scaled_mean_absolute_error", "name": "*Min. Energy* (test_within)",
-    #          "find_best": "min", "is_min_max": True},
-    #         {"metric": "min_val_force_scaled_mean_absolute_error", "name": "*Min. Force* (test_within)",
-    #          "find_best": "min", "is_min_max": True},
-    #     ]
-    # },
-    # "VgdMockDataset": {
-    #     "general_info": [
-    #         "Synthetic classification dataset containing 100 small, randomly generated graphs, ",
-    #         "where half of them were seeded with a triangular subgraph motif, ",
-    #         "which is the explanation ground truth for the target class distinction."
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_categorical_accuracy", "name": "Categorical Accuracy", "find_best": "max"},
-    #         {"metric": "val_node_auc", "name": "Node AUC", "find_best": "max"},
-    #         {"metric": "val_edge_auc", "name": "Edge AUC", "find_best": "max"},
-    #     ]
-    # },
-    # "VgdRbMotifsDataset": {
-    #     "general_info": [
-    #         "Synthetic graph regression dataset consisting of 5000 small, randomly generated graphs, ",
-    #         "where some of them are seeded with special red- or blue-dominated subgraph motifs, where ",
-    #         "blue motifs contribute negatively to a graph's overall target value and red motifs ",
-    #         "contribute positively. The explanation ground truth for this datasets consists of these ",
-    #         "motifs."
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_mean_squared_error", "name": "MSE", "find_best": "min"},
-    #         {"metric": "val_node_auc", "name": "Node AUC", "find_best": "max"},
-    #         {"metric": "val_edge_auc", "name": "Edge AUC", "find_best": "max"},
-    #     ]
-    # }
 }
 
 

@@ -69,10 +69,21 @@ FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their correspondi
 
 | model     | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
 |:----------|:--------|---------:|:-----------------------|:-----------------------|
+| DMPNN     | 4.0.0   |      300 | **0.5487 &pm; 0.0754** | **0.9206 &pm; 0.1889** |
+| GAT       | 4.0.0   |      500 | 0.6051 &pm; 0.0861     | 1.0326 &pm; 0.1819     |
 | GATv2     | 4.0.0   |      500 | 0.6151 &pm; 0.0247     | 1.0535 &pm; 0.0817     |
 | GCN       | 4.0.0   |      800 | 0.6400 &pm; 0.0834     | 1.0876 &pm; 0.1393     |
-| GraphSAGE | 4.0.0   |      500 | **0.5894 &pm; 0.0675** | **1.0009 &pm; 0.1491** |
+| GIN       | 4.0.0   |      300 | 0.8100 &pm; 0.1016     | 1.2695 &pm; 0.1192     |
+| GraphSAGE | 4.0.0   |      500 | 0.5894 &pm; 0.0675     | 1.0009 &pm; 0.1491     |
 | Schnet    | 4.0.0   |      800 | 0.6070 &pm; 0.0285     | 1.0603 &pm; 0.0549     |
+
+#### MD17Dataset
+
+Energies and forces for molecular dynamics trajectories of eight organic molecules. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. Results are for the CCSD and CCSD(T) data in MD17. 
+
+| model                   | kgcnn   |   epochs | Aspirin             | Toluene             | Malonaldehyde       | Benzene             | Ethanol             |
+|:------------------------|:--------|---------:|:--------------------|:--------------------|:--------------------|:--------------------|:--------------------|
+| Schnet.EnergyForceModel | 4.0.0   |     1000 | **1.2173 &pm; nan** | **0.7395 &pm; nan** | **0.8444 &pm; nan** | **0.3353 &pm; nan** | **0.4832 &pm; nan** |
 
 #### MatProjectJdft2dDataset
 
@@ -82,11 +93,13 @@ Materials Project dataset from Matbench with 636 crystal structures and their co
 |:--------------------------|:--------|---------:|:-------------------------|:--------------------------|
 | Schnet.make_crystal_model | 4.0.0   |      800 | **47.0970 &pm; 12.1636** | **121.0402 &pm; 38.7995** |
 
-#### MD17Dataset
+#### MUTAGDataset
 
-Energies and forces for molecular dynamics trajectories of eight organic molecules. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. Results are for the CCSD and CCSD(T) data in MD17. 
+MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5-fold cross-validation. 
 
-| model                   | kgcnn   |   epochs | Aspirin             | Toluene             | Malonaldehyde       | Benzene             | Ethanol             |
-|:------------------------|:--------|---------:|:--------------------|:--------------------|:--------------------|:--------------------|:--------------------|
-| Schnet.EnergyForceModel | 4.0.0   |     1000 | **1.2173 &pm; nan** | **0.7395 &pm; nan** | **0.8444 &pm; nan** | **0.3353 &pm; nan** | **0.4832 &pm; nan** |
+| model   | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
+|:--------|:--------|---------:|:-----------------------|:-----------------------|
+| DMPNN   | 4.0.0   |      300 | **0.8407 &pm; 0.0463** | 0.8567 &pm; 0.0511     |
+| GAT     | 4.0.0   |      500 | 0.8141 &pm; 0.1077     | **0.8671 &pm; 0.0923** |
+| GATv2   | 4.0.0   |      500 | 0.5825 &pm; 0.2096     | 0.4634 &pm; 0.3872     |
 
