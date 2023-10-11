@@ -23,17 +23,21 @@ class MeanAbsoluteError(Loss):
 class ForceMeanAbsoluteError(Loss):
 
     def __init__(self, reduction="sum_over_batch_size", name="force_mean_absolute_error",
-                 squeeze_states: bool = True, dtype=None):
+                 squeeze_states: bool = True, find_padded_atoms: bool = True, dtype=None):
         super(ForceMeanAbsoluteError, self).__init__(reduction=reduction, name=name, dtype=dtype)
         self.squeeze_states = squeeze_states
+        self.find_padded_atoms = find_padded_atoms
 
     def call(self, y_true, y_pred):
         # Shape: (batch, N, 3, S)
-        check_nonzero = ops.logical_not(
-            ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2))
-        row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=y_true.dtype)
-        norm = 1/row_count
-        norm = ops.where(ops.isnan(norm), 0., norm)
+        if self.find_padded_atoms:
+            check_nonzero = ops.logical_not(
+                ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2))
+            row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=y_true.dtype)
+            norm = 1/row_count
+            norm = ops.where(ops.isnan(norm), 0., norm)
+        else:
+            norm = 1/ops.shape(y_true)[1]
 
         diff = ops.abs(y_true-y_pred)
         out = ops.sum(ops.mean(diff, axis=2), axis=1)*norm
@@ -43,4 +47,5 @@ class ForceMeanAbsoluteError(Loss):
 
     def get_config(self):
         config = super(ForceMeanAbsoluteError, self).get_config()
+        config.update({"find_padded_atoms": self.find_padded_atoms, "squeeze_states": self.squeeze_states})
         return config

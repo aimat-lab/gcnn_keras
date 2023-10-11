@@ -85,11 +85,12 @@ class ScaledForceMeanAbsoluteError(ks.metrics.MeanMetricWrapper):
     metric this allows to info the MAE with correct units or absolute values during fit."""
 
     def __init__(self, scaling_shape=(1, 1), name='force_mean_absolute_error', dtype_scale: str = None,
-                 squeeze_states: bool = True, **kwargs):
+                 squeeze_states: bool = True, find_padded_atoms: bool = True, **kwargs):
         super(ScaledForceMeanAbsoluteError, self).__init__(fn=self.fn_force_mae, name=name, **kwargs)
         self.scaling_shape = scaling_shape
         self.dtype_scale = dtype_scale
         self.squeeze_states = squeeze_states
+        self.find_padded_atoms = find_padded_atoms
 
         if scaling_shape[-1] == 1 and squeeze_states and len(scaling_shape) > 1:
             scaling_shape = scaling_shape[:-1]
@@ -103,11 +104,14 @@ class ScaledForceMeanAbsoluteError(ks.metrics.MeanMetricWrapper):
         )
 
     def fn_force_mae(self, y_true, y_pred):
-        check_nonzero = ops.logical_not(
-            ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2))
-        row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=self.scale.dtype)
-        norm = 1/row_count
-        norm = ops.where(ops.isnan(norm), 0., norm)
+        if self.find_padded_atoms:
+            check_nonzero = ops.logical_not(
+                ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2))
+            row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=self.scale.dtype)
+            norm = 1/row_count
+            norm = ops.where(ops.isnan(norm), 0., norm)
+        else:
+            norm = 1/ops.shape(y_true)[1]
 
         y_true = self.scale * ops.cast(y_true, dtype=self.scale.dtype)
         y_pred = self.scale * ops.cast(y_pred, dtype=self.scale.dtype)
@@ -126,7 +130,8 @@ class ScaledForceMeanAbsoluteError(ks.metrics.MeanMetricWrapper):
     def get_config(self):
         """Returns the serializable config of the metric."""
         conf = super(ScaledForceMeanAbsoluteError, self).get_config()
-        conf.update({"scaling_shape": self.scaling_shape, "dtype_scale": self.dtype_scale})
+        conf.update({"scaling_shape": self.scaling_shape, "dtype_scale": self.dtype_scale,
+                     "find_padded_atoms": self.find_padded_atoms})
         return conf
 
     def set_scale(self, scale):
