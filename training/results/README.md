@@ -28,11 +28,13 @@ ClinTox (MoleculeNet) consists of 1478 compounds as smiles and data of drugs app
 
 Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. Here we use random 5-fold cross-validation on nodes. 
 
-| model   | kgcnn   |   epochs | Categorical accuracy   |
-|:--------|:--------|---------:|:-----------------------|
-| GAT     | 4.0.0   |      250 | 0.6132 &pm; 0.0115     |
-| GCN     | 4.0.0   |      300 | 0.6232 &pm; 0.0054     |
-| GIN     | 4.0.0   |      800 | **0.6263 &pm; 0.0080** |
+| model     | kgcnn   |   epochs | Categorical accuracy   |
+|:----------|:--------|---------:|:-----------------------|
+| GAT       | 4.0.0   |      250 | 0.6132 &pm; 0.0115     |
+| GATv2     | 4.0.0   |     1000 | 0.6211 &pm; 0.0048     |
+| GCN       | 4.0.0   |      300 | 0.6232 &pm; 0.0054     |
+| GIN       | 4.0.0   |      800 | **0.6263 &pm; 0.0080** |
+| GraphSAGE | 4.0.0   |      600 | 0.6151 &pm; 0.0053     |
 
 #### CoraLuDataset
 
@@ -51,21 +53,26 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attribu
 
 ESOL consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation. 
 
-| model     | kgcnn   |   epochs | MAE [log mol/L]    | RMSE [log mol/L]   |
-|:----------|:--------|---------:|:-------------------|:-------------------|
-| DMPNN     | 4.0.0   |      300 | 0.4556 &pm; 0.0281 | 0.6471 &pm; 0.0299 |
-| GAT       | 4.0.0   |      500 | **nan &pm; nan**   | **nan &pm; nan**   |
-| GCN       | 4.0.0   |      800 | 0.4613 &pm; 0.0205 | 0.6534 &pm; 0.0513 |
-| GraphSAGE | 4.0.0   |      500 | 0.4874 &pm; 0.0228 | 0.6982 &pm; 0.0608 |
-| Schnet    | 4.0.0   |      800 | 0.4677 &pm; 0.0223 | 0.7002 &pm; 0.0910 |
+| model     | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|
+| DMPNN     | 4.0.0   |      300 | **0.4556 &pm; 0.0281** | **0.6471 &pm; 0.0299** |
+| GAT       | 4.0.0   |      500 | 0.4818 &pm; 0.0240     | 0.6919 &pm; 0.0694     |
+| GATv2     | 4.0.0   |      500 | 0.4598 &pm; 0.0234     | 0.6650 &pm; 0.0409     |
+| GCN       | 4.0.0   |      800 | 0.4613 &pm; 0.0205     | 0.6534 &pm; 0.0513     |
+| GIN       | 4.0.0   |      300 | 0.5352 &pm; 0.0461     | 0.8251 &pm; 0.1839     |
+| GraphSAGE | 4.0.0   |      500 | 0.4874 &pm; 0.0228     | 0.6982 &pm; 0.0608     |
+| Schnet    | 4.0.0   |      800 | 0.4677 &pm; 0.0223     | 0.7002 &pm; 0.0910     |
 
 #### FreeSolvDataset
 
 FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use a random 5-fold cross-validation. 
 
-| model   | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
-|:--------|:--------|---------:|:-----------------------|:-----------------------|
-| GATv2   | 4.0.0   |      500 | **0.6060 &pm; 0.0316** | **1.0442 &pm; 0.0840** |
+| model     | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|
+| GATv2     | 4.0.0   |      500 | 0.6151 &pm; 0.0247     | 1.0535 &pm; 0.0817     |
+| GCN       | 4.0.0   |      800 | 0.6400 &pm; 0.0834     | 1.0876 &pm; 0.1393     |
+| GraphSAGE | 4.0.0   |      500 | **0.5894 &pm; 0.0675** | **1.0009 &pm; 0.1491** |
+| Schnet    | 4.0.0   |      800 | 0.6070 &pm; 0.0285     | 1.0603 &pm; 0.0549     |
 
 #### MatProjectJdft2dDataset
 

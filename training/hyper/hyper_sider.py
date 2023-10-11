@@ -33,8 +33,10 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
                 "loss": "binary_crossentropy",
-                "metrics": ["binary_accuracy",
-                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27, "name": "auc"}}],
+                "metrics": [
+                    "binary_accuracy",
+                    {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27, "name": "auc"}}
+                ],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",

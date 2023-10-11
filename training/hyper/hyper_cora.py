@@ -85,7 +85,7 @@ hyper = {
                                     "activation": "kgcnn>leaky_relu",
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "scatter_mean"},
-                "depth": 5, "attention_heads_num": 10,
+                "depth": 1, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "node",
                 "output_mlp": {"use_bias": [True, True, False], "units": [70, 70, 70],
@@ -329,7 +329,7 @@ hyper = {
             "config": {
                 "name": "DMPNN",
                 "inputs": [
-                    {"shape": [None, 1433], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32"},
                     {"shape": [None, 1], "name": "edge_weights", "dtype": "float32"},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
                     {"shape": (None, 1), "name": "edge_indices_reverse", "dtype": "int64"},
