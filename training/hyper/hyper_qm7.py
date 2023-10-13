@@ -6,19 +6,21 @@ hyper = {
             "config": {
                 "name": "Schnet",
                 "inputs": [
-                    {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                    {"shape": [None], "name": "node_number", "dtype": "float32"},
+                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_ranges", "dtype": "int64"}
                 ],
-                "input_embedding": {
-                    "node": {"input_dim": 95, "output_dim": 64}
-                },
+                "cast_disjoint_kwargs": {"padded_disjoint": False},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
                              "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
                 "interaction_args": {
-                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
+                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus",
+                    "cfconv_pool": "scatter_sum"
                 },
-                "node_pooling_args": {"pooling_method": "sum"},
+                "node_pooling_args": {"pooling_method": "scatter_sum"},
                 "depth": 4,
                 "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
                 "output_embedding": "graph",
@@ -27,7 +29,6 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": None,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -38,11 +39,11 @@ hyper = {
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 0.0005}},
                 "loss": "mean_absolute_error"
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {
-                "scaler": [{"class_name": "StandardScaler",
+                "scaler": [{"class_name": "StandardLabelScaler",
                             "config": {"with_std": True, "with_mean": True, "copy": True}}
                            ]
             }},
@@ -54,7 +55,9 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.QM7Dataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
+                    {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}},
+                    {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
+                                  "count_edges": "range_indices"}},
                 ]
             },
             "data_unit": "kcal/mol"
@@ -62,7 +65,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.1"
+            "kgcnn_version": "4.0.0"
         }
     },
     "PAiNN": {

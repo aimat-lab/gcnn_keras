@@ -370,23 +370,23 @@ benchmark_datasets = {
     #         {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
     #     ]
     # },
-    # "Tox21MolNetDataset": {
-    #     "general_info": [
-    #         "Tox21 (MoleculeNet) consists of 7831 compounds as smiles and ",
-    #         "12 different targets relevant to drug toxicity. ",
-    #         "We use random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_binary_accuracy_no_nan", "name": "Accuracy", "find_best": "max"},
-    #         {"metric": "val_AUC_no_nan", "name": "AUC(ROC)", "find_best": "max"},
-    #         {"metric": "val_balanced_binary_accuracy_no_nan", "name": "BACC", "find_best": "max"},
-    #         {"metric": "max_val_balanced_binary_accuracy_no_nan", "name": "*Max. BACC*", "find_best": "max",
-    #          "is_min_max": True},
-    #         {"metric": "max_val_binary_accuracy_no_nan", "name": "*Max. Accuracy*", "find_best": "max",
-    #          "is_min_max": True},
-    #         {"metric": "max_val_AUC_no_nan", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
-    #     ]
-    # },
+    "Tox21MolNetDataset": {
+        "general_info": [
+            "Tox21 (MoleculeNet) consists of 7831 compounds as smiles and ",
+            "12 different targets relevant to drug toxicity. ",
+            "We use random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_binary_accuracy_no_nan", "name": "Accuracy", "find_best": "max"},
+            {"metric": "val_AUC_no_nan", "name": "AUC(ROC)", "find_best": "max"},
+            {"metric": "val_balanced_binary_accuracy_no_nan", "name": "BACC", "find_best": "max"},
+            {"metric": "max_val_balanced_binary_accuracy_no_nan", "name": "*Max. BACC*", "find_best": "max",
+             "is_min_max": True},
+            {"metric": "max_val_binary_accuracy_no_nan", "name": "*Max. Accuracy*", "find_best": "max",
+             "is_min_max": True},
+            {"metric": "max_val_AUC_no_nan", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
+        ]
+    },
 }
 
 

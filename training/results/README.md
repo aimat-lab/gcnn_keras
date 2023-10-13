@@ -106,3 +106,11 @@ MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5
 | GIN       | 4.0.0   |      300 | 0.8091 &pm; 0.0781     | **0.8693 &pm; 0.0855** |
 | GraphSAGE | 4.0.0   |      500 | 0.8357 &pm; 0.0798     | 0.8533 &pm; 0.0824     |
 
+#### Tox21MolNetDataset
+
+Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different targets relevant to drug toxicity. We use random 5-fold cross-validation. 
+
+| model     | kgcnn   |   epochs | Accuracy               | AUC(ROC)               | BACC                   |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|
+| GraphSAGE | 4.0.0   |      100 | **0.9180 &pm; 0.0027** | **0.7976 &pm; 0.0087** | **0.6755 &pm; 0.0047** |
+

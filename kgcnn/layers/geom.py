@@ -161,7 +161,7 @@ class EuclideanNorm(Layer):
             input_shape[self.axis] = 1
         else:
             input_shape.pop(self.axis)
-        return list(input_shape)
+        return tuple(input_shape)
 
     @staticmethod
     def _compute_euclidean_norm(inputs, axis: int = -1, keepdims: bool = False, invert_norm: bool = False,
@@ -345,7 +345,7 @@ class EdgeDirectionNormalized(Layer):
         super(EdgeDirectionNormalized, self).__init__(**kwargs)
         self.layer_subtract = Subtract()
         self.layer_euclidean_norm = EuclideanNorm(
-            axis=2, keepdims=True, invert_norm=True, add_eps=add_eps, no_nan=no_nan)
+            axis=1, keepdims=True, invert_norm=True, add_eps=add_eps, no_nan=no_nan)
         self.layer_multiply = Multiply()
 
     def build(self, input_shape):

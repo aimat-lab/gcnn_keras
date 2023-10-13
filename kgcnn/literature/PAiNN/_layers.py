@@ -169,8 +169,8 @@ class PAiNNUpdate(ks.layers.Layer):
         self.lay_lin_v = Dense(self.units, activation='linear', use_bias=False, **kernel_args)
         self.lay_a = Dense(units=self.units * 3, activation='linear', use_bias=self.use_bias, **kernel_args)
 
-        self.lay_scalar_prod = ScalarProduct(axis=2)
-        self.lay_norm = EuclideanNorm(axis=2, add_eps=self.add_eps)
+        self.lay_scalar_prod = ScalarProduct(axis=1)
+        self.lay_norm = EuclideanNorm(axis=1, add_eps=self.add_eps)
         self.lay_concat = Concatenate(axis=-1)
         self.lay_split = SplitEmbedding(3, axis=-1)
 
@@ -232,10 +232,11 @@ class EquivariantInitialize(ks.layers.Layer):
         method (str): How to initialize equivariant tensor. Default is "zeros".
     """
 
-    def __init__(self, dim=3, method: str = "zeros", value: float = 1.0, stddev: float = 1.0, **kwargs):
+    def __init__(self, dim=3, units=128, method: str = "zeros", value: float = 1.0, stddev: float = 1.0, **kwargs):
         """Initialize Layer."""
         super(EquivariantInitialize, self).__init__(**kwargs)
         self.dim = int(dim)
+        self.units = units
         self.method = str(method)
         self.value = float(value)
         self.stddev = float(stddev)
@@ -243,7 +244,6 @@ class EquivariantInitialize(ks.layers.Layer):
     def build(self, input_shape):
         """Build layer."""
         super(EquivariantInitialize, self).build(input_shape)
-        assert len(input_shape) >= 3, "ERROR:kgcnn: Need input shape of form (batch, None, F_dim)."
 
     def call(self, inputs, **kwargs):
         """Forward pass: Calculate edge update.
@@ -251,11 +251,15 @@ class EquivariantInitialize(ks.layers.Layer):
         Args:
             inputs: nodes
 
-                - nodes (Tensor): Node embeddings of shape ([N], F)
+                - nodes (Tensor): Node embeddings of shape ([N], F) or ([N], ).
 
         Returns:
-            tf.RaggedTensor: Equivariant tensor of shape ([N], dim, F)
+            Tensor: Equivariant tensor of shape ([N], dim, F) or ([N], dim, units).
         """
+        if len(ops.shape(inputs)) < 2:
+            inputs = ops.expand_dims(inputs, axis=-1)
+            inputs = ops.repeat(inputs, self.units, axis=-1)
+
         if self.method == "zeros":
             out = ops.zeros_like(inputs)
             out = ops.expand_dims(out, axis=1)
@@ -272,14 +276,14 @@ class EquivariantInitialize(ks.layers.Layer):
             out = ops.repeat(out, self.dim, axis=1)
         elif self.method == "eye":
             out = ops.eye(self.dim, ops.shape(inputs)[1], dtype=inputs.dtype)
-            out = ops.expand_dims(out, axis=1)
-            out = ops.repeat(out, self.dim, axis=1)
+            out = ops.expand_dims(out, axis=0)
+            out = ops.repeat(out, ops.shape(inputs)[0], axis=0)
         elif self.method == "const":
             out = ops.ones_like(inputs)*self.value
             out = ops.expand_dims(out, axis=1)
             out = ops.repeat(out, self.dim, axis=1)
         elif self.method == "node":
-            out = ops.expand_dims(inputs.values, axis=1)
+            out = ops.expand_dims(inputs, axis=1)
             out = ops.repeat(out, self.dim, axis=1)
         else:
             raise ValueError("Unknown initialization method %s" % self.method)
@@ -288,7 +292,8 @@ class EquivariantInitialize(ks.layers.Layer):
     def get_config(self):
         """Update layer config."""
         config = super(EquivariantInitialize, self).get_config()
-        config.update({"dim": self.dim, "method": self.method, "value": self.value, "stddev": self.stddev})
+        config.update({"dim": self.dim, "method": self.method, "value": self.value, "stddev": self.stddev,
+                       "units": self.units})
         return config
 
 
@@ -321,7 +326,7 @@ class SplitEmbedding(ks.layers.Layer):
         Returns:
             list: List of tensor splits of shape ([N], F/num)
         """
-        outs = ops.split(inputs, self.indices_or_sections, axis=self.axis, num=self.out_num)
+        outs = ops.split(inputs, self.indices_or_sections, axis=self.axis)
         return outs
 
     def get_config(self):

@@ -38,7 +38,7 @@ model_default = {
     ],
     "cast_disjoint_kwargs": {},
     "input_node_embedding": {"input_dim": 95, "output_dim": 128},
-    "equiv_initialize_kwargs": {"dim": 3, "method": "zeros"},
+    "equiv_initialize_kwargs": {"dim": 3, "method": "zeros", "units": 128},
     "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
     "pooling_args": {"pooling_method": "scatter_sum"},
     "conv_args": {"units": 128, "cutoff": None, "conv_pool": "scatter_sum"},
@@ -52,7 +52,7 @@ model_default = {
 }
 
 
-@update_model_kwargs(model_default)
+@update_model_kwargs(model_default, update_recursive=0)
 def make_model(inputs: list = None,
                cast_disjoint_kwargs: dict = None,
                input_node_embedding: dict = None,

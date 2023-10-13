@@ -141,3 +141,96 @@ class ScaledForceMeanAbsoluteError(ks.metrics.MeanMetricWrapper):
             scale = np.squeeze(scale, axis=-1)
         scale = np.expand_dims(np.expand_dims(scale, axis=1), axis=2)
         self.scale.assign(ops.cast(scale, dtype=scale.dtype))
+
+
+@ks.saving.register_keras_serializable(package='kgcnn', name='BinaryAccuracyNoNaN')
+class BinaryAccuracyNoNaN(ks.metrics.MeanMetricWrapper):
+
+    def __init__(self, name="binary_accuracy_no_nan",  dtype=None, threshold=0.5, **kwargs):
+        if threshold is not None and (threshold <= 0 or threshold >= 1):
+            raise ValueError(
+                "Invalid value for argument `threshold`. "
+                "Expected a value in interval (0, 1). "
+                f"Received: threshold={threshold}"
+            )
+        super().__init__(
+            fn=self._binary_accuracy_no_nan, name=name, dtype=dtype, threshold=threshold, **kwargs
+        )
+        self.threshold = threshold
+
+    @staticmethod
+    def _binary_accuracy_no_nan(y_true, y_pred, threshold=0.5):
+        y_true = ops.convert_to_tensor(y_true)
+        y_pred = ops.convert_to_tensor(y_pred)
+        is_not_nan = ops.cast(ops.logical_not(ops.isnan(y_true)), y_true.dtype)
+        threshold = ops.cast(threshold, y_pred.dtype)
+        y_pred = ops.cast(y_pred > threshold, y_true.dtype)
+        counts = ops.sum(ops.cast(
+            ops.equal(y_true, y_pred), dtype=ks.backend.floatx()), axis=-1)
+        norm = ops.sum(ops.cast(is_not_nan, dtype=ks.backend.floatx()), axis=-1)
+        return counts/norm
+
+    def get_config(self):
+        config = {"name": self.name, "dtype": self.dtype, "threshold": self.threshold}
+        return config
+
+
+@ks.saving.register_keras_serializable(package='kgcnn', name='AUCNoNaN')
+class AUCNoNaN(ks.metrics.AUC):
+
+    def __init__(self, name="AUC_no_nan", **kwargs):
+        super(AUCNoNaN, self).__init__(name=name, **kwargs)
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        is_not_nan = ops.cast(ops.logical_not(ops.isnan(y_true)), y_true.dtype)
+        if sample_weight is not None:
+            sample_weight *= is_not_nan
+        else:
+            sample_weight = is_not_nan
+        return super(AUCNoNaN, self).update_state(y_true, y_pred, sample_weight=sample_weight)
+
+
+@ks.saving.register_keras_serializable(package='kgcnn', name='BalancedBinaryAccuracyNoNaN')
+class BalancedBinaryAccuracyNoNaN(ks.metrics.SensitivityAtSpecificity):
+
+    def __init__(self, name="balanced_binary_accuracy_no_nan", class_id=None, num_thresholds=1,
+                 specificity=0.5, **kwargs):
+        super(BalancedBinaryAccuracyNoNaN, self).__init__(name=name, class_id=class_id, num_thresholds=num_thresholds,
+                                                          specificity=specificity, **kwargs)
+        self._thresholds_distributed_evenly = False
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        """Update the state of the metric.
+
+        Args:
+            y_true: Ground truth label values. shape = `[batch_size, d0, .. dN-1]`
+                or shape = `[batch_size, d0, .. dN-1, 1]` .
+            y_pred: The predicted probability values. shape = `[batch_size, d0, .. dN]` .
+            sample_weight: Optional sample_weight acts as a coefficient for the metric.
+        """
+        is_not_nan = ops.cast(ops.logical_not(ops.isnan(y_true)), y_true.dtype)
+        if sample_weight is not None:
+            sample_weight *= is_not_nan
+        else:
+            sample_weight = is_not_nan
+
+        return super(BalancedBinaryAccuracyNoNaN, self).update_state(
+            y_true=y_true, y_pred=y_pred,
+            sample_weight=sample_weight
+        )
+
+    def result(self):
+        sensitivities = ops.divide(
+            self.true_positives,
+            self.true_positives + self.false_negatives + ks.config.epsilon(),
+        )
+        specificities = ops.divide(
+            self.true_negatives,
+            self.true_negatives + self.false_positives + ks.config.epsilon(),
+        )
+        result = (sensitivities + specificities)/2
+        return result
+
+    def get_config(self):
+        config = super(BalancedBinaryAccuracyNoNaN, self).get_config()
+        return config

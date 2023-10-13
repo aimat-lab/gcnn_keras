@@ -49,3 +49,16 @@ class ForceMeanAbsoluteError(Loss):
         config = super(ForceMeanAbsoluteError, self).get_config()
         config.update({"find_padded_atoms": self.find_padded_atoms, "squeeze_states": self.squeeze_states})
         return config
+
+
+@ks.saving.register_keras_serializable(package='kgcnn', name='BinaryCrossentropyNoNaN')
+class BinaryCrossentropyNoNaN(ks.losses.BinaryCrossentropy):
+
+    def __init__(self, *args, **kwargs):
+        super(BinaryCrossentropyNoNaN, self).__init__(*args, **kwargs)
+
+    def call(self, y_true, y_pred):
+        is_nan = ops.isnan(y_true)
+        y_pred = ops.where(is_nan, ops.zeros_like(y_pred), y_pred)
+        y_true = ops.where(is_nan, ops.zeros_like(y_true), y_true)
+        return super(BinaryCrossentropyNoNaN, self).call(y_true, y_pred)

@@ -1,3 +1,6 @@
+target_index = [11]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G' or combination
+target_name = "U"
+
 hyper = {
     "Schnet": {
         "model": {
@@ -42,15 +45,17 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 0.0005}},
                 "loss": {"class_name": "kgcnn>MeanAbsoluteError", "config": {"dtype": "float64"}},
-                "metrics": [{"class_name": "MeanAbsoluteError", "config": {"dtype": "float64"}},
-                            {"class_name": "RootMeanSquaredError", "config": {"dtype": "float64"}}]
+                "metrics": [{"class_name": "MeanAbsoluteError",
+                             "config": {"dtype": "float64", "name": "scaled_mean_absolute_error"}},
+                            {"class_name": "RootMeanSquaredError",
+                             "config": {"dtype": "float64", "name": "scaled_root_mean_squared_error"}}]
             },
             # "scaler": {"class_name": "QMGraphLabelScaler", "config": {
             #     "scaler": [{"class_name": "ExtensiveMolecularScaler", "config": {}}],
             #     "atomic_number": "node_number"
             # }},
             "scaler": {"class_name": "ExtensiveMolecularLabelScaler", "config": {"atomic_number": "node_number"}},
-            "multi_target_indices": [11]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G' or combination
+            "multi_target_indices": target_index
         },
         "data": {
             "dataset": {
@@ -68,7 +73,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_U",
+            "postfix_file": "_" + target_name,
             "kgcnn_version": "4.0.0"
         }
     },
