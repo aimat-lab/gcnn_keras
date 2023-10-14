@@ -57,19 +57,20 @@ def model_disjoint(
     return out
 
 
-def model_disjoint_crystal(inputs,
-                           use_node_embedding: bool = None,
-                           input_node_embedding: dict = None,
-                           make_distance: bool = None,
-                           expand_distance: bool = None,
-                           gauss_args: dict = None,
-                           interaction_args: dict = None,
-                           node_pooling_args: dict = None,
-                           depth: int = None,
-                           last_mlp: dict = None,
-                           output_embedding: str = None,
-                           use_output_mlp: bool = None,
-                           output_mlp: dict = None):
+def model_disjoint_crystal(
+        inputs,
+        use_node_embedding: bool = None,
+        input_node_embedding: dict = None,
+        make_distance: bool = None,
+        expand_distance: bool = None,
+        gauss_args: dict = None,
+        interaction_args: dict = None,
+        node_pooling_args: dict = None,
+        depth: int = None,
+        last_mlp: dict = None,
+        output_embedding: str = None,
+        use_output_mlp: bool = None,
+        output_mlp: dict = None):
     n, x, disjoint_indices, edge_image, lattice, batch_id_node, batch_id_edge, count_nodes = inputs
 
     # Optional Embedding.

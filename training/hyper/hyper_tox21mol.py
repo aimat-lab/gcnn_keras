@@ -221,7 +221,7 @@ hyper = {
                 "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
                             "use_normalization": True, "normalization_technique": "graph_batch",
                             "padded_disjoint": False},
-                "gin_args": {},
+                "gin_args": {"pooling_method": "scatter_mean"},
                 "last_mlp": {"use_bias": True, "units": [64, 32, 12], "activation": ["relu", "relu", "linear"]},
                 "output_embedding": "graph",
                 "output_mlp": {"activation": "sigmoid", "units": 12},
@@ -412,7 +412,7 @@ hyper = {
             "config": {
                 "name": "Schnet",
                 "inputs": [
-                    {"shape": [None], "name": "node_number", "dtype": "float32"},
+                    {"shape": [None], "name": "node_number", "dtype": "int64"},
                     {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32"},
                     {"shape": [None, 2], "name": "range_indices", "dtype": "int64"},
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
