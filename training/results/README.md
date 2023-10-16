@@ -30,6 +30,7 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 
 | model     | kgcnn   |   epochs | Categorical accuracy   |
 |:----------|:--------|---------:|:-----------------------|
+| DMPNN     | 4.0.0   |      300 | 0.2476 &pm; 0.1706     |
 | GAT       | 4.0.0   |      250 | 0.6132 &pm; 0.0115     |
 | GATv2     | 4.0.0   |     1000 | 0.6211 &pm; 0.0048     |
 | GCN       | 4.0.0   |      300 | 0.6232 &pm; 0.0054     |
@@ -77,6 +78,16 @@ FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their correspondi
 | GraphSAGE | 4.0.0   |      500 | 0.5894 &pm; 0.0675     | 1.0009 &pm; 0.1491     |
 | Schnet    | 4.0.0   |      800 | 0.6070 &pm; 0.0285     | 1.0603 &pm; 0.0549     |
 
+#### LipopDataset
+
+Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels for regression are octanol/water distribution coefficient (logD at pH 7.4). We use random 5-fold cross-validation. 
+
+| model   | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
+|:--------|:--------|---------:|:-----------------------|:-----------------------|
+| GAT     | 4.0.0   |      500 | 0.5168 &pm; 0.0088     | 0.7220 &pm; 0.0098     |
+| GATv2   | 4.0.0   |      500 | **0.4342 &pm; 0.0104** | **0.6056 &pm; 0.0114** |
+| GIN     | 4.0.0   |      300 | 0.4745 &pm; 0.0101     | 0.6658 &pm; 0.0159     |
+
 #### MD17Dataset
 
 Energies and forces for molecular dynamics trajectories of eight organic molecules. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. Results are for the CCSD and CCSD(T) data in MD17. 
@@ -106,11 +117,55 @@ MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5
 | GIN       | 4.0.0   |      300 | 0.8091 &pm; 0.0781     | **0.8693 &pm; 0.0855** |
 | GraphSAGE | 4.0.0   |      500 | 0.8357 &pm; 0.0798     | 0.8533 &pm; 0.0824     |
 
+#### MutagenicityDataset
+
+Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dataset was cleaned for unconnected atoms. We use random 5-fold cross-validation. 
+
+| model     | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|
+| DMPNN     | 4.0.0   |      300 | **0.8266 &pm; 0.0059** | **0.8708 &pm; 0.0076** |
+| GAT       | 4.0.0   |      500 | 0.5536 &pm; 0.0049     | 0.5000 &pm; 0.0000     |
+| GATv2     | 4.0.0   |      500 | 0.5536 &pm; 0.0049     | 0.5000 &pm; 0.0000     |
+| GCN       | 4.0.0   |      800 | 0.7955 &pm; 0.0154     | 0.8191 &pm; 0.0137     |
+| GIN       | 4.0.0   |      300 | 0.8118 &pm; 0.0091     | 0.8492 &pm; 0.0077     |
+| GraphSAGE | 4.0.0   |      500 | 0.8195 &pm; 0.0126     | 0.8515 &pm; 0.0083     |
+
+#### PROTEINSDataset
+
+TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes represent the amino acids of the protein. We use random 5-fold cross-validation. 
+
+| model     | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|
+| DMPNN     | 4.0.0   |      300 | 0.7287 &pm; 0.0253     | **0.7970 &pm; 0.0343** |
+| GAT       | 4.0.0   |      500 | **0.7314 &pm; 0.0357** | 0.7899 &pm; 0.0468     |
+| GATv2     | 4.0.0   |      500 | 0.6720 &pm; 0.0595     | 0.6850 &pm; 0.0938     |
+| GCN       | 4.0.0   |      800 | 0.7017 &pm; 0.0303     | 0.7211 &pm; 0.0254     |
+| GIN       | 4.0.0   |      150 | 0.7224 &pm; 0.0343     | 0.7905 &pm; 0.0528     |
+| GraphSAGE | 4.0.0   |      500 | 0.7009 &pm; 0.0398     | 0.7263 &pm; 0.0453     |
+
+#### SIDERDataset
+
+SIDER (MoleculeNet) consists of 1427 compounds as smiles and data for adverse drug reactions (ADR), grouped into 27 system organ classes. We use random 5-fold cross-validation.
+
+| model     | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|
+| DMPNN     | 4.0.0   |       50 | 0.7519 &pm; 0.0055     | **0.6280 &pm; 0.0173** |
+| GAT       | 4.0.0   |       50 | **0.7595 &pm; 0.0034** | 0.6224 &pm; 0.0106     |
+| GATv2     | 4.0.0   |       50 | 0.7548 &pm; 0.0052     | 0.6152 &pm; 0.0154     |
+| GIN       | 4.0.0   |       50 | 0.7472 &pm; 0.0055     | 0.5995 &pm; 0.0058     |
+| GraphSAGE | 4.0.0   |       30 | 0.7547 &pm; 0.0043     | 0.6038 &pm; 0.0108     |
+| Schnet    | 4.0.0   |       50 | 0.7583 &pm; 0.0076     | 0.6119 &pm; 0.0159     |
+
 #### Tox21MolNetDataset
 
 Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different targets relevant to drug toxicity. We use random 5-fold cross-validation. 
 
 | model     | kgcnn   |   epochs | Accuracy               | AUC(ROC)               | BACC                   |
 |:----------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|
-| GraphSAGE | 4.0.0   |      100 | **0.9180 &pm; 0.0027** | **0.7976 &pm; 0.0087** | **0.6755 &pm; 0.0047** |
+| DMPNN     | 4.0.0   |       50 | **0.9272 &pm; 0.0024** | **0.8321 &pm; 0.0103** | **0.6995 &pm; 0.0130** |
+| GAT       | 4.0.0   |       50 | 0.9243 &pm; 0.0022     | 0.8279 &pm; 0.0092     | 0.6504 &pm; 0.0074     |
+| GATv2     | 4.0.0   |       50 | 0.9222 &pm; 0.0019     | 0.8251 &pm; 0.0069     | 0.6760 &pm; 0.0140     |
+| GIN       | 4.0.0   |       50 | 0.9220 &pm; 0.0024     | 0.7986 &pm; 0.0180     | 0.6741 &pm; 0.0143     |
+| GraphSAGE | 4.0.0   |      100 | 0.9180 &pm; 0.0027     | 0.7976 &pm; 0.0087     | 0.6755 &pm; 0.0047     |
+| Schnet    | 4.0.0   |       50 | 0.9128 &pm; 0.0030     | 0.7719 &pm; 0.0139     | 0.6639 &pm; 0.0162     |
 

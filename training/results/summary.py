@@ -91,21 +91,21 @@ benchmark_datasets = {
     #          "find_best": "min", "is_min_max": True},
     #     ]
     # },
-    # "LipopDataset": {
-    #     "general_info": [
-    #         "Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. ",
-    #         "Graph labels for regression are octanol/water distribution coefficient (logD at pH 7.4). ",
-    #         "We use random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
-    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"},
-    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
-    #          "is_min_max": True},
-    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
-    #          "is_min_max": True}
-    #     ]
-    # },
+    "LipopDataset": {
+        "general_info": [
+            "Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. ",
+            "Graph labels for regression are octanol/water distribution coefficient (logD at pH 7.4). ",
+            "We use random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
+        ]
+    },
     "MD17Dataset": {
         "general_info": [
             "Energies and forces for molecular dynamics trajectories of eight organic molecules. ",
@@ -295,31 +295,31 @@ benchmark_datasets = {
             {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
         ]
     },
-    # "MutagenicityDataset": {
-    #     "general_info": [
-    #         "Mutagenicity dataset from TUDataset for classification with 4337 graphs. ",
-    #         "The dataset was cleaned for unconnected atoms. We use random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
-    #         {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
-    #         {"metric": "max_val_binary_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
-    #         {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
-    #     ]
-    # },
-    # "PROTEINSDataset": {
-    #     "general_info": [
-    #         "TUDataset of proteins that are classified as enzymes or non-enzymes. ",
-    #         "Nodes represent the amino acids of the protein. ",
-    #         "We use random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
-    #         {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
-    #         {"metric": "max_val_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
-    #         {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
-    #     ]
-    # },
+    "MutagenicityDataset": {
+        "general_info": [
+            "Mutagenicity dataset from TUDataset for classification with 4337 graphs. ",
+            "The dataset was cleaned for unconnected atoms. We use random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
+            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
+            {"metric": "max_val_binary_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
+            {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
+        ]
+    },
+    "PROTEINSDataset": {
+        "general_info": [
+            "TUDataset of proteins that are classified as enzymes or non-enzymes. ",
+            "Nodes represent the amino acids of the protein. ",
+            "We use random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
+            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
+            {"metric": "max_val_binary_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
+            {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
+        ]
+    },
     # "QM7Dataset": {
     #     "general_info": [
     #         "QM7 dataset is a subset of GDB-13. ",
@@ -357,19 +357,19 @@ benchmark_datasets = {
     #          "multi_target_indices": [[13], [18]]},
     #     ]
     # },
-    # "SIDERDataset": {
-    #     "general_info": [
-    #         "SIDER (MoleculeNet) consists of 1427 compounds as smiles and ",
-    #         "data for adverse drug reactions (ADR), grouped into 27 system organ classes. ",
-    #         "We use random 5-fold cross-validation."
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
-    #         {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
-    #         {"metric": "max_val_binary_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
-    #         {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
-    #     ]
-    # },
+    "SIDERDataset": {
+        "general_info": [
+            "SIDER (MoleculeNet) consists of 1427 compounds as smiles and ",
+            "data for adverse drug reactions (ADR), grouped into 27 system organ classes. ",
+            "We use random 5-fold cross-validation."
+        ],
+        "targets": [
+            {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
+            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
+            {"metric": "max_val_binary_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
+            {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
+        ]
+    },
     "Tox21MolNetDataset": {
         "general_info": [
             "Tox21 (MoleculeNet) consists of 7831 compounds as smiles and ",
