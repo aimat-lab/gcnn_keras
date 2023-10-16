@@ -129,9 +129,11 @@ class ScaledForceMeanAbsoluteError(ks.metrics.MeanMetricWrapper):
 
     def get_config(self):
         """Returns the serializable config of the metric."""
-        conf = super(ScaledForceMeanAbsoluteError, self).get_config()
+        # May not manage to deserialize `fn_force_mae`, set conf directly.
+        # conf = super(ScaledForceMeanAbsoluteError, self).get_config()
+        conf = {"name": self.name, "dtype": self.dtype}
         conf.update({"scaling_shape": self.scaling_shape, "dtype_scale": self.dtype_scale,
-                     "find_padded_atoms": self.find_padded_atoms})
+                     "find_padded_atoms": self.find_padded_atoms, "squeeze_states": self.squeeze_states})
         return conf
 
     def set_scale(self, scale):
@@ -234,3 +236,5 @@ class BalancedBinaryAccuracyNoNaN(ks.metrics.SensitivityAtSpecificity):
     def get_config(self):
         config = super(BalancedBinaryAccuracyNoNaN, self).get_config()
         return config
+
+ks.metrics.FalseNegatives

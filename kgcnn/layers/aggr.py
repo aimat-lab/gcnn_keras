@@ -118,9 +118,14 @@ class AggregateLocalEdgesAttention(Layer):
     Uses attention for pooling. i.e. :math:`n_i =  \sum_j \alpha_{ij} e_{ij}`
     The attention is computed via: :math:`\alpha_ij = \text{softmax}_j (a_{ij})` from the
     attention coefficients :math:`a_{ij}` .
+
     The attention coefficients must be computed beforehand by edge features or by :math:`\sigma( W n_i || W n_j)` and
     are passed to this layer as input. Thereby this layer has no weights and only does pooling.
-    In summary, :math:`n_i = \sum_j \text{softmax}_j (a_{ij}) e_{ij}` is computed by the layer.
+    In summary, the following is computed by the layer:
+
+    .. math::
+
+            n_i = \sum_j \text{softmax}_j (a_{ij}) e_{ij} .
     """
 
     def __init__(self,
@@ -129,7 +134,7 @@ class AggregateLocalEdgesAttention(Layer):
                  pooling_index: int = global_index_receive,
                  is_sorted: bool = False,
                  has_unconnected: bool = True,
-                 normalize: bool = False,
+                 normalize_softmax: bool = False,
                  axis_indices: int = global_axis_indices,
                  **kwargs):
         """Initialize layer.
@@ -145,7 +150,7 @@ class AggregateLocalEdgesAttention(Layer):
         self.pooling_index = pooling_index
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
-        self.normalize = normalize
+        self.normalize_softmax = normalize_softmax
         self.softmax_method = softmax_method
         self.to_aggregate = Aggregate(pooling_method=pooling_method)
         self.axis_indices = axis_indices
@@ -180,13 +185,17 @@ class AggregateLocalEdgesAttention(Layer):
         reference, x, attention, edge_index = inputs
         receive_indices = ops.take(edge_index, self.pooling_index, axis=self.axis_indices)
         shape_attention = ops.shape(reference)[:1] + ops.shape(attention)[1:]
-        a = scatter_reduce_softmax(receive_indices, attention, shape=shape_attention, normalize=self.normalize)
+        a = scatter_reduce_softmax(receive_indices, attention, shape=shape_attention, normalize=self.normalize_softmax)
         x = x * ops.broadcast_to(a, ops.shape(x))
         return self.to_aggregate([x, receive_indices, reference])
 
     def get_config(self):
         """Update layer config."""
         config = super(AggregateLocalEdgesAttention, self).get_config()
+        config.update({
+            "normalize_softmax": self.normalize_softmax, "pooling_method": self.pooling_method,
+            "pooling_index": self.pooling_index,
+        })
         return config
 
 

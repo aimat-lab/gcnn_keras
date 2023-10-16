@@ -28,7 +28,7 @@ def scatter_reduce_softmax(indices, values, shape, normalize: bool = False):
     indices_scatter = tf.expand_dims(indices, axis=-1)
 
     if normalize:
-        zeros_min = tf.fill(shape, 0, dtype=values.dtype)  # Zero is okay here
+        zeros_min = tf.zeros(shape, dtype=values.dtype)  # Zero is okay here
         data_segment_max = tf.tensor_scatter_nd_max(zeros_min, indices_scatter, values)
         data_max = tf.gather(data_segment_max, indices, axis=0)
         values = values - data_max

@@ -18,8 +18,11 @@ class LeakySoftplus(ks.layers.Layer):
         self._alpha_config = float(alpha)
         self._alpha_trainable = bool(trainable)
         self.alpha = self.add_weight(
-            shape=tuple(), initializer="zeros", dtype=self.dtype, trainable=self._alpha_trainable)
-        self.set_weights([np.array(alpha)])
+            shape=tuple(),
+            initializer=ks.initializers.Constant(alpha),
+            dtype=self.dtype,
+            trainable=self._alpha_trainable
+        )
 
     def call(self, inputs, *args, **kwargs):
         x = inputs
@@ -46,8 +49,10 @@ class LeakyRelu(ks.layers.Layer):
         self._alpha_config = float(alpha)
         self._alpha_trainable = bool(trainable)
         self.alpha = self.add_weight(
-            shape=tuple(), dtype=self.dtype, initializer="zeros", trainable=self._alpha_trainable)
-        self.set_weights([np.array(alpha)])
+            shape=tuple(), dtype=self.dtype,
+            initializer=ks.initializers.Constant(alpha),
+            trainable=self._alpha_trainable
+        )
 
     def call(self, inputs, *args, **kwargs):
         x = inputs
@@ -76,8 +81,10 @@ class Swish(ks.layers.Layer):
         self._beta_config = float(beta)
         self._beta_trainable = bool(trainable)
         self.beta = self.add_weight(
-            shape=tuple(), dtype=self.dtype, initializer="ones", trainable=self._beta_trainable)
-        self.set_weights([np.array(beta)])
+            shape=tuple(), dtype=self.dtype,
+            initializer=ks.initializers.Constant(beta),
+            trainable=self._beta_trainable
+        )
 
     def call(self, inputs, *args, **kwargs):
         x = inputs

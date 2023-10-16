@@ -26,7 +26,7 @@ def scatter_reduce_mean(indices, values, shape):
 def scatter_reduce_softmax(indices, values, shape, normalize: bool = False):
 
     if normalize:
-        zeros_min = jnp.full(shape, 0, values.dtype)  # Zero is okay here
+        zeros_min = jnp.zeros(shape, values.dtype)  # Zero is okay here
         data_segment_max = zeros_min.at[indices].max(values)
         data_max = jnp.take(data_segment_max, indices, axis=0)
         values = values - data_max

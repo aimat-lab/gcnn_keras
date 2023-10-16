@@ -47,12 +47,14 @@ class AttentionHeadGAT(Layer):  # noqa
                  bias_constraint=None,
                  kernel_initializer='glorot_uniform',
                  bias_initializer='zeros',
+                 normalize_softmax: bool = False,
                  **kwargs):
         """Initialize layer."""
         super(AttentionHeadGAT, self).__init__(**kwargs)
         self.use_edge_features = use_edge_features
         self.use_final_activation = use_final_activation
         self.has_self_loops = has_self_loops
+        self.normalize_softmax = normalize_softmax
         self.units = int(units)
         self.use_bias = use_bias
         kernel_args = {"kernel_regularizer": kernel_regularizer,
@@ -65,7 +67,7 @@ class AttentionHeadGAT(Layer):  # noqa
         self.lay_gather_in = GatherNodesIngoing()
         self.lay_gather_out = GatherNodesOutgoing()
         self.lay_concat = Concatenate(axis=-1)
-        self.lay_pool_attention = AggregateLocalEdgesAttention()
+        self.lay_pool_attention = AggregateLocalEdgesAttention(normalize_softmax=normalize_softmax)
         if self.use_final_activation:
             self.lay_final_activ = Activation(activation=activation)
 
@@ -107,6 +109,7 @@ class AttentionHeadGAT(Layer):  # noqa
         config = super(AttentionHeadGAT, self).get_config()
         config.update({"use_edge_features": self.use_edge_features, "use_bias": self.use_bias,
                        "units": self.units, "has_self_loops": self.has_self_loops,
+                       "normalize_softmax": self.normalize_softmax,
                        "use_final_activation": self.use_final_activation})
         conf_sub = self.lay_alpha.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
@@ -158,6 +161,7 @@ class AttentionHeadGATV2(Layer):  # noqa
                  bias_constraint=None,
                  kernel_initializer='glorot_uniform',
                  bias_initializer='zeros',
+                 normalize_softmax: bool = False,
                  **kwargs):
         """Initialize layer."""
         super(AttentionHeadGATV2, self).__init__(**kwargs)
@@ -165,6 +169,7 @@ class AttentionHeadGATV2(Layer):  # noqa
         self.use_final_activation = use_final_activation
         self.has_self_loops = has_self_loops
         self.units = int(units)
+        self.normalize_softmax = normalize_softmax
         self.use_bias = use_bias
         kernel_args = {"kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
@@ -177,7 +182,7 @@ class AttentionHeadGATV2(Layer):  # noqa
         self.lay_gather_in = GatherNodesIngoing()
         self.lay_gather_out = GatherNodesOutgoing()
         self.lay_concat = Concatenate(axis=-1)
-        self.lay_pool_attention = AggregateLocalEdgesAttention()
+        self.lay_pool_attention = AggregateLocalEdgesAttention(normalize_softmax=normalize_softmax)
         if self.use_final_activation:
             self.lay_final_activ = Activation(activation=activation)
 
@@ -221,6 +226,7 @@ class AttentionHeadGATV2(Layer):  # noqa
         config = super(AttentionHeadGATV2, self).get_config()
         config.update({"use_edge_features": self.use_edge_features, "use_bias": self.use_bias,
                        "units": self.units, "has_self_loops": self.has_self_loops,
+                       "normalize_softmax": self.normalize_softmax,
                        "use_final_activation": self.use_final_activation})
         conf_sub = self.lay_alpha_activation.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
