@@ -125,7 +125,7 @@ class AggregateLocalEdgesAttention(Layer):
 
     .. math::
 
-            n_i = \sum_j \text{softmax}_j (a_{ij}) e_{ij} .
+            n_i = \sum_j \text{softmax}_j (a_{ij}) e_{ij}
     """
 
     def __init__(self,
