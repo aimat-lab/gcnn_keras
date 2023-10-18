@@ -6,19 +6,20 @@ hyper = {
             "config": {
                 "name": "Schnet",
                 "inputs": [
-                    {'shape': (None,), 'name': "node_number", 'dtype': 'float32', 'ragged': True},
-                    {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
-                    {'shape': (None, 2), 'name': "range_indices", 'dtype': 'int64', 'ragged': True},
-                    {'shape': (None, 3), 'name': "range_image", 'dtype': 'int64', 'ragged': True},
-                    {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
+                    {'shape': (None,), 'name': "node_number", 'dtype': 'int32'},
+                    {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32'},
+                    {'shape': (None, 2), 'name': "range_indices", 'dtype': 'int64'},
+                    {'shape': (None, 3), 'name': "range_image", 'dtype': 'int64'},
+                    {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32'},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_ranges", "dtype": "int64"}
                 ],
-                "input_embedding": {
-                    "node": {"input_dim": 95, "output_dim": 64}
-                },
+                "cast_disjoint_kwargs": {"padded_disjoint": False},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "interaction_args": {
-                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
+                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "scatter_sum"
                 },
-                "node_pooling_args": {"pooling_method": "mean"},
+                "node_pooling_args": {"pooling_method": "scatter_mean"},
                 "depth": 4,
                 "gauss_args": {"bins": 25, "distance": 5, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
                 "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
@@ -41,11 +42,11 @@ hyper = {
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 0.0005}},
                 "loss": "mean_absolute_error"
             },
             "scaler": {
-                "class_name": "StandardScaler",
+                "class_name": "StandardLabelScaler",
                 "module_name": "kgcnn.data.transform.scaler.standard",
                 "config": {"with_std": True, "with_mean": True, "copy": True}
             },
@@ -57,7 +58,10 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MatProjectPerovskitesDataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range_periodic", "max_distance": 5}}
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 5}},
+                    {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
+                                  "count_edges": "range_indices", "count_nodes": "node_number",
+                                  "total_nodes": "total_nodes"}},
                 ]
             },
             "data_unit": "eV/unit_cell"
@@ -65,7 +69,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.2.3"
+            "kgcnn_version": "4.0.0"
         }
     },
     "PAiNN.make_crystal_model": {
