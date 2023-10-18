@@ -82,11 +82,14 @@ FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their correspondi
 
 Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels for regression are octanol/water distribution coefficient (logD at pH 7.4). We use random 5-fold cross-validation. 
 
-| model   | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
-|:--------|:--------|---------:|:-----------------------|:-----------------------|
-| GAT     | 4.0.0   |      500 | 0.5168 &pm; 0.0088     | 0.7220 &pm; 0.0098     |
-| GATv2   | 4.0.0   |      500 | **0.4342 &pm; 0.0104** | **0.6056 &pm; 0.0114** |
-| GIN     | 4.0.0   |      300 | 0.4745 &pm; 0.0101     | 0.6658 &pm; 0.0159     |
+| model     | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|
+| DMPNN     | 4.0.0   |      300 | **0.3814 &pm; 0.0064** | **0.5462 &pm; 0.0095** |
+| GAT       | 4.0.0   |      500 | 0.5168 &pm; 0.0088     | 0.7220 &pm; 0.0098     |
+| GATv2     | 4.0.0   |      500 | 0.4342 &pm; 0.0104     | 0.6056 &pm; 0.0114     |
+| GCN       | 4.0.0   |      800 | 0.4960 &pm; 0.0107     | 0.6833 &pm; 0.0155     |
+| GIN       | 4.0.0   |      300 | 0.4745 &pm; 0.0101     | 0.6658 &pm; 0.0159     |
+| GraphSAGE | 4.0.0   |      500 | 0.4333 &pm; 0.0217     | 0.6218 &pm; 0.0318     |
 
 #### MD17Dataset
 
@@ -124,7 +127,7 @@ Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dat
 | model     | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
 |:----------|:--------|---------:|:-----------------------|:-----------------------|
 | DMPNN     | 4.0.0   |      300 | **0.8266 &pm; 0.0059** | **0.8708 &pm; 0.0076** |
-| GAT       | 4.0.0   |      500 | 0.5536 &pm; 0.0049     | 0.5000 &pm; 0.0000     |
+| GAT       | 4.0.0   |      500 | 0.7989 &pm; 0.0114     | 0.8290 &pm; 0.0112     |
 | GATv2     | 4.0.0   |      500 | 0.5536 &pm; 0.0049     | 0.5000 &pm; 0.0000     |
 | GCN       | 4.0.0   |      800 | 0.7955 &pm; 0.0154     | 0.8191 &pm; 0.0137     |
 | GIN       | 4.0.0   |      300 | 0.8118 &pm; 0.0091     | 0.8492 &pm; 0.0077     |

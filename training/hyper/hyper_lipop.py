@@ -397,7 +397,8 @@ hyper = {
                 'last_mlp': {"use_bias": [True, True], "units": [128, 64],
                              "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
                 "interaction_args": {
-                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
+                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus",
+                    "cfconv_pool": "scatter_sum"
                 },
                 "node_pooling_args": {"pooling_method": "scatter_sum"},
                 "depth": 4,
