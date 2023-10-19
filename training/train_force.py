@@ -8,7 +8,7 @@ import kgcnn.training.schedule
 import kgcnn.training.scheduler
 from kgcnn.data.utils import save_pickle_file
 from kgcnn.data.transform.scaler.serial import deserialize as deserialize_scaler
-from kgcnn.utils.devices import check_device, set_gpu_device
+from kgcnn.utils.devices import check_device, set_cuda_device
 from kgcnn.training.history import save_history_score, load_history_list, load_time_list
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.models.serial import deserialize as deserialize_model
@@ -35,7 +35,7 @@ print("Input of argparse:", args)
 
 # Check and set device
 if args["gpu"] is not None:
-    set_gpu_device(args["gpu"])
+    set_cuda_device(args["gpu"])
 check_device()
 
 # Set seed.

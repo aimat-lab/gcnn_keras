@@ -1,4 +1,5 @@
 from keras_core.backend import backend
+from typing import Union
 import logging
 
 logging.basicConfig()  # Module logger
@@ -54,17 +55,27 @@ def check_device():
     return out_info
 
 
-def set_gpu_device(device_id: int):
-    """Set the cuda device by ID. Better use cuda environment variable to do this.
+def set_cuda_device(device_id: Union[int, list]):
+    """Set the cuda device by ID.
+
+    Better use cuda environment variable to do this instead of this function:
+
+    .. code-block:: python
+
+        import os
+        os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+        os.environ["CUDA_VISIBLE_DEVICES"]="1"  # specify which GPU(s) to be used
 
     Args:
         device_id (int): ID of the GPU to set.
     """
-
     if backend() == "tensorflow":
         import tensorflow as tf
         gpus = tf.config.list_physical_devices('GPU')
-        gpus_use = gpus[device_id]
+        if isinstance(device_id, int):
+            gpus_use = gpus[device_id]
+        else:
+            gpus_use = [gpus[i] for i in device_id]
         tf.config.set_visible_devices(gpus_use, 'GPU')
         tf.config.experimental.set_memory_growth(gpus_use, True)
 
@@ -74,7 +85,7 @@ def set_gpu_device(device_id: int):
 
     elif backend() == "jax":
         import jax
-        raise NotImplementedError()
+        jax.default_device = jax.devices('gpu')[device_id]
 
     else:
         raise NotImplementedError("Backend %s is not supported for `check_device_cuda` .")
