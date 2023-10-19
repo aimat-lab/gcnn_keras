@@ -189,7 +189,7 @@ class EuclideanNorm(Layer):
         if invert_norm:
             out = 1/out
             if no_nan:
-                out = ops.where(ops.isnan(out), ops.convert_to_tensor(1, dtype=out.dtype), out)
+                out = ops.where(ops.isnan(out), ops.convert_to_tensor(0, dtype=out.dtype), out)
         return out
 
     def call(self, inputs, **kwargs):

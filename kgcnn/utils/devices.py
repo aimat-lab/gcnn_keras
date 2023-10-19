@@ -52,3 +52,29 @@ def check_device():
     }
     module_logger.info("GPU: Device information: %s." % out_info)
     return out_info
+
+
+def set_gpu_device(device_id: int):
+    """Set the cuda device by ID. Better use cuda environment variable to do this.
+
+    Args:
+        device_id (int): ID of the GPU to set.
+    """
+
+    if backend() == "tensorflow":
+        import tensorflow as tf
+        gpus = tf.config.list_physical_devices('GPU')
+        gpus_use = gpus[device_id]
+        tf.config.set_visible_devices(gpus_use, 'GPU')
+        tf.config.experimental.set_memory_growth(gpus_use, True)
+
+    elif backend() == "torch":
+        import torch
+        torch.cuda.set_device(device_id)
+
+    elif backend() == "jax":
+        import jax
+        raise NotImplementedError()
+
+    else:
+        raise NotImplementedError("Backend %s is not supported for `check_device_cuda` .")
