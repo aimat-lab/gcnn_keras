@@ -110,14 +110,16 @@ class QM7Dataset(QMDataset, DownloadDataset):
     def read_in_memory(self, **kwargs):
         super(QM7Dataset, self).read_in_memory( **kwargs)
         splits = self._get_cross_validation_splits()
-        property_split = []
         for i in range(len(self)):
-            is_in_split = []
+            train = []
+            test = []
             for j, split in enumerate(splits):
                 if i in split:
-                    is_in_split.append(j)
-            property_split.append(np.array(is_in_split, dtype="int"))
-        self.assign_property("kfold", property_split)
+                    test.append(j)
+                else:
+                    train.append(j)
+            self[i].assign_property("test", np.array(test, dtype="int"))
+            self[i].assign_property("train", np.array(train, dtype="int"))
 
         # Mean molecular weight mmw
         mass_dict = {'H': 1.0079, 'C': 12.0107, 'N': 14.0067, 'O': 15.9994, 'F': 18.9984, 'S': 32.065, "C3": 12.0107}

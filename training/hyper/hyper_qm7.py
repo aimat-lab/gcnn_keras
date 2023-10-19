@@ -6,7 +6,7 @@ hyper = {
             "config": {
                 "name": "Schnet",
                 "inputs": [
-                    {"shape": [None], "name": "node_number", "dtype": "float32"},
+                    {"shape": [None], "name": "node_number", "dtype": "int32"},
                     {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32"},
                     {"shape": [None, 2], "name": "range_indices", "dtype": "int64"},
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
@@ -43,23 +43,24 @@ hyper = {
                 "loss": "mean_absolute_error"
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {
+                "atomic_number": "node_number",
                 "scaler": [{"class_name": "StandardLabelScaler",
                             "config": {"with_std": True, "with_mean": True, "copy": True}}
                            ]
             }},
             "multi_target_indices": None
         },
+        "dataset": {
+            "class_name": "QM7Dataset",
+            "module_name": "kgcnn.data.datasets.QM7Dataset",
+            "config": {},
+            "methods": [
+                {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}},
+                {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
+                              "count_edges": "range_indices", "count_nodes": "node_number"}},
+            ]
+        },
         "data": {
-            "dataset": {
-                "class_name": "QM7Dataset",
-                "module_name": "kgcnn.data.datasets.QM7Dataset",
-                "config": {},
-                "methods": [
-                    {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}},
-                    {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
-                                  "count_edges": "range_indices"}},
-                ]
-            },
             "data_unit": "kcal/mol"
         },
         "info": {
