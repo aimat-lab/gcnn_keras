@@ -14,7 +14,7 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.models.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.training.hyper import HyperParameter
-from kgcnn.utils.devices import check_device
+from kgcnn.utils.devices import check_device, set_cuda_device
 from kgcnn.data.utils import save_pickle_file
 
 # Input arguments from command line with default values from example.
@@ -33,8 +33,10 @@ parser.add_argument("--seed", required=False, help="Set random seed.", default=4
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
-# Check for gpu
-check_device()
+# Check and set device
+if args["gpu"] is not None:
+    set_cuda_device(args["gpu"])
+print(check_device())
 
 # Set seed.
 np.random.seed(args["seed"])

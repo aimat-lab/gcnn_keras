@@ -21,7 +21,7 @@ from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_md17.py")
+                    default="hyper/hyper_iso17.py")
 parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet.EnergyForceModel")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
@@ -36,7 +36,7 @@ print("Input of argparse:", args)
 # Check and set device
 if args["gpu"] is not None:
     set_cuda_device(args["gpu"])
-check_device()
+print(check_device())
 
 # Set seed.
 np.random.seed(args["seed"])
@@ -151,7 +151,7 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
         loss={"energy": "mean_absolute_error", "force": ForceMeanAbsoluteError()},
         metrics=scaled_metrics))
 
-    model.predict(x_test)
+    print(model.predict(x_test))
     # Model summary
     model.summary()
     print(" Compiled with jit: %s" % model._jit_compile)  # noqa

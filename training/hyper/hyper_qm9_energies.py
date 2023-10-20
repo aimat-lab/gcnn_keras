@@ -51,7 +51,7 @@ hyper = {
                              "config": {"dtype": "float64", "name": "scaled_root_mean_squared_error"}}]
             },
             # "scaler": {"class_name": "QMGraphLabelScaler", "config": {
-            #     "scaler": [{"class_name": "ExtensiveMolecularScaler", "config": {}}],
+            #     "scaler": [{"class_name": "ExtensiveMolecularLabelScaler", "config": {}}],
             #     "atomic_number": "node_number"
             # }},
             "scaler": {"class_name": "ExtensiveMolecularLabelScaler", "config": {"atomic_number": "node_number"}},

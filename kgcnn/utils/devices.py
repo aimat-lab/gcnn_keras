@@ -1,13 +1,9 @@
 from keras_core.backend import backend
 from typing import Union
-import logging
-
-logging.basicConfig()  # Module logger
-module_logger = logging.getLogger(__name__)
-module_logger.setLevel(logging.INFO)
 
 
 def check_device():
+    """Simple function to check for available devices for computing models. Mostly GPUs."""
 
     if backend() == "tensorflow":
         import tensorflow as tf
@@ -51,7 +47,6 @@ def check_device():
         "device_id": "%s" % logical_device_list,
         "device_memory": "%s" % memory_info,
     }
-    module_logger.info("GPU: Device information: %s." % out_info)
     return out_info
 
 

@@ -109,7 +109,7 @@ class ScaledForceMeanAbsoluteError(ks.metrics.MeanMetricWrapper):
                 ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2))
             row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=self.scale.dtype)
             norm = 1/row_count
-            norm = ops.where(ops.isnan(norm), 0., norm)
+            norm = ops.where(ops.isnan(norm), 1., norm)
         else:
             norm = 1/ops.shape(y_true)[1]
 
@@ -236,5 +236,3 @@ class BalancedBinaryAccuracyNoNaN(ks.metrics.SensitivityAtSpecificity):
     def get_config(self):
         config = super(BalancedBinaryAccuracyNoNaN, self).get_config()
         return config
-
-ks.metrics.FalseNegatives

@@ -35,7 +35,7 @@ class ForceMeanAbsoluteError(Loss):
                 ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2))
             row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=y_true.dtype)
             norm = 1/row_count
-            norm = ops.where(ops.isnan(norm), 0., norm)
+            norm = ops.where(ops.isnan(norm), 1., norm)
         else:
             norm = 1/ops.shape(y_true)[1]
 
