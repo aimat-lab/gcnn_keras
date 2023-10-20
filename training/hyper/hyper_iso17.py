@@ -53,15 +53,16 @@ hyper = {
                 "batch_size": 64, "epochs": 1000, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearWarmupExponentialLRScheduler", "config": {
-                        "lr_start": 1e-03, "gamma": 0.995, "epo_warmup": 1, "verbose": 1, "steps_per_epoch": 8062}}
+                        "lr_start": 1e-03,
+                        "gamma": 0.995, "epo_warmup": 1, "verbose": 1, "steps_per_epoch": 8062}}
                 ]
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
-                "loss_weights": {"energy": 1.0, "force": 49.0}
+                "loss_weights": {"energy": 0.02, "force": 0.98}
             },
             "scaler": {"class_name": "EnergyForceExtensiveLabelScaler",
-                       "config": {"standardize_scale": False}},
+                       "config": {"standardize_scale": True}},
         },
         "data": {
             "dataset": {

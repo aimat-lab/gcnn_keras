@@ -61,30 +61,30 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
-                "loss_weights": {"energy": 0.1, "force": 4.9}
+                "loss_weights": {"energy": 0.02, "force": 0.98}
             },
             "scaler": {"class_name": "EnergyForceExtensiveLabelScaler",
                        "config": {"standardize_scale": True}},
         },
-        "data": {
-            "dataset": {
-                "class_name": "MD17Dataset",
-                "module_name": "kgcnn.data.datasets.MD17Dataset",
-                "config": {
-                    "trajectory_name": trajectory_name
-                },
-                "methods": [
-                    {"rename_property_on_graphs": {"old_property_name": "E", "new_property_name": "energy"}},
-                    {"rename_property_on_graphs": {"old_property_name": "F", "new_property_name": "force"}},
-                    {"rename_property_on_graphs": {"old_property_name": "z", "new_property_name": "atomic_number"}},
-                    {"rename_property_on_graphs": {"old_property_name": "R", "new_property_name": "node_coordinates"}},
-                    {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000,
-                                  "node_coordinates": "node_coordinates"}},
-                    {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
-                                  "count_edges": "range_indices", "count_nodes": "atomic_number",
-                                  "total_nodes": "total_nodes"}},
-                ]
+        "dataset": {
+            "class_name": "MD17Dataset",
+            "module_name": "kgcnn.data.datasets.MD17Dataset",
+            "config": {
+                "trajectory_name": trajectory_name
             },
+            "methods": [
+                {"rename_property_on_graphs": {"old_property_name": "E", "new_property_name": "energy"}},
+                {"rename_property_on_graphs": {"old_property_name": "F", "new_property_name": "force"}},
+                {"rename_property_on_graphs": {"old_property_name": "z", "new_property_name": "atomic_number"}},
+                {"rename_property_on_graphs": {"old_property_name": "R", "new_property_name": "node_coordinates"}},
+                {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000,
+                              "node_coordinates": "node_coordinates"}},
+                {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
+                              "count_edges": "range_indices", "count_nodes": "atomic_number",
+                              "total_nodes": "total_nodes"}},
+            ]
+        },
+        "data": {
         },
         "info": {
             "postfix": "",

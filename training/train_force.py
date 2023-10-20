@@ -148,10 +148,13 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
 
     # Compile model with optimizer and loss
     model.compile(**hyper.compile(
-        loss={"energy": "mean_absolute_error", "force": ForceMeanAbsoluteError()},
+        loss={
+            "energy": "mean_absolute_error",
+            "force": "mean_absolute_error"  #  ForceMeanAbsoluteError()
+        },
         metrics=scaled_metrics))
 
-    print(model.predict(x_test))
+    model.predict(x_test)
     # Model summary
     model.summary()
     print(" Compiled with jit: %s" % model._jit_compile)  # noqa
