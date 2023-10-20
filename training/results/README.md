@@ -187,6 +187,14 @@ TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes repre
 | GIN       | 4.0.0   |      150 | 0.7224 &pm; 0.0343     | 0.7905 &pm; 0.0528     |
 | GraphSAGE | 4.0.0   |      500 | 0.7009 &pm; 0.0398     | 0.7263 &pm; 0.0453     |
 
+#### QM7Dataset
+
+QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. We use dataset-specific 5-fold cross-validation. The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). 
+
+| model   | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]         |
+|:--------|:--------|---------:|:-----------------------|:------------------------|
+| Schnet  | 4.0.0   |      800 | **3.4313 &pm; 0.4757** | **10.8978 &pm; 7.3863** |
+
 #### SIDERDataset
 
 SIDER (MoleculeNet) consists of 1427 compounds as smiles and data for adverse drug reactions (ADR), grouped into 27 system organ classes. We use random 5-fold cross-validation.

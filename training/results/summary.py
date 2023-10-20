@@ -320,22 +320,22 @@ benchmark_datasets = {
             {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
         ]
     },
-    # "QM7Dataset": {
-    #     "general_info": [
-    #         "QM7 dataset is a subset of GDB-13. ",
-    #         "Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. ",
-    #         "We use dataset-specific 5-fold cross-validation. ",
-    #         "The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [kcal/mol]", "find_best": "min"},
-    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [kcal/mol]", "find_best": "min"},
-    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
-    #          "is_min_max": True},
-    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
-    #          "is_min_max": True}
-    #     ]
-    # },
+    "QM7Dataset": {
+        "general_info": [
+            "QM7 dataset is a subset of GDB-13. ",
+            "Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. ",
+            "We use dataset-specific 5-fold cross-validation. ",
+            "The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [kcal/mol]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [kcal/mol]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
+        ]
+    },
     # "QM9Dataset": {
     #     "general_info": [
     #         "QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. ",

@@ -9,9 +9,11 @@ hyper = {
             "config": {
                 "name": "Schnet",
                 "inputs": [
-                    {"shape": [None], "name": "node_number", "dtype": "float32"},
+                    {"shape": [None], "name": "node_number", "dtype": "int32"},
                     {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32"},
-                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64"}
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_ranges", "dtype": "int64"}
                 ],
                 "cast_disjoint_kwargs": {"padded_disjoint": False},
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
