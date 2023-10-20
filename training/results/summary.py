@@ -147,21 +147,21 @@ benchmark_datasets = {
     #          "trajectory_name": "ethanol"}
     #     ]
     # },
-    # "MatProjectDielectricDataset": {
-    #     "general_info": [
-    #         "Materials Project dataset from Matbench with 4764 crystal structures ",
-    #         "and their corresponding Refractive index (unitless). ",
-    #         "We use a random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [no unit]", "find_best": "min"},
-    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [no unit]", "find_best": "min"},
-    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
-    #          "is_min_max": True},
-    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
-    #          "is_min_max": True}
-    #     ]
-    # },
+    "MatProjectDielectricDataset": {
+        "general_info": [
+            "Materials Project dataset from Matbench with 4764 crystal structures ",
+            "and their corresponding Refractive index (unitless). ",
+            "We use a random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [no unit]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [no unit]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
+        ]
+    },
     # "MatProjectEFormDataset": {
     #     "general_info": [
     #         "Materials Project dataset from Matbench with 132752 crystal structures ",
@@ -223,66 +223,66 @@ benchmark_datasets = {
              "is_min_max": True}
         ]
     },
-    # "MatProjectLogGVRHDataset": {
-    #     "general_info": [
-    #         "Materials Project dataset from Matbench with 10987 crystal structures ",
-    #         "and their corresponding Base 10 logarithm of the DFT Voigt-Reuss-Hill average shear moduli in GPa. ",
-    #         "We use a random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log(GPa)]", "find_best": "min"},
-    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log(GPa)]", "find_best": "min"},
-    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
-    #          "is_min_max": True},
-    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
-    #          "is_min_max": True}
-    #     ]
-    # },
-    # "MatProjectLogKVRHDataset": {
-    #     "general_info": [
-    #         "Materials Project dataset from Matbench with 10987 crystal structures ",
-    #         "and their corresponding Base 10 logarithm of the DFT Voigt-Reuss-Hill average bulk moduli in GPa. ",
-    #         "We use a random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log(GPa)]", "find_best": "min"},
-    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log(GPa)]", "find_best": "min"},
-    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
-    #          "is_min_max": True},
-    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
-    #          "is_min_max": True}
-    #     ]
-    # },
-    # "MatProjectPerovskitesDataset": {
-    #     "general_info": [
-    #         "Materials Project dataset from Matbench with 18928 crystal structures ",
-    #         "and their corresponding Heat of formation of the entire 5-atom perovskite cell in eV. ",
-    #         "We use a random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV]", "find_best": "min"},
-    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV]", "find_best": "min"},
-    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
-    #          "is_min_max": True},
-    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
-    #          "is_min_max": True}
-    #     ]
-    # },
-    # "MatProjectPhononsDataset": {
-    #     "general_info": [
-    #         "Materials Project dataset from Matbench with 1,265 crystal structures ",
-    #         "and their corresponding vibration properties in [1/cm]. ",
-    #         "We use a random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]", "find_best": "min"},
-    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]", "find_best": "min"},
-    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
-    #          "is_min_max": True},
-    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
-    #          "is_min_max": True}
-    #     ]
-    # },
+    "MatProjectLogGVRHDataset": {
+        "general_info": [
+            "Materials Project dataset from Matbench with 10987 crystal structures ",
+            "and their corresponding Base 10 logarithm of the DFT Voigt-Reuss-Hill average shear moduli in GPa. ",
+            "We use a random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log(GPa)]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log(GPa)]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
+        ]
+    },
+    "MatProjectLogKVRHDataset": {
+        "general_info": [
+            "Materials Project dataset from Matbench with 10987 crystal structures ",
+            "and their corresponding Base 10 logarithm of the DFT Voigt-Reuss-Hill average bulk moduli in GPa. ",
+            "We use a random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log(GPa)]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log(GPa)]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
+        ]
+    },
+    "MatProjectPerovskitesDataset": {
+        "general_info": [
+            "Materials Project dataset from Matbench with 18928 crystal structures ",
+            "and their corresponding Heat of formation of the entire 5-atom perovskite cell in eV. ",
+            "We use a random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
+        ]
+    },
+    "MatProjectPhononsDataset": {
+        "general_info": [
+            "Materials Project dataset from Matbench with 1,265 crystal structures ",
+            "and their corresponding vibration properties in [1/cm]. ",
+            "We use a random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
+        ]
+    },
     "MUTAGDataset": {
         "general_info": [
             "MUTAG dataset from TUDataset for classification with 188 graphs. ",

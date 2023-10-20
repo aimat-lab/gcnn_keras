@@ -43,7 +43,7 @@ def check_device():
         memory_info = [x.memory_stats() for x in jax_devices]
 
     else:
-        raise NotImplementedError("Backend %s is not supported for `check_device_cuda` .")
+        raise NotImplementedError("Backend '%s' is not supported for `check_device_cuda` ." % backend())
 
     out_info = {
         "cuda_available": "%s" % cuda_is_available,
@@ -77,7 +77,11 @@ def set_cuda_device(device_id: Union[int, list]):
         else:
             gpus_use = [gpus[i] for i in device_id]
         tf.config.set_visible_devices(gpus_use, 'GPU')
-        tf.config.experimental.set_memory_growth(gpus_use, True)
+        if isinstance(gpus_use, list):
+            for x in gpus_use:
+                tf.config.experimental.set_memory_growth(x, True)
+        else:
+            tf.config.experimental.set_memory_growth(gpus_use, True)
 
     elif backend() == "torch":
         import torch
@@ -88,4 +92,4 @@ def set_cuda_device(device_id: Union[int, list]):
         jax.default_device = jax.devices('gpu')[device_id]
 
     else:
-        raise NotImplementedError("Backend %s is not supported for `check_device_cuda` .")
+        raise NotImplementedError("Backend '%s' is not supported for `set_cuda_device` ." % backend())

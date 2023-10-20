@@ -90,6 +90,7 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels f
 | GCN       | 4.0.0   |      800 | 0.4960 &pm; 0.0107     | 0.6833 &pm; 0.0155     |
 | GIN       | 4.0.0   |      300 | 0.4745 &pm; 0.0101     | 0.6658 &pm; 0.0159     |
 | GraphSAGE | 4.0.0   |      500 | 0.4333 &pm; 0.0217     | 0.6218 &pm; 0.0318     |
+| Schnet    | 4.0.0   |      800 | 0.5657 &pm; 0.0202     | 0.7485 &pm; 0.0245     |
 
 #### MD17Dataset
 
@@ -99,6 +100,14 @@ Energies and forces for molecular dynamics trajectories of eight organic molecul
 |:------------------------|:--------|---------:|:--------------------|:--------------------|:--------------------|:--------------------|:--------------------|
 | Schnet.EnergyForceModel | 4.0.0   |     1000 | **1.2173 &pm; nan** | **0.7395 &pm; nan** | **0.8444 &pm; nan** | **0.3353 &pm; nan** | **0.4832 &pm; nan** |
 
+#### MatProjectDielectricDataset
+
+Materials Project dataset from Matbench with 4764 crystal structures and their corresponding Refractive index (unitless). We use a random 5-fold cross-validation. 
+
+| model                     | kgcnn   |   epochs | MAE [no unit]          | RMSE [no unit]         |
+|:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| Schnet.make_crystal_model | 4.0.0   |      800 | **0.3180 &pm; 0.0359** | **1.8509 &pm; 0.5854** |
+
 #### MatProjectJdft2dDataset
 
 Materials Project dataset from Matbench with 636 crystal structures and their corresponding Exfoliation energy (meV/atom). We use a random 5-fold cross-validation. 
@@ -106,6 +115,38 @@ Materials Project dataset from Matbench with 636 crystal structures and their co
 | model                     | kgcnn   |   epochs | MAE [meV/atom]           | RMSE [meV/atom]           |
 |:--------------------------|:--------|---------:|:-------------------------|:--------------------------|
 | Schnet.make_crystal_model | 4.0.0   |      800 | **47.0970 &pm; 12.1636** | **121.0402 &pm; 38.7995** |
+
+#### MatProjectLogGVRHDataset
+
+Materials Project dataset from Matbench with 10987 crystal structures and their corresponding Base 10 logarithm of the DFT Voigt-Reuss-Hill average shear moduli in GPa. We use a random 5-fold cross-validation. 
+
+| model                     | kgcnn   |   epochs | MAE [log(GPa)]         | RMSE [log(GPa)]        |
+|:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| Schnet.make_crystal_model | 4.0.0   |      800 | **0.0836 &pm; 0.0021** | **0.1296 &pm; 0.0044** |
+
+#### MatProjectLogKVRHDataset
+
+Materials Project dataset from Matbench with 10987 crystal structures and their corresponding Base 10 logarithm of the DFT Voigt-Reuss-Hill average bulk moduli in GPa. We use a random 5-fold cross-validation. 
+
+| model                     | kgcnn   |   epochs | MAE [log(GPa)]         | RMSE [log(GPa)]        |
+|:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| Schnet.make_crystal_model | 4.0.0   |      800 | **0.0635 &pm; 0.0016** | **0.1186 &pm; 0.0044** |
+
+#### MatProjectPerovskitesDataset
+
+Materials Project dataset from Matbench with 18928 crystal structures and their corresponding Heat of formation of the entire 5-atom perovskite cell in eV. We use a random 5-fold cross-validation. 
+
+| model                     | kgcnn   |   epochs | MAE [eV]               | RMSE [eV]              |
+|:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| Schnet.make_crystal_model | 4.0.0   |      800 | **0.0381 &pm; 0.0005** | **0.0645 &pm; 0.0024** |
+
+#### MatProjectPhononsDataset
+
+Materials Project dataset from Matbench with 1,265 crystal structures and their corresponding vibration properties in [1/cm]. We use a random 5-fold cross-validation. 
+
+| model                     | kgcnn   |   epochs | MAE [eV/atom]           | RMSE [eV/atom]           |
+|:--------------------------|:--------|---------:|:------------------------|:-------------------------|
+| Schnet.make_crystal_model | 4.0.0   |      800 | **43.0692 &pm; 3.6227** | **88.5151 &pm; 20.0244** |
 
 #### MUTAGDataset
 
@@ -128,7 +169,7 @@ Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dat
 |:----------|:--------|---------:|:-----------------------|:-----------------------|
 | DMPNN     | 4.0.0   |      300 | **0.8266 &pm; 0.0059** | **0.8708 &pm; 0.0076** |
 | GAT       | 4.0.0   |      500 | 0.7989 &pm; 0.0114     | 0.8290 &pm; 0.0112     |
-| GATv2     | 4.0.0   |      500 | 0.5536 &pm; 0.0049     | 0.5000 &pm; 0.0000     |
+| GATv2     | 4.0.0   |      200 | 0.7674 &pm; 0.0048     | 0.8423 &pm; 0.0064     |
 | GCN       | 4.0.0   |      800 | 0.7955 &pm; 0.0154     | 0.8191 &pm; 0.0137     |
 | GIN       | 4.0.0   |      300 | 0.8118 &pm; 0.0091     | 0.8492 &pm; 0.0077     |
 | GraphSAGE | 4.0.0   |      500 | 0.8195 &pm; 0.0126     | 0.8515 &pm; 0.0083     |

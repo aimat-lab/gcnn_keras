@@ -328,10 +328,10 @@ hyper = {
         },
         "training": {
             "fit": {
-                "batch_size": 32, "epochs": 500, "validation_freq": 2, "verbose": 2,
+                "batch_size": 32, "epochs": 200, "validation_freq": 2, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 250, "epo": 500,
+                        "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 0, "epo": 200,
                         "verbose": 0}
                      }
                 ]

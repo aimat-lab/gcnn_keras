@@ -44,7 +44,10 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 0.0005}},
                 "loss": "binary_crossentropy",
-                "metrics": ["AUC", "acc"]
+                "metrics": [
+                    {"class_name": "AUC", "config": {"name": "auc"}},
+                    "binary_accuracy"
+                ]
             },
             "multi_target_indices": None
         },

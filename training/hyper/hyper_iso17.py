@@ -61,7 +61,7 @@ hyper = {
                 "loss_weights": {"energy": 1.0, "force": 49.0}
             },
             "scaler": {"class_name": "EnergyForceExtensiveLabelScaler",
-                       "config": {"standardize_scale": True}},
+                       "config": {"standardize_scale": False}},
         },
         "data": {
             "dataset": {
