@@ -10,13 +10,28 @@ from kgcnn import __index_receive__ as global_index_receive
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='Aggregate')
 class Aggregate(Layer):  # noqa
+    """Main class for aggregating node or edge features.
+
+    The class essentially uses a reduce function by name to aggregate a feature list given indices to group by.
+    Possible supported permutation invariant aggregations are 'sum', 'mean', 'max' or 'min'.
+    For aggregation either scatter or segment operation can be used from the backend, if available.
+    Note that you have to specify which to use with e.g. 'scatter_sum'.
+    This layer further requires a reference tensor to either statically infer the output shape or even directly
+    aggregate the values into.
+    """
 
     def __init__(self, pooling_method: str = "scatter_sum", axis=0, **kwargs):
+        """Initialize layer.
+
+        Args:
+            pooling_method (str): Method for aggregation. Default is 'scatter_sum'.
+            axis (int): Axis to aggregate. Default is 0.
+        """
         super(Aggregate, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.axis = axis
         if axis != 0:
-            raise NotImplementedError()
+            raise NotImplementedError("Only aggregate at axis=0 is supported for `Aggregate` layer.")
         pooling_by_name = {
             "scatter_sum": scatter_reduce_sum,
             "scatter_mean": scatter_reduce_mean,
@@ -31,15 +46,29 @@ class Aggregate(Layer):  # noqa
         self._use_scatter = "scatter" in pooling_method
         
     def build(self, input_shape):
+        """Build layer."""
         # Nothing to build here. No sub-layers.
         self.built = True
         
     def compute_output_shape(self, input_shape):
+        """Compute output shape."""
         assert len(input_shape) == 3
         x_shape, _, dim_size = input_shape
         return tuple(list(dim_size[:1]) + list(x_shape[1:]))
 
     def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): [values, indices, reference]
+
+                - values (Tensor): Values to aggregate of shape `(M, ...)`.
+                - indices (Tensor): Indices of target assignment of shape `(M, )`.
+                - reference (Tensor): Target reference tensor of shape `(N, ...)`.
+
+        Returns:
+            Tensor: Aggregated values of shape `(N, ...)`.
+        """
         x, index, reference = inputs
         shape = ops.shape(reference)[:1] + ops.shape(x)[1:]
         if self._use_scatter:
@@ -47,17 +76,46 @@ class Aggregate(Layer):  # noqa
         else:
             raise NotImplementedError()
 
+    def get_config(self):
+        """Get config for layer."""
+        conf = super(Aggregate, self).get_config()
+        conf.update({"pooling_method": self.pooling_method, "axis": self.axis})
+        return conf
 
+
+@ks.saving.register_keras_serializable(package='kgcnn', name='AggregateLocalEdges')
 class AggregateLocalEdges(Layer):
+    r"""The main aggregation or pooling layer to collect all edges or edge-like embeddings per node,
+    corresponding to the receiving node, which is defined by edge indices.
 
-    def __init__(self, pooling_method="scatter_sum", pooling_index: int = global_index_receive,
-                 axis_indices: int = global_axis_indices, **kwargs):
+    Apply e.g. 'sum' or 'mean' on edges with same target ID taken from the (edge) index tensor, that has a list of
+    all connections as :math:`(i, j)` .
+
+    In the default definition for this layer index :math:`i` is expected to be the
+    receiving or target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index` ,
+    i.e. `index_tensor[pooling_index]` to get the indices to aggregate the edges with.
+    This layers uses the :obj:`Aggregate` layer and its functionality.
+    """
+    def __init__(self, pooling_method="scatter_sum",
+                 pooling_index: int = global_index_receive,
+                 axis_indices: int = global_axis_indices,
+                 **kwargs):
+        """Initialize layer.
+
+        Args:
+            pooling_method (str): Pooling method to use i.e. segment_function. Default is 'scatter_sum'.
+            pooling_index (int): Index to pick IDs for pooling edge-like embeddings. Default is 0.
+            axis_indices (bool): The axis of the index tensor to pick IDs from. Default is 0.
+        """
         super(AggregateLocalEdges, self).__init__(**kwargs)
         self.pooling_index = pooling_index
+        self.pooling_method = pooling_method
         self.to_aggregate = Aggregate(pooling_method=pooling_method)
         self.axis_indices = axis_indices
 
     def build(self, input_shape):
+        """Build layer."""
+        # Layer has no variables but still can call build on sub-layers.
         assert len(input_shape) == 3
         node_shape, edges_shape, edge_index_shape = [list(x) for x in input_shape]
         edge_index_shape.pop(self.axis_indices)
@@ -65,29 +123,69 @@ class AggregateLocalEdges(Layer):
         self.built = True
 
     def compute_output_shape(self, input_shape):
+        """Compute output shape."""
         assert len(input_shape) == 3
         node_shape, edges_shape, edge_index_shape = [list(x) for x in input_shape]
         edge_index_shape.pop(self.axis_indices)
         return self.to_aggregate.compute_output_shape([tuple(x) for x in [edges_shape, edge_index_shape, node_shape]])
 
     def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs (list): [reference, values, indices]
+
+                - values (Tensor): Values to aggregate of shape `(M, ...)`.
+                - indices (Tensor): Indices of edges of shape `(2, M, )`.
+                - reference (Tensor): Target reference tensor of shape `(N, ...)`.
+
+        Returns:
+            Tensor: Aggregated values of shape `(N, ...)`.
+        """
         n, edges, edge_index = inputs
         receive_indices = ops.take(edge_index, self.pooling_index, axis=self.axis_indices)
         return self.to_aggregate([edges, receive_indices, n])
 
+    def get_config(self):
+        """Update layer config."""
+        conf = super(AggregateLocalEdges, self).get_config()
+        conf.update({"pooling_index": self.pooling_index, "pooling_method": self.pooling_method,
+                     "axis_indices": self.axis_indices})
+        return conf
 
+
+@ks.saving.register_keras_serializable(package='kgcnn', name='AggregateWeightedLocalEdges')
 class AggregateWeightedLocalEdges(AggregateLocalEdges):
+    r"""This class inherits from :obj:`AggregateLocalEdges` for aggregating weighted edges.
 
-    def __init__(self, pooling_method="scatter_sum", pooling_index: int = global_index_receive,
-                 normalize_by_weights=False, axis_indices: int = global_axis_indices, **kwargs):
+    Please check the documentation of :obj:`AggregateLocalEdges` for more information.
+
+    .. note::
+
+        In addition to aggregating edge embeddings a weight tensor must be supplied that scales each edge before
+        pooling. Must broadcast.
+    """
+
+    def __init__(self, pooling_method: str = "scatter_sum", pooling_index: int = global_index_receive,
+                 normalize_by_weights: bool = False, axis_indices: int = global_axis_indices, **kwargs):
+        """Initialize layer.
+
+        Args:
+            pooling_method (str): Pooling method to use i.e. segment_function. Default is 'scatter_sum'.
+            normalize_by_weights (bool): Whether to normalize pooled features by the sum of weights. Default is False.
+            pooling_index (int): Index to pick IDs for pooling edge-like embeddings. Default is 0.
+            axis_indices (bool): The axis of the index tensor to pick IDs from. Default is 0.
+        """
         super(AggregateWeightedLocalEdges, self).__init__(**kwargs)
         self.normalize_by_weights = normalize_by_weights
         self.pooling_index = pooling_index
+        self.pooling_method = pooling_method
         self.to_aggregate = Aggregate(pooling_method=pooling_method)
         self.to_aggregate_weights = Aggregate(pooling_method="scatter_sum")
         self.axis_indices = axis_indices
 
     def build(self, input_shape):
+        """Build layer."""
         assert len(input_shape) == 4
         node_shape, edges_shape, edge_index_shape, weights_shape = [list(x) for x in input_shape]
         edge_index_shape.pop(self.axis_indices)
@@ -96,12 +194,26 @@ class AggregateWeightedLocalEdges(AggregateLocalEdges):
         self.built = True
 
     def compute_output_shape(self, input_shape):
+        """Compute output shape."""
         assert len(input_shape) == 4
         node_shape, edges_shape, edge_index_shape, weights_shape = [list(x) for x in input_shape]
         edge_index_shape.pop(self.axis_indices)
         return self.to_aggregate.compute_output_shape([tuple(x) for x in [edges_shape, edge_index_shape, node_shape]])
 
     def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs (list): [reference, values, indices, weights]
+
+                - values (Tensor): Values to aggregate of shape `(M, ...)`.
+                - indices (Tensor): Indices of edges of shape `(2, M, )`.
+                - reference (Tensor): Target reference tensor of shape `(N, ...)`.
+                - weights (Tensor): Weight tensor for values of shape `(M, ...)`.
+
+        Returns:
+            Tensor: Aggregated values of shape `(N, ...)`.
+        """
         n, edges, edge_index, weights = inputs
         edges = edges*weights
         receive_indices = ops.take(edge_index, self.pooling_index, axis=self.axis_indices)
@@ -112,7 +224,15 @@ class AggregateWeightedLocalEdges(AggregateLocalEdges):
             out = out/norm
         return out
 
+    def get_config(self):
+        """Update layer config."""
+        conf = super(AggregateWeightedLocalEdges, self).get_config()
+        conf.update({"pooling_index": self.pooling_index, "pooling_method": self.pooling_method,
+                     "axis_indices": self.axis_indices, "normalize_by_weights": self.normalize_by_weights})
+        return conf
 
+
+@ks.saving.register_keras_serializable(package='kgcnn', name='AggregateLocalEdgesAttention')
 class AggregateLocalEdgesAttention(Layer):
     r"""Aggregate local edges via Attention mechanism.
     Uses attention for pooling. i.e. :math:`n_i =  \sum_j \alpha_{ij} e_{ij}`
@@ -140,10 +260,13 @@ class AggregateLocalEdgesAttention(Layer):
         """Initialize layer.
 
         Args:
-            pooling_method (str): Pooling method for this layer.
+            softmax_method (str): Method to apply softmax to attention coefficients. Default is 'scatter_softmax'.
+            pooling_method (str): Pooling method for this layer. Default is 'scatter_sum'.
             pooling_index (int): Index to pick ID's for pooling edge-like embeddings. Default is 0.
             is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
             has_unconnected (bool): If unconnected nodes are allowed. Default is True.
+            normalize_softmax (bool): Whether to use normalize in softmax. Default is False.
+            axis_indices (int): The axis of the index tensor to pick IDs from. Default is 0.
         """
         super(AggregateLocalEdgesAttention, self).__init__(**kwargs)
         self.pooling_method = pooling_method
@@ -156,6 +279,7 @@ class AggregateLocalEdgesAttention(Layer):
         self.axis_indices = axis_indices
 
     def build(self, input_shape):
+        """Build layer."""
         assert len(input_shape) == 4
         node_shape, edges_shape, attention_shape, edge_index_shape = [list(x) for x in input_shape]
         edge_index_shape.pop(self.axis_indices)
@@ -163,24 +287,25 @@ class AggregateLocalEdgesAttention(Layer):
         self.built = True
 
     def compute_output_shape(self, input_shape):
+        """Compute output shape."""
         assert len(input_shape) == 4
         node_shape, edges_shape, attention_shape, edge_index_shape = [list(x) for x in input_shape]
         edge_index_shape.pop(self.axis_indices)
         return self.to_aggregate.compute_output_shape([tuple(x) for x in [edges_shape, edge_index_shape, node_shape]])
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
             inputs: [node, edges, attention, edge_indices]
 
-                - nodes (Tensor): Node embeddings of shape (N, F)
-                - edges (Tensor): Edge or message embeddings of shape (M, F)
-                - attention (Tensor): Attention coefficients of shape (M, 1)
-                - edge_indices (Tensor): Edge indices referring to nodes of shape (2, M)
+                - nodes (Tensor): Node embeddings of shape `(N, F)`
+                - edges (Tensor): Edge or message embeddings of shape `(M, F)`
+                - attention (Tensor): Attention coefficients of shape `(M, 1)`
+                - edge_indices (Tensor): Edge indices referring to nodes of shape `(2, M)`
 
         Returns:
-            Tensor: Embedding tensor of aggregated edge attentions for each node of shape (N, F)
+            Tensor: Embedding tensor of aggregated edge attentions for each node of shape `(N, F)` .
         """
         reference, x, attention, edge_index = inputs
         receive_indices = ops.take(edge_index, self.pooling_index, axis=self.axis_indices)
@@ -194,12 +319,23 @@ class AggregateLocalEdgesAttention(Layer):
         config = super(AggregateLocalEdgesAttention, self).get_config()
         config.update({
             "normalize_softmax": self.normalize_softmax, "pooling_method": self.pooling_method,
-            "pooling_index": self.pooling_index,
+            "pooling_index": self.pooling_index, "axis_indices": self.axis_indices,
+            "softmax_method": self.softmax_method, "is_sorted": self.is_sorted, "has_unconnected": self.has_unconnected
         })
         return config
 
 
+@ks.saving.register_keras_serializable(package='kgcnn', name='AggregateLocalEdgesLSTM')
 class AggregateLocalEdgesLSTM(Layer):
+    r"""Aggregating edges via a LSTM.
+
+    Apply LSTM on edges with same target ID taken from the (edge) index tensor. Uses keras LSTM layer internally.
+
+    .. note::
+
+        Must provide a max length of edges per nodes, since keras LSTM requires padded input. Also required for use
+        in connection with jax backend.
+    """
 
     def __init__(self,
                  units: int,
@@ -221,8 +357,10 @@ class AggregateLocalEdgesLSTM(Layer):
 
         Args:
             units (int): Units for LSTM cell.
-            pooling_method (str): Pooling method. Default is 'LSTM', is ignored.
-            pooling_index (int): Index to pick ID's for pooling edge-like embeddings. Default is 1.
+            max_edges_per_node (int): Max number of edges per node.
+            pooling_method (str): Pooling method. Default is 'LSTM'.
+            pooling_index (int): Index to pick IDs for pooling edge-like embeddings. Default is 0.
+            axis_indices (int): Axis to pick receiving index from. Default is 0.
             activation: Activation function to use.
                 Default: hyperbolic tangent (`tanh`). If you pass `None`, no activation
                 is applied (ie. "linear" activation: `a(x) = x`).
@@ -304,7 +442,19 @@ class AggregateLocalEdgesLSTM(Layer):
         super(AggregateLocalEdgesLSTM, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
+        r"""Forward pass.
 
+        Args:
+            inputs: [node, edges, edge_indices, graph_id_edge]
+
+                - nodes (Tensor): Node embeddings of shape `(N, F)`
+                - edges (Tensor): Edge or message embeddings of shape `(M, F)`
+                - edge_indices (Tensor): Edge indices referring to nodes of shape `(2, M)`
+                - graph_id_edge (Tensor): Graph ID for each edge of shape `(M, )`
+
+        Returns:
+            Tensor: Embedding tensor of aggregated edges for each node of shape `(N, F)` .
+        """
         n, edges, edge_index, edge_id = inputs
         receive_indices = ops.take(edge_index, self.pooling_index, axis=self.axis_indices)
 
@@ -339,4 +489,6 @@ class AggregateLocalEdgesLSTM(Layer):
         for x in lstm_param:
             if x in conf_lstm:
                 config.update({x: conf_lstm[x]})
+        config.update({"pooling_method": self.pooling_method, "axis_indices": self.axis_indices,
+                       "pooling_index": self.pooling_index, "max_edges_per_node": self.max_edges_per_node})
         return config

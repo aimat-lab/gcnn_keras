@@ -169,7 +169,7 @@ class EuclideanNorm(Layer):
         """Function to compute euclidean norm for inputs.
 
         Args:
-            inputs (tf.Tensor, tf.RaggedTensor): Tensor input to compute norm for.
+            inputs (Tensor): Tensor input to compute norm for.
             axis (int): Axis of coordinates. Defaults to -1.
             keepdims (bool): Whether to keep the axis for sum. Defaults to False.
             add_eps (bool): Whether to add epsilon before taking square root. Default is False.
