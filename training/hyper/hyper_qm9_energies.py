@@ -54,7 +54,8 @@ hyper = {
             #     "scaler": [{"class_name": "ExtensiveMolecularLabelScaler", "config": {}}],
             #     "atomic_number": "node_number"
             # }},
-            "scaler": {"class_name": "ExtensiveMolecularLabelScaler", "config": {"atomic_number": "node_number"}},
+            "scaler": {"class_name": "ExtensiveMolecularLabelScaler",
+                       "config": {"atomic_number": "node_number"}},
             "multi_target_indices": target_index
         },
         "data": {

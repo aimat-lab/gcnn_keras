@@ -47,7 +47,8 @@ hyper = {
                 "loss": "mean_absolute_error"
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {
-                "scaler": [{"class_name": "StandardScaler",
+                "atomic_number": "node_number",
+                "scaler": [{"class_name": "StandardLabelScaler",
                             "config": {"with_std": True, "with_mean": True, "copy": True}},
                            ]
             }},
