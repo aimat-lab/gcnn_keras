@@ -16,21 +16,6 @@ class AttentionHeadGAT(Layer):  # noqa
     And optionally passed through an activation :math:`h_i = \sigma(\sum_j \alpha_{ij} W n_j)`.
 
     An edge is defined by index tuple :math:`(i, j)` with the direction of the connection from :math:`j` to :math:`i`.
-
-    Args:
-        units (int): Units for the linear trafo of node features before attention.
-        use_edge_features (bool): Append edge features to attention computation. Default is False.
-        use_final_activation (bool): Whether to apply the final activation for the output.
-        has_self_loops (bool): If the graph has self-loops. Not used here. Default is True.
-        activation (str): Activation. Default is "kgcnn>leaky_relu",
-        use_bias (bool): Use bias. Default is True.
-        kernel_regularizer: Kernel regularization. Default is None.
-        bias_regularizer: Bias regularization. Default is None.
-        activity_regularizer: Activity regularization. Default is None.
-        kernel_constraint: Kernel constrains. Default is None.
-        bias_constraint: Bias constrains. Default is None.
-        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
-        bias_initializer: Initializer for bias. Default is 'zeros'.
     """
 
     def __init__(self,
@@ -49,7 +34,23 @@ class AttentionHeadGAT(Layer):  # noqa
                  bias_initializer='zeros',
                  normalize_softmax: bool = False,
                  **kwargs):
-        """Initialize layer."""
+        """Initialize layer.
+
+        Args:
+            units (int): Units for the linear trafo of node features before attention.
+            use_edge_features (bool): Append edge features to attention computation. Default is False.
+            use_final_activation (bool): Whether to apply the final activation for the output.
+            has_self_loops (bool): If the graph has self-loops. Not used here. Default is True.
+            activation (str): Activation. Default is "kgcnn>leaky_relu",
+            use_bias (bool): Use bias. Default is True.
+            kernel_regularizer: Kernel regularization. Default is None.
+            bias_regularizer: Bias regularization. Default is None.
+            activity_regularizer: Activity regularization. Default is None.
+            kernel_constraint: Kernel constrains. Default is None.
+            bias_constraint: Bias constrains. Default is None.
+            kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
+            bias_initializer: Initializer for bias. Default is 'zeros'.
+        """
         super(AttentionHeadGAT, self).__init__(**kwargs)
         self.use_edge_features = use_edge_features
         self.use_final_activation = use_final_activation
@@ -81,12 +82,12 @@ class AttentionHeadGAT(Layer):  # noqa
         Args:
             inputs (list): of [node, edges, edge_indices]
 
-                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
-                - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
-                - edge_indices (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (Tensor): Node embeddings of shape ([N], F)
+                - edges (Tensor): Edge or message embeddings of shape ([M], F)
+                - edge_indices (Tensor): Edge indices referring to nodes of shape (2, [M])
 
         Returns:
-            tf.RaggedTensor: Embedding tensor of pooled edge attentions for each node.
+            Tensor: Embedding tensor of pooled edge attentions for each node.
         """
         node, edge, edge_index = inputs
 
@@ -130,21 +131,6 @@ class AttentionHeadGATV2(Layer):  # noqa
     And optionally passed through an activation :math:`h_i = \sigma(\sum_j \alpha_{ij} e_{ij})`.
 
     An edge is defined by index tuple :math:`(i, j)` with the direction of the connection from :math:`j` to :math:`i`.
-
-    Args:
-        units (int): Units for the linear trafo of node features before attention.
-        use_edge_features (bool): Append edge features to attention computation. Default is False.
-        use_final_activation (bool): Whether to apply the final activation for the output.
-        has_self_loops (bool): If the graph has self-loops. Not used here. Default is True.
-        activation (str): Activation. Default is "kgcnn>leaky_relu",
-        use_bias (bool): Use bias. Default is True.
-        kernel_regularizer: Kernel regularization. Default is None.
-        bias_regularizer: Bias regularization. Default is None.
-        activity_regularizer: Activity regularization. Default is None.
-        kernel_constraint: Kernel constrains. Default is None.
-        bias_constraint: Bias constrains. Default is None.
-        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
-        bias_initializer: Initializer for bias. Default is 'zeros'.
     """
 
     def __init__(self,
@@ -163,7 +149,23 @@ class AttentionHeadGATV2(Layer):  # noqa
                  bias_initializer='zeros',
                  normalize_softmax: bool = False,
                  **kwargs):
-        """Initialize layer."""
+        """Initialize layer.
+
+        Args:
+            units (int): Units for the linear trafo of node features before attention.
+            use_edge_features (bool): Append edge features to attention computation. Default is False.
+            use_final_activation (bool): Whether to apply the final activation for the output.
+            has_self_loops (bool): If the graph has self-loops. Not used here. Default is True.
+            activation (str): Activation. Default is "kgcnn>leaky_relu",
+            use_bias (bool): Use bias. Default is True.
+            kernel_regularizer: Kernel regularization. Default is None.
+            bias_regularizer: Bias regularization. Default is None.
+            activity_regularizer: Activity regularization. Default is None.
+            kernel_constraint: Kernel constrains. Default is None.
+            bias_constraint: Bias constrains. Default is None.
+            kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
+            bias_initializer: Initializer for bias. Default is 'zeros'.
+        """
         super(AttentionHeadGATV2, self).__init__(**kwargs)
         self.use_edge_features = use_edge_features
         self.use_final_activation = use_final_activation
@@ -196,12 +198,12 @@ class AttentionHeadGATV2(Layer):  # noqa
         Args:
             inputs (list): of [node, edges, edge_indices]
 
-                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
-                - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
-                - edge_indices (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (Tensor): Node embeddings of shape (batch, [N], F)
+                - edges (Tensor): Edge or message embeddings of shape (batch, [M], F)
+                - edge_indices (Tensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            tf.RaggedTensor: Embedding tensor of pooled edge attentions for each node.
+            Tensor: Embedding tensor of pooled edge attentions for each node.
         """
         node, edge, edge_index = inputs
 
