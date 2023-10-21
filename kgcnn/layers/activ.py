@@ -25,10 +25,19 @@ class LeakySoftplus(ks.layers.Layer):
         )
 
     def call(self, inputs, *args, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (Tensor): Input tenor of arbitrary shape.
+
+        Returns:
+            Tensor: Leaky soft-plus activation of inputs.
+        """
         x = inputs
         return ks.activations.softplus(x) * (1 - self.alpha) + self.alpha * x
 
     def get_config(self):
+        """Get layer config."""
         config = super(LeakySoftplus, self).get_config()
         config.update({"alpha": self._alpha_config, "trainable": self._alpha_trainable})
         return config
@@ -36,7 +45,7 @@ class LeakySoftplus(ks.layers.Layer):
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='LeakyRelu')
 class LeakyRelu(ks.layers.Layer):
-    r"""Leaky RELU function. Equivalent to :obj:`tf.nn.leaky_relu(x,alpha)`."""
+    r"""Leaky RELU function. Equivalent to :obj:`tf.nn.leaky_relu(x,alpha)` ."""
 
     def __init__(self, alpha: float = 0.05, trainable: bool = False, **kwargs):
         """Initialize with optionally learnable parameter.
@@ -55,11 +64,20 @@ class LeakyRelu(ks.layers.Layer):
         )
 
     def call(self, inputs, *args, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (Tensor): Input tenor of arbitrary shape.
+
+        Returns:
+            Tensor: Leaky relu activation of inputs.
+        """
         x = inputs
         return ks.activations.leaky_relu(x, alpha=self.alpha)
         # return tf.nn.relu(x) - tf.nn.relu(-x)*self.alpha
 
     def get_config(self):
+        """Get layer config."""
         config = super(LeakyRelu, self).get_config()
         config.update({"alpha": self._alpha_config, "trainable": self._alpha_trainable})
         return config
@@ -87,10 +105,19 @@ class Swish(ks.layers.Layer):
         )
 
     def call(self, inputs, *args, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (Tensor): Input tenor of arbitrary shape.
+
+        Returns:
+            Tensor: Swish activation of inputs.
+        """
         x = inputs
         return x * ks.activations.sigmoid(self.beta * x)
 
     def get_config(self):
+        """Get layer config."""
         config = super(Swish, self).get_config()
         config.update({"beta": self._beta_config, "trainable": self._beta_trainable})
         return config

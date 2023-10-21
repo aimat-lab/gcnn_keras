@@ -22,21 +22,6 @@ class GCN(Layer):
 
     Edge features must be possible to broadcast to node features, since they are multiplied with the node features.
     Ideally they are weights of shape `(..., 1)` for broadcasting, e.g. entries of :math:`A_s` .
-
-    Args:
-        units (int): Output dimension/ units of dense layer.
-        pooling_method (str): Pooling method for summing edges. Default is 'segment_sum'.
-        normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
-            In this case the edge features are considered weights of dimension (...,1) and are summed for each node.
-        activation (str): Activation. Default is 'kgcnn>leaky_relu'.
-        use_bias (bool): Use bias. Default is True.
-        kernel_regularizer: Kernel regularization. Default is None.
-        bias_regularizer: Bias regularization. Default is None.
-        activity_regularizer: Activity regularization. Default is None.
-        kernel_constraint: Kernel constrains. Default is None.
-        bias_constraint: Bias constrains. Default is None.
-        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
-        bias_initializer: Initializer for bias. Default is 'zeros'.
     """
 
     def __init__(self,
@@ -53,7 +38,23 @@ class GCN(Layer):
                  kernel_initializer='glorot_uniform',
                  bias_initializer='zeros',
                  **kwargs):
-        """Initialize layer."""
+        """Initialize layer.
+
+        Args:
+            units (int): Output dimension/ units of dense layer.
+            pooling_method (str): Pooling method for summing edges. Default is 'segment_sum'.
+            normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
+                In this case the edge features are considered weights of dimension (...,1) and are summed for each node.
+            activation (str): Activation. Default is 'kgcnn>leaky_relu'.
+            use_bias (bool): Use bias. Default is True.
+            kernel_regularizer: Kernel regularization. Default is None.
+            bias_regularizer: Bias regularization. Default is None.
+            activity_regularizer: Activity regularization. Default is None.
+            kernel_constraint: Kernel constrains. Default is None.
+            bias_constraint: Bias constrains. Default is None.
+            kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
+            bias_initializer: Initializer for bias. Default is 'zeros'.
+        """
         super(GCN, self).__init__(**kwargs)
         self.normalize_by_weights = normalize_by_weights
         self.pooling_method = pooling_method
@@ -112,19 +113,6 @@ class SchNetCFconv(Layer):
     r"""Continuous filter convolution of `SchNet <https://aip.scitation.org/doi/pdf/10.1063/1.5019779>`__ .
 
     Edges are processed by 2 :obj:`Dense` layers, multiplied on outgoing node features and pooled for receiving node.
-
-    Args:
-        units (int): Units for Dense layer.
-        cfconv_pool (str): Pooling method. Default is 'segment_sum'.
-        use_bias (bool): Use bias. Default is True.
-        activation (str): Activation function. Default is 'kgcnn>shifted_softplus'.
-        kernel_regularizer: Kernel regularization. Default is None.
-        bias_regularizer: Bias regularization. Default is None.
-        activity_regularizer: Activity regularization. Default is None.
-        kernel_constraint: Kernel constrains. Default is None.
-        bias_constraint: Bias constrains. Default is None.
-        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
-        bias_initializer: Initializer for bias. Default is 'zeros'.
     """
 
     def __init__(self, units,
@@ -139,7 +127,21 @@ class SchNetCFconv(Layer):
                  kernel_initializer='glorot_uniform',
                  bias_initializer='zeros',
                  **kwargs):
-        """Initialize Layer."""
+        """Initialize Layer.
+
+        Args:
+            units (int): Units for Dense layer.
+            cfconv_pool (str): Pooling method. Default is 'segment_sum'.
+            use_bias (bool): Use bias. Default is True.
+            activation (str): Activation function. Default is 'kgcnn>shifted_softplus'.
+            kernel_regularizer: Kernel regularization. Default is None.
+            bias_regularizer: Bias regularization. Default is None.
+            activity_regularizer: Activity regularization. Default is None.
+            kernel_constraint: Kernel constrains. Default is None.
+            bias_constraint: Bias constrains. Default is None.
+            kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
+            bias_initializer: Initializer for bias. Default is 'zeros'.
+        """
         super(SchNetCFconv, self).__init__(**kwargs)
         self.cfconv_pool = cfconv_pool
         self.units = units
@@ -164,12 +166,12 @@ class SchNetCFconv(Layer):
         Args:
             inputs: [nodes, edges, edge_index]
 
-                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
-                - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [N], F)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [N], 2)
+                - nodes (Tensor): Node embeddings of shape ([N], F)
+                - edges (Tensor): Edge or message embeddings of shape ([M], F)
+                - edge_index (Tensor): Edge indices referring to nodes of shape (2, [M])
 
         Returns:
-            tf.RaggedTensor: Updated node features.
+            Tensor: Updated node features.
         """
         node, edge, disjoint_indices = inputs
         x = self.lay_dense1(edge, **kwargs)
@@ -193,20 +195,7 @@ class SchNetCFconv(Layer):
 
 class SchNetInteraction(Layer):
     r"""`SchNet <https://aip.scitation.org/doi/pdf/10.1063/1.5019779>`__ interaction block,
-    which uses the continuous filter convolution from :obj:`SchNetCFconv`.
-
-    Args:
-        units (int): Dimension of node embedding. Default is 128.
-        cfconv_pool (str): Pooling method information for SchNetCFconv layer. Default is'segment_sum'.
-        use_bias (bool): Use bias in last layers. Default is True.
-        activation (str): Activation function. Default is 'kgcnn>shifted_softplus'.
-        kernel_regularizer: Kernel regularization. Default is None.
-        bias_regularizer: Bias regularization. Default is None.
-        activity_regularizer: Activity regularization. Default is None.
-        kernel_constraint: Kernel constrains. Default is None.
-        bias_constraint: Bias constrains. Default is None.
-        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
-        bias_initializer: Initializer for bias. Default is 'zeros'.
+    which uses the continuous filter convolution from :obj:`SchNetCFconv` .
     """
 
     def __init__(self,
@@ -222,7 +211,21 @@ class SchNetInteraction(Layer):
                  kernel_initializer='glorot_uniform',
                  bias_initializer='zeros',
                  **kwargs):
-        """Initialize Layer."""
+        """Initialize Layer.
+
+        Args:
+            units (int): Dimension of node embedding. Default is 128.
+            cfconv_pool (str): Pooling method information for SchNetCFconv layer. Default is'segment_sum'.
+            use_bias (bool): Use bias in last layers. Default is True.
+            activation (str): Activation function. Default is 'kgcnn>shifted_softplus'.
+            kernel_regularizer: Kernel regularization. Default is None.
+            bias_regularizer: Bias regularization. Default is None.
+            activity_regularizer: Activity regularization. Default is None.
+            kernel_constraint: Kernel constrains. Default is None.
+            bias_constraint: Bias constrains. Default is None.
+            kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
+            bias_initializer: Initializer for bias. Default is 'zeros'.
+        """
         super(SchNetInteraction, self).__init__(**kwargs)
         self.cfconv_pool = cfconv_pool
         self.use_bias = use_bias
@@ -249,12 +252,12 @@ class SchNetInteraction(Layer):
         Args:
             inputs: [nodes, edges, tensor_index]
 
-                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
-                - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [N], F)
-                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [N], 2)
+                - nodes (Tensor): Node embeddings of shape ([N], F)
+                - edges (Tensor): Edge or message embeddings of shape ([M], F)
+                - tensor_index (Tensor): Edge indices referring to nodes of shape (2, [M])
 
         Returns:
-            tf.RaggedTensor: Updated node embeddings of shape (batch, [N], F).
+            Tensor: Updated node embeddings of shape ([N], F).
         """
         node, edge, indexlist = inputs
         x = self.lay_dense1(node, **kwargs)
@@ -289,7 +292,7 @@ class GIN(Layer):
 
     .. note::
 
-        The non-linear mapping :math:`\phi^{(k)}`, usually an :obj:`MLP`, is not included in this layer.
+        The non-linear mapping :math:`\phi^{(k)}` , usually an :obj:`MLP` , is not included in this layer.
     """
 
     def __init__(self,
@@ -325,11 +328,11 @@ class GIN(Layer):
         Args:
             inputs: [nodes, edge_index]
 
-                - nodes (tf.RaggedTensor): Node embeddings of shape `(batch, [N], F)`
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape `(batch, [M], 2)`
+                - nodes (Tensor): Node embeddings of shape `([N], F)`
+                - edge_index (Tensor): Edge indices referring to nodes of shape `(2, [M])`
 
         Returns:
-            tf.RaggedTensor: Node embeddings of shape `(batch, [N], F)`
+            Tensor: Node embeddings of shape `([N], F)`
         """
         node, edge_index = inputs
         ed = self.lay_gather([node, edge_index], **kwargs)
@@ -406,12 +409,12 @@ class GINE(Layer):
         Args:
             inputs: [nodes, edge_index, edges]
 
-                - nodes (tf.RaggedTensor): Node embeddings of shape `(batch, [N], F)`
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape `(batch, [M], 2)`
-                - edges (tf.RaggedTensor): Edge embeddings for index tensor of shape `(batch, [M], F)`
+                - nodes (Tensor): Node embeddings of shape `([N], F)`
+                - edge_index (Tensor): Edge indices referring to nodes of shape `(2, [M])`
+                - edges (Tensor): Edge embeddings for index tensor of shape `([M], F)`
 
         Returns:
-            tf.RaggedTensor: Node embeddings of shape `(batch, [N], F)`
+            Tensor: Node embeddings of shape `([N], F)`
         """
         node, edge_index, edges = inputs
         ed = self.layer_gather([node, edge_index], **kwargs)
