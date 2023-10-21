@@ -7,10 +7,45 @@ from kgcnn import __index_receive__ as global_index_receive
 
 
 class GatherNodes(Layer):
+    r"""Gather node or edge embedding from an index list.
+
+    The embeddings are gather from an index tensor. An edge is defined by index tuple :math:`(i ,j)` .
+    In the default definition, index :math:`i` is expected to be the receiving or target node.
+    Effectively, the layer simply does:
+
+    .. code-block:: python
+
+        ops.take(nodes, index[x], axis=0) for x in split_indices
+
+    Additionally, the gathered embeddings can be concatenated along the index dimension,
+    by setting :obj:`concat_axis` if index shape is known during build.
+
+    .. note:
+
+        Default of this layer is concatenation with :obj:`concat_axis=1` .
+
+    Example of usage for :obj:`GatherNodes` :
+
+    .. code-block:: python
+
+        from keras import ops
+        from kgcnn.layers.gather import GatherNodes
+        nodes = ops.convert_to_tensor([[0.0],[1.0],[2.0],[3.0],[4.0]], dtype="float32")
+        edge_idx = ops.convert_to_tensor([[0,0,1,2], [1,2,0,1]], dtype="int32")
+        print(GatherNodes()([nodes, edge_idx]))
+
+    """
 
     def __init__(self, split_indices=(0, 1),
                  concat_axis: Union[int, None] = 1,
                  axis_indices: int = global_axis_indices, **kwargs):
+        """Initialize layer.
+
+        Args:
+            split_indices (list): List of indices to split and take values for. Default is (0, 1).
+            concat_axis (int): The axis which concatenates embeddings. Default is 1.
+            axis_indices (int): Axis on which to split indices from. Default is 0.
+        """
         super(GatherNodes, self).__init__(**kwargs)
         self.split_indices = split_indices
         self.concat_axis = concat_axis
@@ -27,6 +62,7 @@ class GatherNodes(Layer):
         return xs
 
     def build(self, input_shape):
+        """Build layer."""
         # We could call build on concatenate layer.
         xs = self._compute_gathered_shape(input_shape)
         if self.concat_axis is not None:
@@ -34,12 +70,25 @@ class GatherNodes(Layer):
         self.built = True
 
     def compute_output_shape(self, input_shape):
+        """Compute output shape of this layer."""
         xs = self._compute_gathered_shape(input_shape)
         if self.concat_axis is not None:
             xs = self._concat.compute_output_shape(xs)
         return xs
 
     def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs (list): [nodes, index]
+
+                - nodes (Tensor): Node embeddings of shape `([N], F)`
+                - index (Tensor): Edge indices referring to nodes of shape `(2, [M])`
+
+        Returns:
+            Tensor: Gathered node embeddings that match the number of edges of shape `([M], 2*F)` or list of single
+                node embeddings of shape [`([M], F)` , `([M], F)` , ...].
+        """
         x, index = inputs
         gathered = []
         for i in self.split_indices:
@@ -49,6 +98,13 @@ class GatherNodes(Layer):
         if self.concat_axis is not None:
             gathered = self._concat(gathered)
         return gathered
+
+    def get_config(self):
+        """Get config for this layer."""
+        conf = super(GatherNodes, self).get_config()
+        conf.update({"split_indices": self.split_indices, "concat_axis": self.concat_axis,
+                     "axis_indices": self.axis_indices})
+        return conf
 
 
 class GatherNodesOutgoing(Layer):
@@ -153,3 +209,8 @@ class GatherEdgesPairs(Layer):
         edges_corrected = ops.where(
             ops.expand_dims(indices_take, axis=-1) >= 0, edges_paired, ops.zeros_like(edges_paired))
         return edges_corrected
+
+    def get_config(self):
+        conf = super(GatherEdgesPairs, self).get_config()
+        conf.update({"axis_indices": self.axis_indices})
+        return conf

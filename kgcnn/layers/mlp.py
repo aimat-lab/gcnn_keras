@@ -275,7 +275,6 @@ class MLP(MLPBase):  # noqa
     _supress_dense = False
 
     def __init__(self, units, **kwargs):
-        """Initialize MLP. See MLPBase."""
         super(MLP, self).__init__(units=units, **kwargs)
         norm_classes = {
             "UnitNormalization": UnitNormalization,
