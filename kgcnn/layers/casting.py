@@ -6,11 +6,11 @@ from kgcnn.ops.scatter import scatter_reduce_sum
 from kgcnn import __indices_axis__ as global_axis_indices
 
 
-def pad_left(t):
+def _pad_left(t):
     return ops.pad(t, [[1, 0]] + [[0, 0] for _ in range(len(ops.shape(t)) - 1)])
 
 
-def cat_one(t):
+def _cat_one(t):
     return ops.concatenate([ops.convert_to_tensor([1], dtype=t.dtype), t], axis=0)
 
 
@@ -184,14 +184,14 @@ class CastBatchedIndicesToDisjoint(_CastDisjointBase):
             node_id = ops.reshape(node_id, [-1])
             edge_id = ops.reshape(edge_id, [-1])
 
-            nodes_flatten = pad_left(nodes_flatten)
-            edge_indices_flatten = pad_left(edge_indices_flatten)
-            node_id = pad_left(node_id)
-            edge_id = pad_left(edge_id)
-            node_len_flat = cat_one(node_len_flat)
-            edge_len_flat = cat_one(edge_len_flat)
-            node_mask_flatten = pad_left(node_mask_flatten)
-            edge_mask_flatten = pad_left(edge_mask_flatten)
+            nodes_flatten = _pad_left(nodes_flatten)
+            edge_indices_flatten = _pad_left(edge_indices_flatten)
+            node_id = _pad_left(node_id)
+            edge_id = _pad_left(edge_id)
+            node_len_flat = _cat_one(node_len_flat)
+            edge_len_flat = _cat_one(edge_len_flat)
+            node_mask_flatten = _pad_left(node_mask_flatten)
+            edge_mask_flatten = _pad_left(edge_mask_flatten)
 
             graph_id_node = repeat_static_length(
                 ops.arange(ops.shape(node_len_flat)[0], dtype=dtype_batch), node_len_flat,
@@ -317,10 +317,10 @@ class CastBatchedAttributesToDisjoint(_CastDisjointBase):
             node_len_flat = ops.repeat(ops.cast([ops.shape(nodes)[1]], dtype=dtype_batch), ops.shape(nodes)[0])
             node_mask_flatten = ops.reshape(node_mask, [-1])
             node_id = ops.reshape(node_id, [-1])
-            nodes_flatten = pad_left(nodes_flatten)
-            node_id = pad_left(node_id)
-            node_len_flat = cat_one(node_len_flat)
-            node_mask_flatten = pad_left(node_mask_flatten)
+            nodes_flatten = _pad_left(nodes_flatten)
+            node_id = _pad_left(node_id)
+            node_len_flat = _cat_one(node_len_flat)
+            node_mask_flatten = _pad_left(node_mask_flatten)
             graph_id = repeat_static_length(
                 ops.arange(ops.shape(node_len_flat)[0], dtype=self.dtype_batch), node_len_flat,
                 total_repeat_length=ops.shape(nodes_flatten)[0])
@@ -444,5 +444,5 @@ class CastGraphStateToDisjoint(_CastDisjointBase):
             Tensor: Graph labels of shape `(batch, ...)` or `(batch+1, ...)` for padded disjoint.
         """
         if self.padded_disjoint:
-            return pad_left(inputs)
+            return _pad_left(inputs)
         return inputs
