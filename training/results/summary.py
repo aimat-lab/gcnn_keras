@@ -127,26 +127,26 @@ benchmark_datasets = {
              "trajectory_name": "ethanol_ccsd_t"}
         ]
     },
-    # "MD17RevisedDataset": {
-    #     "general_info": [
-    #         "Energies and forces for molecular dynamics trajectories. ",
-    #         "All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. ",
-    #         "We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. ",
-    #         "Errors are MAE for forces. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Aspirin", "find_best": "min",
-    #          "trajectory_name": "aspirin"},
-    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Toluene", "find_best": "min",
-    #          "trajectory_name": "toluene"},
-    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Malonaldehyde", "find_best": "min",
-    #          "trajectory_name": "malonaldehyde"},
-    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Benzene", "find_best": "min",
-    #          "trajectory_name": "benzene"},
-    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Ethanol", "find_best": "min",
-    #          "trajectory_name": "ethanol"}
-    #     ]
-    # },
+    "MD17RevisedDataset": {
+        "general_info": [
+            "Energies and forces for molecular dynamics trajectories. ",
+            "All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. ",
+            "We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. ",
+            "Errors are MAE for forces. "
+        ],
+        "targets": [
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Aspirin", "find_best": "min",
+             "trajectory_name": "aspirin"},
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Toluene", "find_best": "min",
+             "trajectory_name": "toluene"},
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Malonaldehyde", "find_best": "min",
+             "trajectory_name": "malonaldehyde"},
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Benzene", "find_best": "min",
+             "trajectory_name": "benzene"},
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Ethanol", "find_best": "min",
+             "trajectory_name": "ethanol"}
+        ]
+    },
     "MatProjectDielectricDataset": {
         "general_info": [
             "Materials Project dataset from Matbench with 4764 crystal structures ",

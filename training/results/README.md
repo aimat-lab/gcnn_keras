@@ -100,6 +100,14 @@ Energies and forces for molecular dynamics trajectories of eight organic molecul
 |:------------------------|:--------|---------:|:--------------------|:--------------------|:--------------------|:--------------------|:--------------------|
 | Schnet.EnergyForceModel | 4.0.0   |     1000 | **1.2173 &pm; nan** | **0.7395 &pm; nan** | **0.8444 &pm; nan** | **0.3353 &pm; nan** | **0.4832 &pm; nan** |
 
+#### MD17RevisedDataset
+
+Energies and forces for molecular dynamics trajectories. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. 
+
+| model                   | kgcnn   |   epochs | Aspirin                | Toluene                | Malonaldehyde          | Benzene                | Ethanol                |
+|:------------------------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|:-----------------------|
+| Schnet.EnergyForceModel | 4.0.0   |     1000 | **1.0389 &pm; 0.0071** | **0.5482 &pm; 0.0105** | **0.6727 &pm; 0.0132** | **0.2525 &pm; 0.0091** | **0.4471 &pm; 0.0199** |
+
 #### MatProjectDielectricDataset
 
 Materials Project dataset from Matbench with 4764 crystal structures and their corresponding Refractive index (unitless). We use a random 5-fold cross-validation. 
