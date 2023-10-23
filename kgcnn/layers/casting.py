@@ -446,3 +446,10 @@ class CastGraphStateToDisjoint(_CastDisjointBase):
         if self.padded_disjoint:
             return _pad_left(inputs)
         return inputs
+
+
+CastBatchedIndicesToDisjoint.__init__.__doc__ = _CastDisjointBase.__init__.__doc__
+CastBatchedAttributesToDisjoint.__init__.__doc__ = _CastDisjointBase.__init__.__doc__
+CastDisjointToBatchedAttributes.__init__.__doc__ = _CastDisjointBase.__init__.__doc__
+CastDisjointToGraphState.__init__.__doc__ = _CastDisjointBase.__init__.__doc__
+CastGraphStateToDisjoint.__init__.__doc__ = _CastDisjointBase.__init__.__doc__
