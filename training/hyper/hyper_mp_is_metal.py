@@ -57,7 +57,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MatProjectIsMetalDataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range_periodic", "max_distance": 5}},
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 5, "max_neighbours": 32}},
                     {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
                                   "count_edges": "range_indices", "count_nodes": "node_number",
                                   "total_nodes": "total_nodes"}},
