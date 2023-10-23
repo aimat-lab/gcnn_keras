@@ -86,13 +86,15 @@ if "cross_validation" in hyper["training"]:
     train_test_indices = [
         (train_index, test_index) for train_index, test_index in splitter.split(X=np.zeros((data_length, 1)))]
 else:
-    train_test_indices = dataset.get_train_test_indices(train="train", test="test")
+    train_test_indices_kwargs = hyper[
+        "training"]["train_test_indices"] if "train_test_indices" in hyper["training"] else {}
+    train_test_indices = dataset.get_train_test_indices(**train_test_indices_kwargs)
 train_indices_all, test_indices_all = [], []
 
 # Run Splits.
 execute_folds = args["fold"] if "execute_folds" not in hyper["training"] else hyper["training"]["execute_folds"]
 model, scaled_predictions, splits_done, current_split = None, False, 0, None
-for current_split, (train_index, test_index) in enumerate(dataset.get_train_test_indices(train="train", test="test")):
+for current_split, (train_index, test_index) in enumerate(train_test_indices):
 
     # Keep list of train/test indices.
     test_indices_all.append(test_index)
@@ -150,7 +152,7 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
     model.compile(**hyper.compile(
         loss={
             "energy": "mean_absolute_error",
-            "force": "mean_absolute_error"  #  ForceMeanAbsoluteError()
+            "force": ForceMeanAbsoluteError()
         },
         metrics=scaled_metrics))
 

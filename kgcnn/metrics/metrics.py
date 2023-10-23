@@ -104,12 +104,13 @@ class ScaledForceMeanAbsoluteError(ks.metrics.MeanMetricWrapper):
         )
 
     def fn_force_mae(self, y_true, y_pred):
+        # (batch, N, 3)
         if self.find_padded_atoms:
-            check_nonzero = ops.logical_not(
-                ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2))
-            row_count = ops.cast(ops.sum(check_nonzero, axis=1), dtype=self.scale.dtype)
-            norm = 1/row_count
-            norm = ops.where(ops.isnan(norm), 1., norm)
+            check_nonzero = ops.cast(ops.logical_not(
+                ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2)), dtype="int32")
+            row_count = ops.sum(check_nonzero, axis=1)
+            row_count = ops.where(row_count < 1, ops.cast(ops.shape(y_true)[1], dtype=row_count.dtype), row_count)
+            norm = 1/ops.cast(row_count, dtype=self.scale.dtype)
         else:
             norm = 1/ops.shape(y_true)[1]
 

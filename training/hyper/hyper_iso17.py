@@ -49,6 +49,7 @@ hyper = {
             }
         },
         "training": {
+            "train_test_indices": {"train": "train", "test": "test", "split_index": [0]},
             "fit": {
                 "batch_size": 64, "epochs": 1000, "validation_freq": 1, "verbose": 2,
                 "callbacks": [

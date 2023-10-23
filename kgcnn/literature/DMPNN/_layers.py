@@ -6,6 +6,7 @@ from keras_core.layers import Subtract
 
 class DMPNNPPoolingEdgesDirected(ks.layers.Layer):  # noqa
     """Pooling of edges for around a target node as defined by
+
     `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`__ . This is slightly different as the normal node
     aggregation from message passing like networks. Requires edge pair indices for this implementation.
     """

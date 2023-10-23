@@ -1,23 +1,18 @@
 import keras_core as ks
 from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
                                   CastDisjointToGraphState, CastDisjointToBatchedAttributes, CastGraphStateToDisjoint)
-from kgcnn.layers.gather import GatherNodesOutgoing, GatherState
-from keras_core.layers import Dense, Concatenate, Activation, Add, Dropout
-from kgcnn.layers.modules import Embedding
-from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.aggr import AggregateLocalEdges
-from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.scale import get as get_scaler
-from ._layers import DMPNNPPoolingEdgesDirected
 from kgcnn.models.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
+from ._model import model_disjoint
 
 # Keep track of model version from commit date in literature.
 # To be updated if model is changed in a significant way.
-__model_version__ = "2023-09-26"
+__model_version__ = "2023-10-23"
 
 # Supported backends
 __kgcnn_model_backend_supported__ = ["tensorflow", "torch", "jax"]
+
 if backend_to_use() not in __kgcnn_model_backend_supported__:
     raise NotImplementedError("Backend '%s' for model 'DMPNN' is not supported." % backend_to_use())
 
@@ -82,24 +77,27 @@ def make_model(name: str = None,
     Default parameters can be found in :obj:`kgcnn.literature.DMPNN.model_default`.
 
     Inputs:
-        list: `[node_attributes, edge_attributes, edge_indices, edge_pairs]` or
-        `[node_attributes, edge_attributes, edge_indices, edge_pairs, state_attributes]` if `use_graph_state=True`
+        list: `[node_attributes, edge_attributes, edge_indices, edge_pairs, total_nodes, total_edges]` or
+        `[node_attributes, edge_attributes, edge_indices, edge_pairs, total_nodes, total_edges, state_attributes]`
+        if `use_graph_state=True` .
 
-            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+            - node_attributes (Tensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
-            - edge_attributes (tf.RaggedTensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
+            - edge_attributes (Tensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
-            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
-            - edge_pairs (tf.RaggedTensor): Pair mappings for reverse edge for each edge `(batch, None, 1)`.
-            - state_attributes (tf.Tensor): Environment or graph state attributes of shape `(batch, F)` or `(batch,)`
+            - edge_indices (Tensor): Index list for edges of shape `(batch, None, 2)`.
+            - edge_pairs (Tensor): Pair mappings for reverse edge for each edge `(batch, None, 1)`.
+            - state_attributes (Tensor): Environment or graph state attributes of shape `(batch, F)` or `(batch,)`
               using an embedding layer.
+            - total_nodes(Tensor): Number of Nodes in graph of shape `(batch, )` .
+            - total_edges(Tensor): Number of Edges in graph of shape `(batch, )` .
 
     Outputs:
-        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+        Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
         name (str): Name of the model. Should be "DMPNN".
-        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        inputs (list): List of dictionaries unpacked in :obj:`keras.layers.Input`. Order must match model definition.
         cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
         input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of arguments for edge unpacked in :obj:`Embedding` layers.
@@ -115,9 +113,10 @@ def make_model(name: str = None,
         verbose (int): Level for print information.
         use_graph_state (bool): Whether to use graph state information. Default is False.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
-        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
+        output_to_tensor (bool): Whether to cast model output to :obj:`Tensor`.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
+        output_scaling (dict): Kwargs for scaling layer, if scaling layer is to be used.
 
     Returns:
         :obj:`keras.models.Model`
@@ -167,71 +166,3 @@ def make_model(name: str = None,
 
         setattr(model, "set_scale", set_scale)
     return model
-
-
-def model_disjoint(inputs: list = None,
-                   use_node_embedding: bool = None,
-                   use_edge_embedding: bool = None,
-                   use_graph_embedding: bool = None,
-                   input_node_embedding: dict = None,
-                   input_edge_embedding: dict = None,
-                   input_graph_embedding: dict = None,
-                   pooling_args: dict = None,
-                   edge_initialize: dict = None,
-                   edge_dense: dict = None,
-                   edge_activation: dict = None,
-                   node_dense: dict = None,
-                   dropout: dict = None,
-                   depth: int = None,
-                   use_graph_state: bool = False,
-                   output_embedding: str = None,
-                   output_mlp: dict = None):
-    n, ed, edi, batch_id_node, ed_pairs, count_nodes, graph_state = inputs
-
-    # Embedding, if no feature dimension
-    if use_node_embedding:
-        n = Embedding(**input_node_embedding)(n)
-    if use_edge_embedding:
-        ed = Embedding(**input_edge_embedding)(ed)
-    if use_graph_state:
-        if use_graph_embedding:
-            graph_state = Embedding(**input_graph_embedding)(graph_state)
-
-    # Make first edge hidden h0
-    h_n0 = GatherNodesOutgoing()([n, edi])
-    h0 = Concatenate(axis=-1)([h_n0, ed])
-    h0 = Dense(**edge_initialize)(h0)
-
-    # One Dense layer for all message steps
-    edge_dense_all = Dense(**edge_dense)  # Should be linear activation
-
-    # Model Loop
-    h = h0
-    for i in range(depth):
-        m_vw = DMPNNPPoolingEdgesDirected()([n, h, edi, ed_pairs])
-        h = edge_dense_all(m_vw)
-        h = Add()([h, h0])
-        h = Activation(**edge_activation)(h)
-        if dropout is not None:
-            h = Dropout(**dropout)(h)
-
-    mv = AggregateLocalEdges(**pooling_args)([n, h, edi])
-    mv = Concatenate(axis=-1)([mv, n])
-    hv = Dense(**node_dense)(mv)
-
-    # Output embedding choice
-    n = hv
-    if output_embedding == 'graph':
-        out = PoolingNodes(**pooling_args)([count_nodes, n, batch_id_node])
-        if use_graph_state:
-            out = ks.layers.Concatenate()([graph_state, out])
-        out = MLP(**output_mlp)(out)
-    elif output_embedding == 'node':
-        if use_graph_state:
-            graph_state_node = GatherState()([graph_state, n])
-            n = Concatenate()([n, graph_state_node])
-        out = GraphMLP(**output_mlp)(n)
-    else:
-        raise ValueError("Unsupported embedding mode for `DMPNN`.")
-
-    return out

@@ -21,8 +21,10 @@ class NodePosition(Layer):
 
     .. code-block:: python
 
-        position = np.array([[0.0, -1.0, 0.0],[1.0, 1.0, 0.0]])
-        indices = np.array([[0,1],[1,0]])
+        from keras import ops
+        from kgcnn.layers.geom import NodePosition
+        position = ops.convert_to_tensor([[0.0, -1.0, 0.0],[1.0, 1.0, 0.0]])
+        indices = ops.convert_to_tensor([[0,1],[1,0]], dtype="int32")
         x_in, x_out = NodePosition()([position, indices])
         print(x_in - x_out)
     """
@@ -54,11 +56,11 @@ class NodePosition(Layer):
             inputs (list): [position, edge_index]
 
                 - position (Tensor): Node positions of shape `(N, 3)`.
-                - edge_index (Tensor): Edge indices referring to nodes of shape `(M, 2)`.
+                - edge_index (Tensor): Edge indices referring to nodes of shape `(2, M)`.
 
         Returns:
-            list: List of node positions (ragged) tensors for each of the :obj:`selection_index`. Position tensors have
-            shape `(batch, [M], 3)`.
+            list: List of node positions tensors for each of the :obj:`selection_index`. Position tensors have
+                shape `([M], 3)`.
         """
         return self.layer_gather(inputs, **kwargs)
 
@@ -99,13 +101,13 @@ class ShiftPeriodicLattice(Layer):
         Args:
             inputs (list): `[position, edge_image, lattice, num_edges]`
 
-                - position (tf.RaggedTensor): Positions of shape `(M, 3)`
-                - edge_image (tf.RaggedTensor): Position in which image to shift of shape `(M, 3)`
-                - lattice (tf.tensor): Lattice vector matrix of shape `(batch, 3, 3)`
-                - batch_id_edge (Tensor): Number of edges per graph of shape `(batch, )`
+                - position (Tensor): Positions of shape `(M, 3)`
+                - edge_image (Tensor): Position in which image to shift of shape `(M, 3)`
+                - lattice (Tensor): Lattice vector matrix of shape `(batch, 3, 3)`
+                - batch_id_edge (Tensor): Batch ID of edges of shape `(M, )`
 
         Returns:
-            tf.RaggedTensor: Gathered node position number of indices of shape `(batch, [M], 1)`
+            Tensor: Gathered node position number of indices of shape `([M], 1)`
         """
         x_val, ei, lattice, batch_id_edge = inputs
         lattice_rep = self.layer_state([lattice, batch_id_edge], **kwargs)
@@ -156,6 +158,7 @@ class EuclideanNorm(Layer):
         self.built = True
 
     def compute_output_shape(self, input_shape):
+        """Compute output shape."""
         input_shape = list(input_shape)
         if self.keepdims:
             input_shape[self.axis] = 1
@@ -177,7 +180,7 @@ class EuclideanNorm(Layer):
             invert_norm (bool): Whether to invert the results. Defaults to False.
 
         Returns:
-            tf.Tensor: Euclidean norm of inputs.
+            Tensor: Euclidean norm of inputs.
         """
         out = ks.activations.relu(ops.sum(ops.square(inputs), axis=axis, keepdims=keepdims))
         # Or just via norm function
@@ -193,13 +196,13 @@ class EuclideanNorm(Layer):
         return out
 
     def call(self, inputs, **kwargs):
-        r"""Forward pass for :obj:`EuclideanNorm`.
+        r"""Forward pass for :obj:`EuclideanNorm` .
 
         Args:
-            inputs (tf.RaggedTensor): Positions of shape `(batch, [N], ..., D, ...)`
+            inputs (Tensor): Positions of shape `([N], ..., D, ...)`
 
         Returns:
-            tf.RaggedTensor: Euclidean norm computed for specific axis of shape `(batch, [N], ...)`
+            Tensor: Euclidean norm computed for specific axis of shape `([N], ...)`
         """
         return self._compute_euclidean_norm(
             inputs, axis=self.axis, keepdims=self.keepdims, invert_norm=self.invert_norm, add_eps=self.add_eps,
@@ -227,7 +230,9 @@ class ScalarProduct(Layer):
 
     .. code-block:: python
 
-        position = tf.ragged.constant([[[0.0, -1.0, 0.0], [1.0, 1.0, 0.0]], [[2.0, 1.0, 0.0]]], ragged_rank=1)
+        from keras import ops
+        from kgcnn.layers.geom import ScalarProduct
+        position = ops.convert_to_tensor([[0.0, -1.0, 0.0], [1.0, 1.0, 0.0], [2.0, 1.0, 0.0]])
         out = ScalarProduct()([position, position])
         print(out, out.shape)
     """
@@ -254,7 +259,7 @@ class ScalarProduct(Layer):
             axis (int): Axis along which to sum.
 
         Returns:
-            tf.Tensor: Scalr product of inputs.
+            Tensor: Scalr product of inputs.
         """
         return ops.sum(inputs[0] * inputs[1], axis=axis)
 
@@ -310,11 +315,11 @@ class NodeDistanceEuclidean(Layer):
         Args:
             inputs (list): [position_start, position_stop]
 
-                - position_start (tf.RaggedTensor): Node positions of shape `(batch, [M], 3)`
-                - position_stop (tf.RaggedTensor): Node positions of shape `(batch, [M], 3)`
+                - position_start (Tensor): Node positions of shape `([M], 3)`
+                - position_stop (Tensor): Node positions of shape `([M], 3)`
 
         Returns:
-            tf.RaggedTensor: Distances as edges that match the number of indices of shape `(batch, [M], 1)`
+            Tensor: Distances as edges that match the number of indices of shape `([M], 1)`
         """
         diff = self.layer_subtract(inputs)
         return self.layer_euclidean_norm(diff)
@@ -358,11 +363,11 @@ class EdgeDirectionNormalized(Layer):
         Args:
             inputs (list): [position_1, position_2]
 
-                - position_1 (tf.RaggedTensor): Stop node positions of shape `(batch, [N], 3)`
-                - position_2 (tf.RaggedTensor): Start node positions of shape `(batch, [N], 3)`
+                - position_1 (Tensor): Stop node positions of shape `([N], 3)`
+                - position_2 (Tensor): Start node positions of shape `([N], 3)`
 
         Returns:
-            tf.RaggedTensor: Normalized vector distance of shape `(batch, [M], 3)`.
+            Tensor: Normalized vector distance of shape `([N], 3)`.
         """
         diff = self.layer_subtract(inputs)
         norm = self.layer_euclidean_norm(diff)
@@ -381,10 +386,10 @@ class VectorAngle(Layer):
 
     The vectors :math:`\vec{v}_1` and :math:`\vec{v}_2` could be obtained from three points
     :math:`\vec{x}_i, \vec{x}_j, \vec{x}_k` spanning an angle from :math:`\vec{v}_1= \vec{x}_i - \vec{x}_j` and
-    :math:`\vec{v}_2= \vec{x}_j - \vec{x}_k`.
+    :math:`\vec{v}_2= \vec{x}_j - \vec{x}_k` .
 
     Those points can be defined with an index tuple `(i, j, k)` in a ragged tensor of shape `(batch, None, 3)` that
-    mark vector directions of :math:`i\leftarrow j, j \leftarrow k`.
+    mark vector directions of :math:`i\leftarrow j, j \leftarrow k` .
 
     .. note::
 
@@ -413,7 +418,7 @@ class VectorAngle(Layer):
             inputs (list): List or tuple of two tensor v1, v2.
 
         Returns:
-            tf.Tensor: Angle between inputs.
+            Tensor: Angle between inputs.
         """
         v1, v2 = inputs[0], inputs[1]
         x = ops.sum(v1 * v2, axis=-1)
@@ -430,11 +435,11 @@ class VectorAngle(Layer):
         Args:
             inputs (list): [vector_1, vector_2]
 
-                - vector_1 (tf.RaggedTensor): Node positions or vectors of shape `(batch, [M], 3)`
-                - vector_2 (tf.RaggedTensor): Node positions or vectors of shape `(batch, [M], 3)`
+                - vector_1 (Tensor): Node positions or vectors of shape `([M], 3)`
+                - vector_2 (Tensor): Node positions or vectors of shape `([M], 3)`
 
         Returns:
-            tf.RaggedTensor: Calculated Angle between vector 1 and 2 of shape `(batch, [M], 1)`.
+            Tensor: Calculated Angle between vector 1 and 2 of shape `([M], 1)`.
         """
         return self._compute_vector_angle(inputs)
 
@@ -461,11 +466,14 @@ class EdgeAngle(Layer):
         Here, the indices :math:`(i, j)` refer to edges and not to node positions!
 
     The layer uses :obj:`GatherEmbeddingSelection` and :obj:`VectorAngle` to compute angles.
-
     """
 
     def __init__(self, vector_scale: list = None, **kwargs):
-        """Initialize layer."""
+        """Initialize layer.
+
+        Args:
+            vector_scale (list): List of two scales for each vector. Default is None
+        """
         super(EdgeAngle, self).__init__(**kwargs)
         self.layer_gather_vectors = GatherNodes([0, 1], concat_axis=None)
         self.layer_angle = VectorAngle()
@@ -488,15 +496,15 @@ class EdgeAngle(Layer):
         Args:
             inputs (list): [vector, angle_index]
 
-                - vector (tf.RaggedTensor): Node or Edge directions of shape `(batch, [N], 3)`
-                - angle_index (tf.RaggedTensor): Angle indices of vector pairs of shape `(batch, [K], 2)`.
+                - vector (Tensor): Node or Edge directions of shape `([N], 3)` .
+                - angle_index (Tensor): Angle indices of vector pairs of shape `([K], 2)` .
 
         Returns:
-            tf.RaggedTensor: Edge angles between edges that match the indices. Shape is `(batch, [K], 1)`.
+            Tensor: Edge angles between edges that match the indices. Shape is `([K], 1)` .
         """
         v1, v2 = self.layer_gather_vectors(inputs)
         if self.vector_scale:
-            v1, v2 = [self.map_values(self._scale_vector, x, scale=self._const_vec_scale[i]) for i, x
+            v1, v2 = [self._scale_vector(x, scale=self._const_vec_scale[i]) for i, x
                       in enumerate([v1, v2])]
         return self.layer_angle([v1, v2])
 
@@ -509,7 +517,7 @@ class EdgeAngle(Layer):
 
 class GaussBasisLayer(Layer):
     r"""Expand a distance into a Gaussian Basis, according to
-    `Schuett et al. (2017) <https://arxiv.org/abs/1706.08566>`_.
+    `Schuett et al. (2017) <https://arxiv.org/abs/1706.08566>`__ .
 
     The distance :math:`d_{ij} = || \mathbf{r}_i - \mathbf{r}_j ||` is expanded in radial basis functions:
 
@@ -551,14 +559,14 @@ class GaussBasisLayer(Layer):
         r"""Expand into gaussian basis.
 
         Args:
-            inputs (tf.Tensor, tf.RaggedTensor): Tensor input with distance to expand into Gaussian basis.
+            inputs (Tensor): Tensor input with distance to expand into Gaussian basis.
             bins (int): Number of bins for basis.
             distance (float): Maximum distance to for Gaussian.
             gamma (float): Gamma pre-factor which is :math:`1/(2\sigma^2)` for Gaussian of width :math:`\sigma`.
             offset (float): Shift of zero position for basis.
 
         Returns:
-            tf.Tensor: Distance tensor expanded in Gaussian.
+            Tensor: Distance tensor expanded in Gaussian.
         """
         gbs = ops.arange(0, bins, 1, dtype=inputs.dtype) / float(bins) * distance
         out = inputs - offset
@@ -572,10 +580,10 @@ class GaussBasisLayer(Layer):
         Args:
             inputs: distance
 
-                - distance (tf.RaggedTensor, tf.Tensor): Edge distance of shape `(batch, [K], 1)`
+                - distance (Tensor): Edge distance of shape `([K], 1)`
 
         Returns:
-            tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], bins)`.
+            Tensor: Expanded distance. Shape is `([K], bins)`.
         """
         return self._compute_gauss_basis(inputs,
             offset=self.offset, gamma=self.gamma, bins=self.bins, distance=self.distance)
@@ -656,7 +664,7 @@ class PositionEncodingBasisLayer(Layer):
         r"""Expand into fourier basis.
 
         Args:
-            inputs (tf.Tensor, tf.RaggedTensor): Tensor input with position or distance to expand into encodings.
+            inputs (Tensor): Tensor input with position or distance to expand into encodings.
                 Tensor must have a broadcasting dimension at last axis, e.g. shape (N, 1). Tensor must be type 'float'.
             dim_half (int): Dimension of the half output embedding space. Defaults to 10.
             wave_length_min (float): Wavelength for positional sin and cos expansion. Defaults to 1.
@@ -666,7 +674,7 @@ class PositionEncodingBasisLayer(Layer):
                 layer. Default is False.
 
         Returns:
-            tf.Tensor: Distance tensor expanded in Fourier basis.
+            Tensor: Distance tensor expanded in Fourier basis.
         """
         steps = ops.arange(dim_half, dtype=inputs.dtype) / (dim_half - 1)
         log_num = ops.convert_to_tensor(-math.log(num_mult), dtype=inputs.dtype)
@@ -688,10 +696,10 @@ class PositionEncodingBasisLayer(Layer):
         r"""Forward pass.
 
         Args:
-            inputs (tf.RaggedTensor, tf.Tensor): Edge distance of shape `(batch, [K], 1)`
+            inputs (Tensor): Edge distance of shape `([K], 1)`
 
         Returns:
-            tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], bins)`.
+            Tensor: Expanded distance. Shape is `([K], bins)`.
         """
         return self.map_values(
             self._compute_fourier_encoding, inputs, dim_half=self.dim_half, wave_length_min=self.wave_length_min,
@@ -781,10 +789,10 @@ class BesselBasisLayer(Layer):
         Args:
             inputs: distance
 
-                - distance (tf.RaggedTensor): Edge distance of shape `(batch, [K], 1)`
+                - distance (Tensor): Edge distance of shape `([K], 1)`
 
         Returns:
-            tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], num_radial)`.
+            Tensor: Expanded distance. Shape is `([K], num_radial)` .
         """
         return self.expand_bessel_basis(inputs)
 
@@ -832,10 +840,10 @@ class CosCutOffEnvelope(Layer):
         Args:
             inputs: distance
 
-                - distance (tf.RaggedTensor): Edge distance of shape `(batch, [M], 1)`.
+                - distance (Tensor): Edge distance of shape `([M], 1)`.
 
         Returns:
-            tf.RaggedTensor: Cutoff envelope of shape `(batch, [M], 1)`.
+            Tensor: Cutoff envelope of shape `([M], 1)`.
         """
         return self._compute_cutoff_envelope(inputs, cutoff=self.cutoff)
 
@@ -848,7 +856,7 @@ class CosCutOffEnvelope(Layer):
 
 class CosCutOff(Layer):
     r"""Apply cosine cutoff according to
-    `Behler et al. (2011) <https://aip.scitation.org/doi/10.1063/1.3553717>`_.
+    `Behler et al. (2011) <https://aip.scitation.org/doi/10.1063/1.3553717>`__ .
 
     For edge-like distance :math:`R_{ij}` and cutoff radius :math:`R_c` the envelope :math:`f_c` is given by:
 
@@ -882,10 +890,10 @@ class CosCutOff(Layer):
         Args:
             inputs: distance
 
-                - distance (tf.RaggedTensor): Edge distance of shape `(batch, [M], D)`
+                - distance (Tensor): Edge distance of shape `([M], D)`
 
         Returns:
-            tf.RaggedTensor: Cutoff applied to input of shape `(batch, [M], D)`.
+            Tensor: Cutoff applied to input of shape `([M], D)` .
         """
         return self._compute_cutoff(inputs, cutoff=self.cutoff)
 
@@ -914,14 +922,15 @@ class DisplacementVectorsASU(Layer):
         r"""Forward pass.
 
         Args:
-            inputs: [frac_coordinates, edge_indices, symmetry_ops]
+            inputs: [frac_coordinates, edge_indices, symmetry_ops, cell_translations]
 
-                - frac_coordinates (tf.RaggedTensor): Fractional node coordinates of shape `(N, 3)`.
-                - edge_indices (tf.RaggedTensor): Edge indices of shape `(M, 2)`.
-                - symmetry_ops (tf.RaggedTensor): Symmetry operations of shape `(M, 4, 4)`.
+                - frac_coordinates (Tensor): Fractional node coordinates of shape `(N, 3)` .
+                - edge_indices (Tensor): Edge indices of shape `(M, 2)` .
+                - symmetry_ops (Tensor): Symmetry operations of shape `(M, 4, 4)` .
+                - cell_translations (Tensor): Displacement across unit cell of shape `([M], 3)`.
 
         Returns:
-            tf.RaggedTensor: Displacement vector for edges of shape `(M, 3)`.
+            Tensor: Displacement vector for edges of shape `(M, 3)` .
         """
         frac_coords = inputs[0]
         edge_indices = inputs[1]
@@ -960,10 +969,10 @@ class DisplacementVectorsUnitCell(Layer):
 
     def __init__(self, **kwargs):
         """Initialize layer."""
+        super(DisplacementVectorsUnitCell, self).__init__(**kwargs)
         self.gather_node_positions = NodePosition()
         self.lazy_add = Add()
         self.lazy_sub = Subtract()
-        super(DisplacementVectorsUnitCell, self).__init__(**kwargs)
 
     def build(self, input_shape):
         """Build layer."""
@@ -975,12 +984,12 @@ class DisplacementVectorsUnitCell(Layer):
         Args:
             inputs: [frac_coordinates, edge_indices, cell_translations]
 
-                - frac_coordinates (tf.RaggedTensor): Fractional node coordinates of shape `(batch, [N], 3)`.
-                - edge_indices (tf.RaggedTensor): Edge indices of shape `(batch, [M], 2)`.
-                - cell_translations (tf.RaggedTensor): Displacement across unit cell of shape `(batch, [M], 3)`.
+                - frac_coordinates (Tensor): Fractional node coordinates of shape `([N], 3)`.
+                - edge_indices (Tensor): Edge indices of shape `([M], 2)`.
+                - cell_translations (Tensor): Displacement across unit cell of shape `([M], 3)`.
 
         Returns:
-            tf.RaggedTensor: Displacement vector for edges of shape `(batch, [M], 3)`.
+            Tensor: Displacement vector for edges of shape `([M], 3)`.
         """
         frac_coords, edge_indices, cell_translations = inputs[0], inputs[1], inputs[2]
         # Gather sending and receiving coordinates.
@@ -1019,13 +1028,14 @@ class FracToRealCoordinates(Layer):
         r"""Forward pass.
 
         Args:
-            inputs: [frac_coordinates, lattice_matrix]
+            inputs: [frac_coordinates, lattice_matrix, batch_id]
 
-                - frac_coordinates (tf.RaggedTensor): Fractional node coordinates of shape `(batch, [N], 3)`.
-                - lattice_matrix (tf.Tensor): Lattice matrix of shape `(batch, 3, 3)`.
+                - frac_coordinates (Tensor): Fractional node coordinates of shape `([N], 3)` .
+                - lattice_matrix (Tensor): Lattice matrix of shape `(batch, 3, 3)` .
+                - batch_id (Tensor): Batch ID of nodes or edges of shape `([N], )` .
 
         Returns:
-            tf.RaggedTensor: Real-space node coordinates of shape `(batch, [N], 3)`.
+            Tensor: Real-space node coordinates of shape `([N], 3)` .
         """
         frac_coords, lattice_matrices, batch_id_edge = inputs
         # lattice_matrices_ = ops.repeat(lattice_matrices, row_lengths, axis=0)
@@ -1068,13 +1078,14 @@ class RealToFracCoordinates(Layer):
         r"""Forward pass.
 
         Args:
-            inputs: [frac_coordinates, lattice_matrix]
+            inputs: [frac_coordinates, lattice_matrix, batch_id]
 
-                - real_coordinates (tf.RaggedTensor): Fractional node coordinates of shape `(batch, [N], 3)`.
-                - lattice_matrix (tf.Tensor): Lattice matrix of shape `(batch, 3, 3)`.
+                - real_coordinates (Tensor): Fractional node coordinates of shape `([N], 3)`.
+                - lattice_matrix (Tensor): Lattice matrix of shape `(batch, 3, 3)`.
+                - batch_id (Tensor): Batch ID of nodes or edges of shape `([N], )` .
 
         Returns:
-            tf.RaggedTensor: Fractional node coordinates of shape `(batch, [N], 3)`.
+            Tensor: Fractional node coordinates of shape `([N], 3)`.
         """
         real_coordinates, inv_lattice_matrices, batch_id_edge = inputs
         if not self.is_inverse_lattice_matrix:

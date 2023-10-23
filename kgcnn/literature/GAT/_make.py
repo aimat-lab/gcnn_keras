@@ -80,8 +80,8 @@ def make_model(inputs: list = None,
             - edge_attributes (Tensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
             - edge_indices (Tensor): Index list for edges of shape `(batch, None, 2)`.
-            - total_nodes(Tensor, optional): Number of Nodes in graph if not same sized graphs of shape `(batch, )` .
-            - total_edges(Tensor, optional): Number of Edges in graph if not same sized graphs of shape `(batch, )` .
+            - total_nodes(Tensor): Number of Nodes in graph if not same sized graphs of shape `(batch, )` .
+            - total_edges(Tensor): Number of Edges in graph if not same sized graphs of shape `(batch, )` .
 
     Outputs:
         Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
