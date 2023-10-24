@@ -6,7 +6,11 @@
 General Information
 ===================================
 
-A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensors.
+The package in `kgcnn <https://github.com/aimat-lab/gcnn_keras/tree/master/kgcnn>`__ contains several layer classes to build up graph convolution models in
+Keras with Tensorflow, PyTorch or Jax as backend. Some models are given as an example in literature.
+Focus of kgcnn is (batched) graph learning for molecules **kgcnn.molecule** and materials **kgcnn.crystal**.
+Below you can find explanations and information on how to use `kgcnn <https://github.com/aimat-lab/gcnn_keras/tree/master/kgcnn>`__ .
+See `Reference` under `Package Content` for code documentation.
 
 .. toctree::
    :maxdepth: 3

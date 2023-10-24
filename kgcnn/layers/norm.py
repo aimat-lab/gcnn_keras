@@ -286,7 +286,7 @@ class GraphInstanceNormalization(GraphNormalization):
     """
 
     def __init__(self, **kwargs):
-        r"""Initialize layer :obj:`GraphBatchNormalization`.
+        r"""Initialize layer :obj:`GraphBatchNormalization` .
 
         Args:
             epsilon: Small float added to variance to avoid dividing by zero. Defaults to 1e-3.

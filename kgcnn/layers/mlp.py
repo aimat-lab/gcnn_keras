@@ -328,10 +328,10 @@ class MLP(MLPBase):  # noqa
         r"""Forward pass.
 
         Args:
-            inputs (tf.Tensor): Input tensor with last dimension not `None` .
+            inputs (Tensor): Input tensor with last dimension not `None` .
 
         Returns:
-            tf.Tensor: MLP forward pass.
+            Tensor: MLP forward pass.
         """
         x, batch = (inputs[0], inputs[1:]) if isinstance(inputs, list) else (inputs, [])
 
