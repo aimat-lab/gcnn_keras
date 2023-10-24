@@ -109,7 +109,7 @@ class ScaledForceMeanAbsoluteError(ks.metrics.MeanMetricWrapper):
             check_nonzero = ops.cast(ops.logical_not(
                 ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2)), dtype="int32")
             row_count = ops.sum(check_nonzero, axis=1)
-            row_count = ops.where(row_count < 1, ops.cast(ops.shape(y_true)[1], dtype=row_count.dtype), row_count)
+            row_count = ops.where(row_count < 1, 1, row_count)
             norm = 1/ops.cast(row_count, dtype=self.scale.dtype)
         else:
             norm = 1/ops.shape(y_true)[1]
