@@ -88,9 +88,15 @@ class CastBatchedIndicesToDisjoint(_CastBatchedDisjointBase):
 
         if not self.padded_disjoint:
             out_n = tuple([None] + list(in_n[2:]))
-            out_i = tuple(list(reversed(in_i[2:])) + [None])
+            if global_axis_indices == 0:
+                out_i = tuple(list(reversed(in_i[2:])) + [None])
+            else:
+                out_i = tuple([None] + list(in_i[2:]))
             out_gn, out_ge, out_id_n, out_id_e = (None, ), (None, ), (None, ), (None, )
-            out_size_n, out_size_e = in_size_n, in_size_e
+            if not self.uses_mask:
+                out_size_n, out_size_e = in_size_n, in_size_e
+            else:
+                out_size_n, out_size_e = in_n[:1], in_i[:1]  # Just batch dimension or none
         else:
             out_n = tuple([in_n[0]*in_n[1]+1 if in_n[0] is not None and in_n[1] is not None else None] + list(in_n[2:]))
             out_i = tuple(list(reversed(in_i[2:])) + [

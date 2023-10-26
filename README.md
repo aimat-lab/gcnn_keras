@@ -105,14 +105,13 @@ from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.aggr import AggregateLocalEdges
 
+# Example for padded input.
 ns = ks.layers.Input(shape=(None, 64), dtype="float32")
 e_idx = ks.layers.Input(shape=(None, 2), dtype="int64")
-total_n = ks.layers.Input(shape=(), dtype="int64")
-total_e = ks.layers.Input(shape=(), dtype="int64")
+total_n = ks.layers.Input(shape=(), dtype="int64")  # Or mask
+total_e = ks.layers.Input(shape=(), dtype="int64")  # Or mask
 
-# Here [n, idx, batch_id, total_n] could also be used as model input for direct disjoint representation.
-n, idx, batch_id, _, _, _, total_n, _ = CastBatchedIndicesToDisjoint()([ns, e_idx, total_n, total_e])
-
+n, idx, batch_id, _, _, _, _, _ = CastBatchedIndicesToDisjoint()([ns, e_idx, total_n, total_e])
 n_in_out = GatherNodes()([n, idx])
 node_messages = ks.layers.Dense(64, activation='relu')(n_in_out)
 node_updates = AggregateLocalEdges()([n, node_messages, idx])
@@ -120,7 +119,7 @@ n_node_updates = ks.layers.Concatenate()([n, node_updates])
 n_embedding = ks.layers.Dense(1)(n_node_updates)
 g_embedding = PoolingNodes()([total_n, n_embedding, batch_id])
 
-message_passing = ks.models.Model(inputs=[n, e_idx, total_n, total_e], outputs=g_embedding)
+message_passing = ks.models.Model(inputs=[ns, e_idx, total_n, total_e], outputs=g_embedding)
 ```
 
 The actual message passing model can further be structured by e.g. subclassing the message passing base layer:
