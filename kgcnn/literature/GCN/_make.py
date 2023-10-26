@@ -2,7 +2,7 @@ import keras_core as ks
 from keras_core.layers import Dense
 from kgcnn.layers.modules import Embedding
 from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
-                                  CastDisjointToGraphState, CastDisjointToBatchedAttributes)
+                                  CastDisjointToBatchedGraphState, CastDisjointToBatchedAttributes)
 from kgcnn.layers.conv import GCN
 from kgcnn.layers.mlp import MLP, GraphMLP
 from kgcnn.layers.scale import get as get_scaler
@@ -123,12 +123,12 @@ def make_model(inputs: list = None,
 
     # Cast to tensor
     if output_embedding == "graph":
-        out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
+        out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == "node":
         if output_to_tensor:
             out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
         else:
-            out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
+            out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)

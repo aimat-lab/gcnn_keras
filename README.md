@@ -111,7 +111,7 @@ total_n = ks.layers.Input(shape=(), dtype="int64")
 total_e = ks.layers.Input(shape=(), dtype="int64")
 
 # Here [n, idx, batch_id, total_n] could also be used as model input for direct disjoint representation.
-n, idx, batch_id, _, _, _,total_n, _ = CastBatchedIndicesToDisjoint()([ns, e_idx, total_n, total_e])
+n, idx, batch_id, _, _, _, total_n, _ = CastBatchedIndicesToDisjoint()([ns, e_idx, total_n, total_e])
 
 n_in_out = GatherNodes()([n, idx])
 node_messages = ks.layers.Dense(64, activation='relu')(n_in_out)

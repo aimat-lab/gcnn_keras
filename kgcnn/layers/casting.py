@@ -14,10 +14,10 @@ def _cat_one(t):
     return ops.concatenate([ops.convert_to_tensor([1], dtype=t.dtype), t], axis=0)
 
 
-class _CastDisjointBase(Layer):
+class _CastBatchedDisjointBase(Layer):
 
     def __init__(self, reverse_indices: bool = False, dtype_batch: str = "int64", dtype_index=None,
-                 padded_disjoint: bool = False, ragged: bool = False, **kwargs):
+                 padded_disjoint: bool = False, uses_mask: bool = False, **kwargs):
         r"""Initialize layer.
 
         Args:
@@ -25,33 +25,34 @@ class _CastDisjointBase(Layer):
             dtype_batch (str): Dtype for batch ID tensor. Default is 'int64'.
             dtype_index (str): Dtype for index tensor. Default is None.
             padded_disjoint (bool): Whether to keep padding in disjoint representation. Default is False.
-            ragged (bool): Whether input is ragged. Default is False.
+            uses_mask (bool): Whether the padding is marked by a boolean mask or by a length tensor, counting the
+                non-padded nodes from index 0. Default is False.
         """
-        super(_CastDisjointBase, self).__init__(**kwargs)
+        super(_CastBatchedDisjointBase, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
         self.dtype_index = dtype_index
         self.dtype_batch = dtype_batch
-        self._has_ragged_input = ragged
+        self.uses_mask = uses_mask
         self.padded_disjoint = padded_disjoint
         self.supports_jit = padded_disjoint
 
     def get_config(self):
         """Get config dictionary for this layer."""
-        config = super(_CastDisjointBase, self).get_config()
+        config = super(_CastBatchedDisjointBase, self).get_config()
         config.update({"reverse_indices": self.reverse_indices, "dtype_batch": self.dtype_batch,
                        "dtype_index": self.dtype_index, "padded_disjoint": self.padded_disjoint,
-                       "ragged": self._has_ragged_input})
+                       "uses_mask": self.uses_mask})
         return config
 
 
-class CastBatchedIndicesToDisjoint(_CastDisjointBase):
+class CastBatchedIndicesToDisjoint(_CastBatchedDisjointBase):
     r"""Cast batched node and edge indices to a (single) disjoint graph representation of
     `Pytorch Geometric (PyG) <https://github.com/pyg-team/pytorch_geometric>`__ .
     For PyG a batch of graphs is represented by single graph which contains disjoint sub-graphs,
     and the batch information is passed as batch ID tensor: `graph_id_node` and `graph_id_edge` .
 
     Keras layers can pass unstacked tensors without batch dimension, however, for model input and output
-    batched tensors is most natural to the framework. Therefore, this layer can cast to disjoint from ragged or padded
+    batched tensors is most natural to the framework. Therefore, this layer can cast to disjoint from padded
     input and also keep padding in disjoint representation for jax.
 
     For padded disjoint all padded nodes are assigned to a padded first empty graph, with single node and at least
@@ -130,12 +131,6 @@ class CastBatchedIndicesToDisjoint(_CastDisjointBase):
                 - edges_count (Tensor): Tensor of number of edges for each graph of shape `(batch, )` .
         """
         nodes, edge_indices, node_len, edge_len = inputs
-
-        # Case: Ragged Tensor input.
-        # As soon as ragged tensors are supported by Keras-Core. We will add this here to simply extract the disjoint
-        # graph representation.
-        if self._has_ragged_input:
-            raise NotImplementedError("Ragged or sparse input is not supported yet for '%s'." % self.name)
 
         if self.dtype_batch is None:
             dtype_batch = node_len.dtype
@@ -226,7 +221,10 @@ class CastBatchedIndicesToDisjoint(_CastDisjointBase):
         return [nodes_flatten, disjoint_indices, graph_id_node, graph_id_edge, node_id, edge_id, node_len, edge_len]
 
 
-class CastBatchedAttributesToDisjoint(_CastDisjointBase):
+CastBatchedIndicesToDisjoint.__init__.__doc__ = _CastBatchedDisjointBase.__init__.__doc__
+
+
+class CastBatchedAttributesToDisjoint(_CastBatchedDisjointBase):
     r"""Cast batched node and edge attributes to a (single) disjoint graph representation of
     `Pytorch Geometric (PyG) <https://github.com/pyg-team/pytorch_geometric>`__ .
 
@@ -290,12 +288,6 @@ class CastBatchedAttributesToDisjoint(_CastDisjointBase):
                 - item_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
                 - item_counts (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
         """
-        # Case: Ragged Tensor input.
-        # As soon as ragged tensors are supported by Keras-Core. We will add this here to simply extract the disjoint
-        # graph representation.
-        if self._has_ragged_input:
-            raise NotImplementedError("Ragged or sparse input is not supported yet for '%s'." % self.name)
-
         nodes, node_len = inputs
 
         if self.dtype_batch is None:
@@ -331,43 +323,10 @@ class CastBatchedAttributesToDisjoint(_CastDisjointBase):
         return [nodes_flatten, graph_id_node, node_id, node_len]
 
 
-class CastDisjointToGraphState(_CastDisjointBase):
-    r"""Cast graph property tensor from disjoint graph representation of
-    `Pytorch Geometric (PyG) <https://github.com/pyg-team/pytorch_geometric>`__ .
-
-    The graph state is usually kept as batched tensor, except for padded disjoint representation, an empty zero valued
-    graph is removed that represents all padded nodes.
-    """
-
-    def __init__(self, **kwargs):
-        super(CastDisjointToGraphState, self).__init__(**kwargs)
-
-    def build(self, input_shape):
-        self.built = True
-
-    def compute_output_shape(self, input_shape):
-        if self.padded_disjoint:
-            if input_shape[0] is not None:
-                return tuple([input_shape[0] - 1] + list(input_shape[1:]))
-        return input_shape
-
-    def call(self, inputs: list, **kwargs):
-        """Changes graph tensor from disjoint representation.
-
-        Args:
-            inputs (Tensor): Graph labels from a disjoint representation of shape `(batch, ...)` or
-                `(batch+1, ...)` for padded disjoint.
-
-        Returns:
-            Tensor: Graph labels of shape `(batch, ...)` .
-        """
-        # Simply remove first graph.
-        if self.padded_disjoint:
-            return inputs[1:]
-        return inputs
+CastBatchedAttributesToDisjoint.__init__.__doc__ = _CastBatchedDisjointBase.__init__.__doc__
 
 
-class CastDisjointToBatchedAttributes(_CastDisjointBase):
+class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
     r"""Cast batched node and edge attributes from a (single) disjoint graph representation of
     `Pytorch Geometric (PyG) <https://github.com/pyg-team/pytorch_geometric>`__ .
 
@@ -414,7 +373,49 @@ class CastDisjointToBatchedAttributes(_CastDisjointBase):
         return out
 
 
-class CastGraphStateToDisjoint(_CastDisjointBase):
+CastDisjointToBatchedAttributes.__init__.__doc__ = _CastBatchedDisjointBase.__init__.__doc__
+
+
+class CastDisjointToBatchedGraphState(_CastBatchedDisjointBase):
+    r"""Cast graph property tensor from disjoint graph representation of
+    `Pytorch Geometric (PyG) <https://github.com/pyg-team/pytorch_geometric>`__ .
+
+    The graph state is usually kept as batched tensor, except for padded disjoint representation, an empty zero valued
+    graph is removed that represents all padded nodes.
+    """
+
+    def __init__(self, **kwargs):
+        super(CastDisjointToBatchedGraphState, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        self.built = True
+
+    def compute_output_shape(self, input_shape):
+        if self.padded_disjoint:
+            if input_shape[0] is not None:
+                return tuple([input_shape[0] - 1] + list(input_shape[1:]))
+        return input_shape
+
+    def call(self, inputs: list, **kwargs):
+        """Changes graph tensor from disjoint representation.
+
+        Args:
+            inputs (Tensor): Graph labels from a disjoint representation of shape `(batch, ...)` or
+                `(batch+1, ...)` for padded disjoint.
+
+        Returns:
+            Tensor: Graph labels of shape `(batch, ...)` .
+        """
+        # Simply remove first graph.
+        if self.padded_disjoint:
+            return inputs[1:]
+        return inputs
+
+
+CastDisjointToBatchedGraphState.__init__.__doc__ = _CastBatchedDisjointBase.__init__.__doc__
+
+
+class CastBatchedGraphStateToDisjoint(_CastBatchedDisjointBase):
     r"""Cast graph property tensor to disjoint graph representation of
     `Pytorch Geometric (PyG) <https://github.com/pyg-team/pytorch_geometric>`__ .
 
@@ -423,7 +424,7 @@ class CastGraphStateToDisjoint(_CastDisjointBase):
     """
 
     def __init__(self, **kwargs):
-        super(CastGraphStateToDisjoint, self).__init__(**kwargs)
+        super(CastBatchedGraphStateToDisjoint, self).__init__(**kwargs)
 
     def build(self, input_shape):
         self.built = True
@@ -448,8 +449,4 @@ class CastGraphStateToDisjoint(_CastDisjointBase):
         return inputs
 
 
-CastBatchedIndicesToDisjoint.__init__.__doc__ = _CastDisjointBase.__init__.__doc__
-CastBatchedAttributesToDisjoint.__init__.__doc__ = _CastDisjointBase.__init__.__doc__
-CastDisjointToBatchedAttributes.__init__.__doc__ = _CastDisjointBase.__init__.__doc__
-CastDisjointToGraphState.__init__.__doc__ = _CastDisjointBase.__init__.__doc__
-CastGraphStateToDisjoint.__init__.__doc__ = _CastDisjointBase.__init__.__doc__
+CastBatchedGraphStateToDisjoint.__init__.__doc__ = _CastBatchedDisjointBase.__init__.__doc__

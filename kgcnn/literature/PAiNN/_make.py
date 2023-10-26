@@ -2,7 +2,7 @@ import keras_core as ks
 from ._layers import PAiNNUpdate, EquivariantInitialize
 from ._layers import PAiNNconv
 from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
-                                  CastDisjointToGraphState, CastDisjointToBatchedAttributes, CastGraphStateToDisjoint)
+                                  CastDisjointToBatchedGraphState, CastDisjointToBatchedAttributes, CastBatchedGraphStateToDisjoint)
 from kgcnn.layers.geom import NodeDistanceEuclidean, BesselBasisLayer, EdgeDirectionNormalized, CosCutOffEnvelope, \
     NodePosition, ShiftPeriodicLattice
 from keras_core.layers import Add
@@ -156,13 +156,13 @@ def make_model(inputs: list = None,
     if output_embedding == "graph":
         out = PoolingNodes(**pooling_args)([count_nodes, n, batch_id_node])
         out = MLP(**output_mlp)(out)
-        out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
+        out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == "node":
         out = GraphMLP(**output_mlp)([n, batch_id_node, count_nodes])
         if output_to_tensor:
             out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
         else:
-            out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
+            out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
     else:
         raise ValueError("Unsupported output embedding for mode `PAiNN`")
 

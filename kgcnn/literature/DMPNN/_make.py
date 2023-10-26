@@ -1,6 +1,6 @@
 import keras_core as ks
 from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
-                                  CastDisjointToGraphState, CastDisjointToBatchedAttributes, CastGraphStateToDisjoint)
+                                  CastDisjointToBatchedGraphState, CastDisjointToBatchedAttributes, CastBatchedGraphStateToDisjoint)
 from kgcnn.layers.scale import get as get_scaler
 from kgcnn.models.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
@@ -126,7 +126,7 @@ def make_model(name: str = None,
     batched_nodes, batched_edges, batched_indices, batched_reverse, total_nodes, total_edges = model_inputs[:6]
 
     # Casting
-    graph_state = CastGraphStateToDisjoint(**cast_disjoint_kwargs)(model_inputs[7]) if use_graph_state else None
+    graph_state = CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(model_inputs[7]) if use_graph_state else None
     n, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
         **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
     ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
@@ -146,12 +146,12 @@ def make_model(name: str = None,
     )
 
     if output_embedding == 'graph':
-        out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
+        out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == 'node':
         if output_to_tensor:
             out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
         else:
-            out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
+            out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
