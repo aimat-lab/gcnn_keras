@@ -75,7 +75,7 @@ class CastBatchedIndicesToDisjoint(_CastBatchedDisjointBase):
     def compute_output_spec(self, inputs_spec):
         """Compute output spec as possible."""
         output_shape = self.compute_output_shape([x.shape for x in inputs_spec])
-        dtype_batch = inputs_spec[2].dtype if self.dtype_batch is None else self.dtype_batch
+        dtype_batch = inputs_spec[2].dtype if self.dtype_batch is None and not self.uses_mask else self.dtype_batch
         dtype_index = inputs_spec[1].dtype if self.dtype_index is None else self.dtype_index
         output_dtypes = [inputs_spec[0].dtype, dtype_index, dtype_batch, dtype_batch, dtype_batch, dtype_batch,
                          dtype_batch, dtype_batch]
@@ -88,25 +88,31 @@ class CastBatchedIndicesToDisjoint(_CastBatchedDisjointBase):
 
         if not self.padded_disjoint:
             out_n = tuple([None] + list(in_n[2:]))
-            if global_axis_indices == 0:
-                out_i = tuple(list(reversed(in_i[2:])) + [None])
-            else:
-                out_i = tuple([None] + list(in_i[2:]))
-            out_gn, out_ge, out_id_n, out_id_e = (None, ), (None, ), (None, ), (None, )
-            if not self.uses_mask:
-                out_size_n, out_size_e = in_size_n, in_size_e
-            else:
-                out_size_n, out_size_e = in_n[:1], in_i[:1]  # Just batch dimension or none
         else:
             out_n = tuple([in_n[0]*in_n[1]+1 if in_n[0] is not None and in_n[1] is not None else None] + list(in_n[2:]))
-            out_i = tuple(list(reversed(in_i[2:])) + [
-                in_i[0]*in_i[1]+1 if in_i[0] is not None and in_i[1] is not None else None])
-            out_gn = (None, ) if out_n[0] is None else out_n[:1]
-            out_ge = (None, ) if out_i[-1] is None else tuple([out_i[-1]])
-            out_id_n = (None, ) if out_n[0] is None else out_n[:1]
-            out_id_e = (None, ) if out_i[-1] is None else tuple([out_i[-1]])
-            out_size_n = (in_size_n[0]+1, ) if in_size_n[0] is not None else (None, )
-            out_size_e = (in_size_e[0]+1, ) if in_size_e[0] is not None else (None, )
+
+        out_gn = (None, ) if out_n[0] is None else out_n[:1]
+        out_id_n = (None, ) if out_n[0] is None else out_n[:1]
+
+        if not self.padded_disjoint:
+            out_i = tuple([None] + list(in_i[2:]))
+        else:
+            out_i = tuple(
+                [in_i[0] * in_i[1] + 1 if in_i[0] is not None and in_i[1] is not None else None] + list(in_i[2:]))
+
+        out_ge = (None,) if out_i[0] is None else tuple([out_i[0]])
+        out_id_e = (None,) if out_i[0] is None else tuple([out_i[0]])
+
+        if global_axis_indices == 0:
+            out_i = tuple(reversed(list(out_i)))
+
+        batch_dim_n = in_size_n[0] if not self.uses_mask else in_n[0]
+        batch_dim_e = in_size_e[0] if not self.uses_mask else in_i[0]
+        if self.padded_disjoint:
+            out_size_n = (batch_dim_n+1, ) if batch_dim_n is not None else (None, )
+            out_size_e = (batch_dim_e+1, ) if batch_dim_e is not None else (None, )
+        else:
+            out_size_n, out_size_e = (batch_dim_n, ), (batch_dim_e, )
 
         return out_n, out_i, out_gn, out_ge, out_id_n, out_id_e, out_size_n, out_size_e
 
@@ -114,7 +120,7 @@ class CastBatchedIndicesToDisjoint(_CastBatchedDisjointBase):
         r"""Changes node and edge indices into a Pytorch Geometric (PyG) compatible tensor format.
 
         Args:
-            inputs (list): List of `[nodes, edge_indices, nodes_in_batch, edges_in_batch]` ,
+            inputs (list): List of `[nodes, edge_indices, nodes_in_batch/node_mask, edges_in_batch/edge_mask]` ,
 
                 - nodes (Tensor): Node features are represented by a keras tensor of shape `(batch, N, F, ...)` ,
                   where N denotes the number of nodes.
@@ -136,22 +142,7 @@ class CastBatchedIndicesToDisjoint(_CastBatchedDisjointBase):
                 - nodes_count (Tensor): Tensor of number of nodes for each graph of shape `(batch, )` .
                 - edges_count (Tensor): Tensor of number of edges for each graph of shape `(batch, )` .
         """
-        nodes, edge_indices, node_len, edge_len = inputs
-
-        if self.dtype_batch is None:
-            dtype_batch = node_len.dtype
-        else:
-            dtype_batch = self.dtype_batch
-            node_len = ops.cast(node_len, dtype=dtype_batch)
-            edge_len = ops.cast(edge_len, dtype=dtype_batch)
-
-        if self.dtype_index is not None:
-            edge_indices = ops.cast(edge_indices, dtype=self.dtype_index)
-
-        node_id = ops.repeat(ops.expand_dims(ops.arange(ops.shape(nodes)[1], dtype=dtype_batch), axis=0),
-                             ops.shape(node_len)[0], axis=0)
-        edge_id = ops.repeat(ops.expand_dims(ops.arange(ops.shape(edge_indices)[1], dtype=dtype_batch), axis=0),
-                             ops.shape(edge_len)[0], axis=0)
+        nodes, edge_indices, node_pad, edge_pad = inputs
 
         # def make_mask_flatten(len_per_dim, target_shape):
         #     mask = ops.reshape(ops.repeat(
@@ -160,8 +151,34 @@ class CastBatchedIndicesToDisjoint(_CastBatchedDisjointBase):
         #            ops.expand_dims(target_shape[1] - len_per_dim, axis=-1)], axis=-1), [-1]), axis=0)
         #     return mask
 
-        node_mask = node_id < ops.expand_dims(node_len, axis=-1)
-        edge_mask = edge_id < ops.expand_dims(edge_len, axis=-1)
+        if self.dtype_index is not None:
+            edge_indices = ops.cast(edge_indices, dtype=self.dtype_index)
+
+        if self.dtype_batch is None:
+            if self.uses_mask:
+                raise ValueError("Require `dtype_batch` for batch ID tensor when using boolean mask.")
+            dtype_batch = node_pad.dtype
+        else:
+            dtype_batch = self.dtype_batch
+
+        if not self.uses_mask:
+            node_len = ops.cast(node_pad, dtype=dtype_batch)
+            edge_len = ops.cast(edge_pad, dtype=dtype_batch)
+            node_id = ops.repeat(ops.expand_dims(ops.arange(ops.shape(nodes)[1], dtype=dtype_batch), axis=0),
+                                 ops.shape(node_len)[0], axis=0)
+            edge_id = ops.repeat(ops.expand_dims(ops.arange(ops.shape(edge_indices)[1], dtype=dtype_batch), axis=0),
+                                 ops.shape(edge_len)[0], axis=0)
+            node_mask = node_id < ops.expand_dims(node_len, axis=-1)
+            edge_mask = edge_id < ops.expand_dims(edge_len, axis=-1)
+        else:
+            node_mask = node_pad
+            edge_mask = edge_pad
+            node_len = ops.sum(ops.cast(node_mask, dtype=dtype_batch), axis=1)
+            edge_len = ops.sum(ops.cast(edge_mask, dtype=dtype_batch), axis=1)
+            node_id = ops.repeat(ops.expand_dims(ops.arange(ops.shape(nodes)[1], dtype=dtype_batch), axis=0),
+                                 ops.shape(node_len)[0], axis=0)
+            edge_id = ops.repeat(ops.expand_dims(ops.arange(ops.shape(edge_indices)[1], dtype=dtype_batch), axis=0),
+                                 ops.shape(edge_len)[0], axis=0)
 
         if not self.padded_disjoint:
             edge_indices_flatten = edge_indices[edge_mask]
@@ -256,7 +273,7 @@ class CastBatchedAttributesToDisjoint(_CastBatchedDisjointBase):
     def compute_output_spec(self, inputs_spec):
         """Compute output spec as possible."""
         output_shape = self.compute_output_shape([x.shape for x in inputs_spec])
-        dtype_batch = inputs_spec[1].dtype if self.dtype_batch is None else self.dtype_batch
+        dtype_batch = inputs_spec[1].dtype if self.dtype_batch is None and not self.uses_mask else self.dtype_batch
         output_dtypes = [inputs_spec[0].dtype, dtype_batch, dtype_batch, dtype_batch]
         output_spec = [ks.KerasTensor(s, dtype=d) for s, d in zip(output_shape, output_dtypes)]
         return output_spec
@@ -266,21 +283,24 @@ class CastBatchedAttributesToDisjoint(_CastBatchedDisjointBase):
         in_n, in_size_n = input_shape
         if not self.padded_disjoint:
             out_n = tuple([None] + list(in_n[2:]))
-            out_gn, out_id_n = (None,), (None,)
-            out_size_n = in_size_n
         else:
             out_n = tuple(
                 [in_n[0] * in_n[1] + 1 if in_n[0] is not None and in_n[1] is not None else None] + list(in_n[2:]))
-            out_gn = (None,) if out_n[0] is None else out_n[:1]
-            out_id_n = (None,) if out_n[0] is None else out_n[:1]
-            out_size_n = (in_size_n[0] + 1,) if in_size_n[0] is not None else (None,)
+        out_gn = (None,) if out_n[0] is None else out_n[:1]
+        out_id_n = (None,) if out_n[0] is None else out_n[:1]
+
+        batch_dim_n = in_size_n[0] if not self.uses_mask else in_n[0]
+        if self.padded_disjoint:
+            out_size_n = (batch_dim_n + 1,) if batch_dim_n is not None else (None,)
+        else:
+            out_size_n = (batch_dim_n,)
         return out_n, out_gn, out_id_n, out_size_n
 
     def call(self, inputs: list, **kwargs):
         """Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
 
         Args:
-            inputs (list): List of `[attr, total_attr]` ,
+            inputs (list): List of `[attr, total_attr/mask_attr]` ,
 
                 - attr (Tensor): Features are represented by a keras tensor of shape `(batch, N, F, ...)` ,
                   where N denotes the number of nodes or edges.
@@ -294,17 +314,25 @@ class CastBatchedAttributesToDisjoint(_CastBatchedDisjointBase):
                 - item_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
                 - item_counts (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
         """
-        nodes, node_len = inputs
+        nodes, node_pad = inputs
 
         if self.dtype_batch is None:
-            dtype_batch = node_len.dtype
+            if self.uses_mask:
+                raise ValueError("Require `dtype_batch` for batch ID tensor when using boolean mask.")
+            dtype_batch = node_pad.dtype
         else:
             dtype_batch = self.dtype_batch
-            node_len = ops.cast(node_len, dtype=dtype_batch)
 
-        node_id = ops.repeat(ops.expand_dims(ops.arange(ops.shape(nodes)[1], dtype=dtype_batch), axis=0),
+        if not self.uses_mask:
+            node_len = ops.cast(node_pad, dtype=dtype_batch)
+            node_id = ops.repeat(ops.expand_dims(ops.arange(ops.shape(nodes)[1], dtype=dtype_batch), axis=0),
                              ops.shape(node_len)[0], axis=0)
-        node_mask = node_id < ops.expand_dims(node_len, axis=-1)
+            node_mask = node_id < ops.expand_dims(node_len, axis=-1)
+        else:
+            node_mask = node_pad
+            node_len = ops.sum(ops.cast(node_mask, dtype=dtype_batch), axis=1)
+            node_id = ops.repeat(ops.expand_dims(ops.arange(ops.shape(nodes)[1], dtype=dtype_batch), axis=0),
+                                 ops.shape(node_len)[0], axis=0)
 
         if not self.padded_disjoint:
             nodes_flatten = nodes[node_mask]
