@@ -96,7 +96,7 @@ for current_split, (train_index, test_index) in enumerate(train_test_indices):
     train_indices_all.append(train_index)
 
     # Only do execute_splits out of the k-folds of cross-validation.
-    if execute_folds:
+    if execute_folds is not None:
         if current_split not in execute_folds:
             continue
     print("Running training on split: '%s'." % current_split)

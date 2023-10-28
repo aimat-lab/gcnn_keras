@@ -37,11 +37,15 @@ def plot_train_test_loss(histories: list, loss_name: str = None,
         loss_name = [x for x in list(histories[0].keys()) if "val_" not in x]
     if val_loss_name is None:
         val_loss_name = [x for x in list(histories[0].keys()) if "val_" in x]
-
     if not isinstance(loss_name, list):
         loss_name = [loss_name]
     if not isinstance(val_loss_name, list):
         val_loss_name = [val_loss_name]
+    if not isinstance(data_unit, list):
+        data_unit = [data_unit]
+
+    if len(data_unit) < len(val_loss_name):
+        data_unit = data_unit + [str(data_unit[-1])]*(len(val_loss_name)-len(data_unit))
 
     train_loss = []
     for x in loss_name:
@@ -74,7 +78,7 @@ def plot_train_test_loss(histories: list, loss_name: str = None,
         plt.scatter([len(train_loss[i][0])], [np.mean(y, axis=0)[-1]],
                     label=r"{0}: {1:0.4f} $\pm$ {2:0.4f} ".format(
                         val_loss_name[i], np.mean(y, axis=0)[-1],
-                        np.std(y, axis=0)[-1]) + data_unit, color=vp[0].get_color()
+                        np.std(y, axis=0)[-1]) + data_unit[i], color=vp[0].get_color()
                     )
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
