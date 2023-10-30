@@ -60,7 +60,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.QM9Dataset",
                 "config": {},
                 "methods": [
-                    {"set_train_test_indices_k_fold": {"n_splits": 10, "random_state": 42, "shuffle": True}},
+                    {"set_train_test_indices_k_fold": {"n_splits": 5, "random_state": 42, "shuffle": True}},
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}},
                     {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
                                   "count_edges": "range_indices", "count_nodes": "node_number",

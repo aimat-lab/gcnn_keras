@@ -1,6 +1,8 @@
 import keras_core as ks
 from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
-                                  CastDisjointToBatchedGraphState, CastDisjointToBatchedAttributes, CastBatchedGraphStateToDisjoint)
+                                  CastDisjointToBatchedGraphState, CastDisjointToBatchedAttributes,
+                                  CastBatchedGraphStateToDisjoint, CastRaggedAttributesToDisjoint,
+                                  CastRaggedIndicesToDisjoint, CastDisjointToRaggedAttributes)
 from kgcnn.layers.scale import get as get_scaler
 from kgcnn.models.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
@@ -34,7 +36,9 @@ model_default = {
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
+    "input_tensor_type": "padded",
     "cast_disjoint_kwargs": {},
+    "input_embedding": None,  # deprecated
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
     "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
     "input_graph_embedding": {"input_dim": 100, "output_dim": 64},
@@ -46,16 +50,19 @@ model_default = {
     "node_dense": {"units": 128, "use_bias": True, "activation": "relu"},
     "verbose": 10, "depth": 5, "dropout": {"rate": 0.1},
     "output_embedding": "graph", "output_to_tensor": True,
+    "output_tensor_type": "padded",
     "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
                    "activation": ["relu", "relu", "linear"]},
-    "output_scaling": None
+    "output_scaling": None,
 }
 
 
-@update_model_kwargs(model_default, update_recursive=0)
+@update_model_kwargs(model_default, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
 def make_model(name: str = None,
                inputs: list = None,
+               input_tensor_type: str = None,
                cast_disjoint_kwargs: dict = None,
+               input_embedding: dict = None,
                input_node_embedding: dict = None,
                input_edge_embedding: dict = None,
                input_graph_embedding: dict = None,
@@ -70,6 +77,7 @@ def make_model(name: str = None,
                use_graph_state: bool = False,
                output_embedding: str = None,
                output_to_tensor: bool = None,
+               output_tensor_type: str = None,
                output_mlp: dict = None,
                output_scaling: dict = None
                ):
@@ -98,6 +106,7 @@ def make_model(name: str = None,
     Args:
         name (str): Name of the model. Should be "DMPNN".
         inputs (list): List of dictionaries unpacked in :obj:`keras.layers.Input`. Order must match model definition.
+        input_tensor_type (str): Input type of graph tensor. Default is "padded".
         cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
         input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of arguments for edge unpacked in :obj:`Embedding` layers.
@@ -114,6 +123,7 @@ def make_model(name: str = None,
         use_graph_state (bool): Whether to use graph state information. Default is False.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         output_to_tensor (bool): Whether to cast model output to :obj:`Tensor`.
+        output_tensor_type (str): Output type of graph tensors such as nodes or edges. Default is "padded".
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
         output_scaling (dict): Kwargs for scaling layer, if scaling layer is to be used.
@@ -123,15 +133,27 @@ def make_model(name: str = None,
     """
     # Make input
     model_inputs = [ks.layers.Input(**x) for x in inputs]
-    batched_nodes, batched_edges, batched_indices, batched_reverse, total_nodes, total_edges = model_inputs[:6]
 
-    # Casting
-    graph_state = CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(model_inputs[7]) if use_graph_state else None
-    n, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
-        **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
-    ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
-    _, ed_pairs, _, _, _, _, _, _ = CastBatchedIndicesToDisjoint(
-        **cast_disjoint_kwargs)([batched_indices, batched_reverse, count_edges, count_edges])
+    if input_tensor_type in ["padded", "masked"]:
+        batched_nodes, batched_edges, batched_indices, batched_reverse, total_nodes, total_edges = model_inputs[:6]
+        graph_state = CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(
+            model_inputs[7]) if use_graph_state else None
+        n, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
+            **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
+        ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
+        _, ed_pairs, _, _, _, _, _, _ = CastBatchedIndicesToDisjoint(
+            **cast_disjoint_kwargs)([batched_indices, batched_reverse, count_edges, count_edges])
+    elif input_tensor_type in ["ragged", "jagged"]:
+        batched_nodes, batched_edges, batched_indices, batched_reverse = model_inputs[:4]
+        graph_state = CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(
+            model_inputs[5]) if use_graph_state else None
+        n, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastRaggedIndicesToDisjoint(
+            **cast_disjoint_kwargs)([batched_nodes, batched_indices])
+        ed, _, _, _ = CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_edges)
+        _, ed_pairs, _, _, _, _, _, _ = CastRaggedIndicesToDisjoint(
+            **cast_disjoint_kwargs)([batched_indices, batched_reverse])
+    else:
+        n, ed, edi, batch_id_node, ed_pairs, count_nodes, graph_state, node_id = model_inputs
 
     # Wrapping disjoint model.
     out = model_disjoint(
@@ -148,8 +170,15 @@ def make_model(name: str = None,
     if output_embedding == 'graph':
         out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == 'node':
-        if output_to_tensor:
-            out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
+        if output_tensor_type in ["padded", "masked"]:
+            if input_tensor_type in ["padded", "masked"]:
+                out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)(
+                    [batched_nodes, out, batch_id_node, node_id])  # noqa
+            else:
+                out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([
+                    out, batch_id_node, node_id, count_nodes])
+        if output_tensor_type in ["ragged", "jagged"]:
+            out = CastDisjointToRaggedAttributes()([out, batch_id_node, node_id, count_nodes])
         else:
             out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
 
@@ -165,4 +194,5 @@ def make_model(name: str = None,
             scaler.set_scale(*args, **kwargs)
 
         setattr(model, "set_scale", set_scale)
+
     return model

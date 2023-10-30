@@ -89,7 +89,7 @@ def update_model_kwargs_logic(default_kwargs: dict = None, user_kwargs: dict = N
     return _nested_update(out, user_kwargs, update_recursive, 0)
 
 
-def update_model_kwargs(model_default, update_recursive=inf):
+def update_model_kwargs(model_default, update_recursive=inf, deprecated: list = None):
     """Decorating function for update_model_kwargs_logic() ."""
     def model_update_decorator(func):
 

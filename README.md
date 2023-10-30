@@ -17,6 +17,9 @@
 > The versions of kgcnn<=3.1.0 were focused on ragged tensors of tensorflow.
 > The current main branch is developed for Keras 3.0 and kgcnn version 4.0. 
 > Please use last release of 3.1.0 for previous version of kgcnn.
+> 
+> We hope that all hyperparamter for models will also transfer to kgcnn 4.0.
+> You only have to add `input_tensor_type: "ragged"` to your model config.
 
 [General](#general) | [Requirements](#requirements) | [Installation](#installation) | [Documentation](#documentation) | [Implementation details](#implementation-details)
  | [Literature](#literature) | [Data](#data)  | [Datasets](#datasets) | [Training](#training) | [Issues](#issues) | [Citing](#citing) | [References](#references)

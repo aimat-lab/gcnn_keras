@@ -46,3 +46,7 @@ def scatter_reduce_softmax(indices, values, shape, normalize: bool = False):
 def repeat_static_length(x, repeats, axis=None, total_repeat_length: int = None):
     # from keras_core.backend.torch.numpy import repeat
     return torch.repeat_interleave(x, repeats, dim=axis)
+
+
+def decompose_ragged_tensor(x):
+    raise NotImplementedError("Operation supported this backend '%s'." % __name__)

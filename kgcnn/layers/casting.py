@@ -1,7 +1,7 @@
 import keras_core as ks
 from keras_core.layers import Layer
 from keras_core import ops
-from kgcnn.ops.core import repeat_static_length
+from kgcnn.ops.core import repeat_static_length, decompose_ragged_tensor
 from kgcnn.ops.scatter import scatter_reduce_sum
 from kgcnn import __indices_axis__ as global_axis_indices
 
@@ -17,7 +17,9 @@ def _cat_one(t):
 class _CastBatchedDisjointBase(Layer):
 
     def __init__(self, reverse_indices: bool = False, dtype_batch: str = "int64", dtype_index=None,
-                 padded_disjoint: bool = False, uses_mask: bool = False, **kwargs):
+                 padded_disjoint: bool = False, uses_mask: bool = False, static_node_shape: tuple = None,
+                 static_edge_shape: tuple = None,
+                 **kwargs):
         r"""Initialize layer.
 
         Args:
@@ -27,6 +29,8 @@ class _CastBatchedDisjointBase(Layer):
             padded_disjoint (bool): Whether to keep padding in disjoint representation. Default is False.
             uses_mask (bool): Whether the padding is marked by a boolean mask or by a length tensor, counting the
                 non-padded nodes from index 0. Default is False.
+            static_node_shape (tuple): Statically shape of nodes. Default is None.
+            static_edge_shape (tuple): Statically shape of edges. Default is None.
         """
         super(_CastBatchedDisjointBase, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
@@ -35,13 +39,16 @@ class _CastBatchedDisjointBase(Layer):
         self.uses_mask = uses_mask
         self.padded_disjoint = padded_disjoint
         self.supports_jit = padded_disjoint
+        self.static_node_shape = static_node_shape
+        self.static_edge_shape = static_edge_shape
 
     def get_config(self):
         """Get config dictionary for this layer."""
         config = super(_CastBatchedDisjointBase, self).get_config()
         config.update({"reverse_indices": self.reverse_indices, "dtype_batch": self.dtype_batch,
                        "dtype_index": self.dtype_index, "padded_disjoint": self.padded_disjoint,
-                       "uses_mask": self.uses_mask})
+                       "uses_mask": self.uses_mask, "static_node_shape": self.static_node_shape,
+                       "static_edge_shape": self.static_edge_shape})
         return config
 
 
@@ -128,7 +135,6 @@ class CastBatchedIndicesToDisjoint(_CastBatchedDisjointBase):
                   edges at last axis for each edge.
                 - total_nodes (Tensor): Tensor of number of nodes for each graph of shape `(batch, )` .
                 - total_edges (Tensor): Tensor of number of edges for each graph of shape `(batch, )` .
-
 
         Returns:
             list: `[node_attr, edge_index, graph_id_node, graph_id_edge, node_id, edge_id, nodes_count, edges_count]`
@@ -297,7 +303,7 @@ class CastBatchedAttributesToDisjoint(_CastBatchedDisjointBase):
         return out_n, out_gn, out_id_n, out_size_n
 
     def call(self, inputs: list, **kwargs):
-        """Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
+        r"""Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
 
         Args:
             inputs (list): List of `[attr, total_attr/mask_attr]` ,
@@ -374,36 +380,43 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
         self.built = True
 
     def call(self, inputs: list, **kwargs):
-        """Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
+        r"""Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
 
         Args:
-            inputs (list): List of `[target, attr, graph_id_attr, attr_id]` ,
+            inputs (list): List of `[(target), attr, graph_id_attr, attr_id, attr_counts]` ,
 
-                - target (Tensor): Target tensor of shape equal to desired output of shape `(batch, N, F, ...)` .
+                - target (Tensor, Optional): Target tensor of shape equal to desired output of
+                  shape `(batch, N, F, ...)` .
                   Only first dimension is required for making new tensor e.g. of shape  `(batch,)` .
                 - attr (Tensor): Features are represented by a keras tensor of shape `([N], F, ...)` ,
                   where N denotes the number of nodes or edges.
                 - graph_id_attr (Tensor): ID tensor of graph assignment in disjoint graph of shape `([N], )` .
                 - attr_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
+                - attr_counts (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
 
         Returns:
             Tensor: Batched output tensor of node or edge attributes of shape `(batch, N, F, ...)` .
         """
-        target, attr, graph_id_attr, attr_id = inputs
+        if len(inputs) == 5:
+            target, attr, graph_id_attr, attr_id, attr_len = inputs
+            target_shape = ops.shape(target)
+        else:
+            attr, graph_id_attr, attr_id, attr_len = inputs
+            target_shape = self.static_node_shape
 
         if not self.padded_disjoint:
-            output_shape = [ops.shape(target)[0]*ops.shape(target)[1]] + list(ops.shape(attr)[1:])
-            indices = graph_id_attr*ops.convert_to_tensor(ops.shape(target)[1], dtype=graph_id_attr.dtype) + ops.cast(
+            output_shape = [target_shape[0]*target_shape[1]] + list(ops.shape(attr)[1:])
+            indices = graph_id_attr*ops.convert_to_tensor(target_shape[1], dtype=graph_id_attr.dtype) + ops.cast(
                 attr_id, dtype=graph_id_attr.dtype)
             out = scatter_reduce_sum(indices, attr, output_shape)
-            out = ops.reshape(out, list(ops.shape(target)[:2]) + list(ops.shape(attr)[1:]))
+            out = ops.reshape(out, list(target_shape[:2]) + list(ops.shape(attr)[1:]))
         else:
-            output_shape = [(ops.shape(target)[0]+1)*ops.shape(target)[1]] + list(ops.shape(attr)[1:])
-            indices = graph_id_attr * ops.convert_to_tensor(ops.shape(target)[1], dtype=graph_id_attr.dtype) + ops.cast(
+            output_shape = [(target_shape[0]+1)*target_shape[1]] + list(ops.shape(attr)[1:])
+            indices = graph_id_attr * ops.convert_to_tensor(target_shape[1], dtype=graph_id_attr.dtype) + ops.cast(
                 attr_id, dtype=graph_id_attr.dtype)
             out = scatter_reduce_sum(indices, attr, output_shape)
-            out = out[ops.shape(target)[1]:]
-            out = ops.reshape(out, list(ops.shape(target)[:2]) + list(ops.shape(attr)[1:]))
+            out = out[target_shape[1]:]  # Because first actual graph is 1*size shifted.
+            out = ops.reshape(out, list(target_shape[:2]) + list(ops.shape(attr)[1:]))
         return out
 
 
@@ -431,7 +444,7 @@ class CastDisjointToBatchedGraphState(_CastBatchedDisjointBase):
         return input_shape
 
     def call(self, inputs: list, **kwargs):
-        """Changes graph tensor from disjoint representation.
+        r"""Changes graph tensor from disjoint representation.
 
         Args:
             inputs (Tensor): Graph labels from a disjoint representation of shape `(batch, ...)` or
@@ -470,7 +483,7 @@ class CastBatchedGraphStateToDisjoint(_CastBatchedDisjointBase):
         return input_shape
 
     def call(self, inputs: list, **kwargs):
-        """Changes graph tensor from disjoint representation.
+        r"""Changes graph tensor from disjoint representation.
 
         Args:
             inputs (Tensor): Graph labels from a disjoint representation of shape `(batch, ...)` .
@@ -484,3 +497,175 @@ class CastBatchedGraphStateToDisjoint(_CastBatchedDisjointBase):
 
 
 CastBatchedGraphStateToDisjoint.__init__.__doc__ = _CastBatchedDisjointBase.__init__.__doc__
+
+
+class _CastRaggedToDisjointBase(Layer):
+
+    def __init__(self, reverse_indices: bool = False, dtype_batch: str = "int64", dtype_index=None,
+                 padded_disjoint: bool = False, uses_mask: bool = False, **kwargs):
+        r"""Initialize layer.
+
+        Args:
+            reverse_indices (bool): Whether to reverse index order. Default is False.
+            dtype_batch (str): Dtype for batch ID tensor. Default is 'int64'.
+            dtype_index (str): Dtype for index tensor. Default is None.
+        """
+        super(_CastRaggedToDisjointBase, self).__init__(**kwargs)
+        self.reverse_indices = reverse_indices
+        self.dtype_index = dtype_index
+        self.dtype_batch = dtype_batch
+        # self.supports_jit = False
+
+    def get_config(self):
+        """Get config dictionary for this layer."""
+        config = super(_CastRaggedToDisjointBase, self).get_config()
+        config.update({"reverse_indices": self.reverse_indices, "dtype_batch": self.dtype_batch,
+                       "dtype_index": self.dtype_index})
+        return config
+
+
+class CastRaggedAttributesToDisjoint(_CastRaggedToDisjointBase):
+
+    def __init__(self, **kwargs):
+        super(CastRaggedAttributesToDisjoint, self).__init__(**kwargs)
+
+    def compute_output_shape(self, input_shape):
+        out_n = input_shape[1:]
+        out_gn, out_id_n, out_size_n = out_n[:1], out_n[:1], input_shape[:1]
+        return out_n, out_gn, out_id_n, out_size_n
+
+    def build(self, input_shape):
+        self.built = True
+
+    def call(self, inputs, **kwargs):
+        r"""Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
+
+        Args:
+            inputs (RaggedTensor): Attributes of shape `(batch, [None], F, ...)`
+
+        Returns:
+            list: `[attr, graph_id, item_id, item_counts]` .
+
+                - attr (Tensor): Represents attributes or coordinates of shape `([N], F, ...)`
+                - graph_id (Tensor): ID tensor of graph assignment in disjoint graph of shape `([N], )` .
+                - item_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
+                - item_counts (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
+        """
+        return decompose_ragged_tensor(inputs)
+
+
+CastRaggedAttributesToDisjoint.__init__.__doc__ = _CastRaggedToDisjointBase.__init__.__doc__
+
+
+class CastRaggedIndicesToDisjoint(_CastRaggedToDisjointBase):
+
+    def __init__(self, **kwargs):
+        super(CastRaggedIndicesToDisjoint, self).__init__(**kwargs)
+
+    def compute_output_spec(self, inputs_spec):
+        """Compute output spec as possible."""
+        output_shape = self.compute_output_shape([x.shape for x in inputs_spec])
+        dtype_batch = self.dtype_batch
+        dtype_index = inputs_spec[1].dtype if self.dtype_index is None else self.dtype_index
+        output_dtypes = [inputs_spec[0].dtype, dtype_index, dtype_batch, dtype_batch, dtype_batch, dtype_batch,
+                         dtype_batch, dtype_batch]
+        output_spec = [ks.KerasTensor(s, dtype=d) for s, d in zip(output_shape, output_dtypes)]
+        return output_spec
+
+    def compute_output_shape(self, input_shape):
+        """Compute output shape as possible."""
+        in_n, in_i = input_shape
+
+        out_n = tuple([None] + list(in_n[2:]))
+        out_gn = (None, ) if out_n[0] is None else out_n[:1]
+        out_id_n = (None, ) if out_n[0] is None else out_n[:1]
+
+        out_i = tuple([None] + list(in_i[2:]))
+        out_ge = (None,) if out_i[0] is None else tuple([out_i[0]])
+        out_id_e = (None,) if out_i[0] is None else tuple([out_i[0]])
+
+        if global_axis_indices == 0:
+            out_i = tuple(reversed(list(out_i)))
+
+        batch_dim_n = in_n[0]
+        batch_dim_e = in_i[0]
+        out_size_n, out_size_e = (batch_dim_n, ), (batch_dim_e, )
+
+        return out_n, out_i, out_gn, out_ge, out_id_n, out_id_e, out_size_n, out_size_e
+
+    def build(self, input_shape):
+        self.built = True
+
+    def call(self, inputs, **kwargs):
+        r"""Changes node and edge indices into a Pytorch Geometric (PyG) compatible tensor format.
+
+        Args:
+            inputs (list): List of `[nodes, edge_indices]` ,
+
+                - nodes (Tensor): Node features are represented by a keras tensor of shape `(batch, N, F, ...)` ,
+                  where N denotes the number of nodes.
+                - edge_indices (Tensor): Edge index list have shape `(batch, M, 2)` with the indices of M directed
+                  edges at last axis for each edge.
+
+        Returns:
+            list: `[node_attr, edge_index, graph_id_node, graph_id_edge, node_id, edge_id, nodes_count, edges_count]`
+
+                - node_attr (Tensor): Represents node attributes or coordinates of shape `([N], F, ...)` ,
+                - edge_index (Tensor): Represents the index table of shape `(2, [M])` for directed edges.
+                - graph_id_node (Tensor): ID tensor of graph assignment in disjoint graph of shape `([N], )` .
+                - graph_id_edge (Tensor): ID tensor of graph assignment in disjoint graph of shape `([M], )` .
+                - nodes_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
+                - edges_id (Tensor): The ID-tensor to assign each edge to its respective batch of shape `([M], )` .
+                - nodes_count (Tensor): Tensor of number of nodes for each graph of shape `(batch, )` .
+                - edges_count (Tensor): Tensor of number of edges for each graph of shape `(batch, )` .
+        """
+        nodes, edge_indices = inputs
+        nodes_flatten, graph_id_node, node_id, node_len = decompose_ragged_tensor(nodes)
+        edge_indices_flatten, graph_id_edge, edge_id, edge_len = decompose_ragged_tensor(edge_indices)
+
+        if self.dtype_index is not None:
+            edge_indices_flatten = ops.cast(edge_indices_flatten, dtype=self.dtype_index)
+
+        node_splits = ops.pad(ops.cumsum(node_len), [[1, 0]])
+        offset_edge_indices = ops.expand_dims(ops.repeat(node_splits[:-1], edge_len), axis=-1)
+        offset_edge_indices = ops.broadcast_to(offset_edge_indices, ops.shape(edge_indices_flatten))
+        disjoint_indices = edge_indices_flatten + ops.cast(offset_edge_indices, edge_indices_flatten.dtype)
+
+        # Transpose edge indices.
+        if global_axis_indices == 0:
+            disjoint_indices = ops.transpose(disjoint_indices)
+        if self.reverse_indices:
+            disjoint_indices = ops.flip(disjoint_indices, axis=global_axis_indices)
+
+        return [nodes_flatten, disjoint_indices, graph_id_node, graph_id_edge, node_id, edge_id, node_len, edge_len]
+
+
+CastRaggedIndicesToDisjoint.__init__.__doc__ = _CastRaggedToDisjointBase.__init__.__doc__
+
+
+class CastDisjointToRaggedAttributes(_CastRaggedToDisjointBase):
+
+    def __init__(self, **kwargs):
+        super(CastDisjointToRaggedAttributes, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        self.built = True
+
+    def call(self, inputs, **kwargs):
+        r"""Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
+
+        Args:
+            list: `[attr, graph_id, item_id, item_counts]` .
+
+                - attr (Tensor): Represents attributes or coordinates of shape `([N], F, ...)`
+                - graph_id (Tensor): ID tensor of graph assignment in disjoint graph of shape `([N], )` .
+                - item_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
+                - item_counts (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
+
+        Returns:
+            Tensor: Ragged or Jagged tensor of attributes.
+        """
+        raise NotImplementedError()
+
+
+CastDisjointToRaggedAttributes.__init__.__doc__ = CastDisjointToRaggedAttributes.__init__.__doc__

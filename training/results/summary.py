@@ -192,22 +192,22 @@ benchmark_datasets = {
     #          "is_min_max": True}
     #     ]
     # },
-    # "MatProjectIsMetalDataset": {
-    #     "general_info": [
-    #         "Materials Project dataset from Matbench with 106113 crystal structures ",
-    #         "and their corresponding Metallicity determined with pymatgen. ",
-    #         "1 if the compound is a metal, 0 if the compound is not a metal. ",
-    #         "We use a random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_acc", "name": "Accuracy", "find_best": "max"},
-    #         {"metric": "val_auc", "name": "AUC", "find_best": "max"},
-    #         {"metric": "max_val_acc", "name": "*Max. Accuracy*", "find_best": "max",
-    #          "is_min_max": True},
-    #         {"metric": "max_val_uac", "name": "*Max. AUC*", "find_best": "max",
-    #          "is_min_max": True}
-    #     ]
-    # },
+    "MatProjectIsMetalDataset": {
+        "general_info": [
+            "Materials Project dataset from Matbench with 106113 crystal structures ",
+            "and their corresponding Metallicity determined with pymatgen. ",
+            "1 if the compound is a metal, 0 if the compound is not a metal. ",
+            "We use a random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
+            {"metric": "val_auc", "name": "AUC", "find_best": "max"},
+            {"metric": "max_val_binary_accuracy", "name": "*Max. Accuracy*", "find_best": "max",
+             "is_min_max": True},
+            {"metric": "max_val_uac", "name": "*Max. AUC*", "find_best": "max",
+             "is_min_max": True}
+        ]
+    },
     "MatProjectJdft2dDataset": {
         "general_info": [
             "Materials Project dataset from Matbench with 636 crystal structures ",
@@ -340,7 +340,7 @@ benchmark_datasets = {
     #     "general_info": [
     #         "QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. ",
     #         "Labels include geometric, energetic, electronic, and thermodynamic properties. ",
-    #         "We use a random 10-fold cross-validation, ",
+    #         "We use a random 5-fold cross-validation, ",
     #         "but not all splits are evaluated for cheaper evaluation. ",
     #         "Test errors are MAE and for energies are given in [eV]. "
     #     ],

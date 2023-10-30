@@ -40,3 +40,36 @@ def repeat_static_length(x, repeats, total_repeat_length: int, axis=None):
     if any_symbolic_tensors((x, repeats)):
         return _RepeatStaticLength(axis=axis, total_repeat_length=total_repeat_length).symbolic_call(x, repeats)
     return kgcnn_backend.repeat_static_length(x, repeats, axis=axis, total_repeat_length=total_repeat_length)
+
+
+class _DecomposeRaggedTensor(Operation):
+
+    def __init__(self, batch_dtype: str = "int64"):
+        super().__init__()
+        self.batch_dtype = batch_dtype
+
+    def call(self, x):
+        kgcnn_backend.decompose_ragged_tensor(x)
+
+    def compute_output_spec(self, x):
+        x_shape = list(x.shape)
+        output_shape = tuple(x_shape[1:])
+        length_shape = (None, ) if x_shape[0] is None else (x_shape[0], )
+        id_shape = output_shape[:1]
+        return (KerasTensor(output_shape, dtype=x.dtype), KerasTensor(id_shape, dtype="int64"),
+                KerasTensor(id_shape, dtype="int64"), KerasTensor(length_shape, dtype="int64"))
+
+
+def decompose_ragged_tensor(x, batch_dtype="int64"):
+    """Decompose ragged tensor.
+
+    Args:
+        x: Input tensor (ragged).
+        batch_dtype (str): Data type for batch information. Default is 'int64'.
+
+    Returns:
+        Output tensors.
+    """
+    if any_symbolic_tensors((x,)):
+        return _DecomposeRaggedTensor(batch_dtype=batch_dtype).symbolic_call(x)
+    return kgcnn_backend.decompose_ragged_tensor(x)

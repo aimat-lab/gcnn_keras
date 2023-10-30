@@ -41,3 +41,13 @@ def scatter_reduce_softmax(indices, values, shape, normalize: bool = False):
 
 def repeat_static_length(x, repeats, axis=None, total_repeat_length: int = None):
     return tf.repeat(x, repeats=repeats, axis=axis)
+
+
+def decompose_ragged_tensor(x, batch_dtype="int64"):
+    row_ids = tf.cast(x.value_rowids(), dtype=batch_dtype)
+    row_lengths = tf.cast(x.row_lengths(), dtype=batch_dtype)
+    row_starts = tf.cast(x.row_starts(), dtype=batch_dtype)
+    in_ids = tf.range(tf.shape(row_ids)[0], dtype=batch_dtype)
+    in_ids = in_ids - tf.repeat(row_starts, row_lengths, axis=0)
+    # in_ids = tf.ragged.range(row_lengths).values
+    return x.values, row_ids, in_ids, row_lengths
