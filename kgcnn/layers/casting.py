@@ -501,8 +501,7 @@ CastBatchedGraphStateToDisjoint.__init__.__doc__ = _CastBatchedDisjointBase.__in
 
 class _CastRaggedToDisjointBase(Layer):
 
-    def __init__(self, reverse_indices: bool = False, dtype_batch: str = "int64", dtype_index=None,
-                 padded_disjoint: bool = False, uses_mask: bool = False, **kwargs):
+    def __init__(self, reverse_indices: bool = False, dtype_batch: str = "int64", dtype_index=None, **kwargs):
         r"""Initialize layer.
 
         Args:
@@ -551,7 +550,7 @@ class CastRaggedAttributesToDisjoint(_CastRaggedToDisjointBase):
                 - item_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
                 - item_counts (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
         """
-        return decompose_ragged_tensor(inputs)
+        return decompose_ragged_tensor(inputs, batch_dtype=self.dtype_batch)
 
 
 CastRaggedAttributesToDisjoint.__init__.__doc__ = _CastRaggedToDisjointBase.__init__.__doc__
@@ -620,8 +619,9 @@ class CastRaggedIndicesToDisjoint(_CastRaggedToDisjointBase):
                 - edges_count (Tensor): Tensor of number of edges for each graph of shape `(batch, )` .
         """
         nodes, edge_indices = inputs
-        nodes_flatten, graph_id_node, node_id, node_len = decompose_ragged_tensor(nodes)
-        edge_indices_flatten, graph_id_edge, edge_id, edge_len = decompose_ragged_tensor(edge_indices)
+        nodes_flatten, graph_id_node, node_id, node_len = decompose_ragged_tensor(nodes, batch_dtype=self.dtype_batch)
+        edge_indices_flatten, graph_id_edge, edge_id, edge_len = decompose_ragged_tensor(
+            edge_indices, batch_dtype=self.dtype_batch)
 
         if self.dtype_index is not None:
             edge_indices_flatten = ops.cast(edge_indices_flatten, dtype=self.dtype_index)

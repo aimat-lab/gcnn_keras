@@ -1,19 +1,17 @@
-import keras_core as ks
-from kgcnn.layers.attention import AttentionHeadGAT
-from kgcnn.layers.modules import Embedding
 from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
-                                  CastDisjointToBatchedGraphState, CastDisjointToBatchedAttributes)
-from keras_core.layers import Concatenate, Dense, Average, Activation
-from kgcnn.layers.mlp import MLP, GraphMLP
-from kgcnn.layers.pooling import PoolingNodes
+                                  CastDisjointToBatchedGraphState, CastDisjointToBatchedAttributes,
+                                  CastBatchedGraphStateToDisjoint, CastRaggedAttributesToDisjoint,
+                                  CastRaggedIndicesToDisjoint, CastDisjointToRaggedAttributes)
+from ._model import model_disjoint
 from kgcnn.models.utils import update_model_kwargs
 from kgcnn.layers.scale import get as get_scaler
+from kgcnn.layers.modules import Input
 from keras_core.backend import backend as backend_to_use
 from kgcnn.ops.activ import *
 
 # Keep track of model version from commit date in literature.
 # To be updated if model is changed in a significant way.
-__model_version__ = "2023-09-08"
+__model_version__ = "2023-10-30"
 
 # Supported backends
 __kgcnn_model_backend_supported__ = ["tensorflow", "torch", "jax"]
@@ -35,7 +33,9 @@ model_default = {
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
+    "input_tensor_type": "padded",
     "cast_disjoint_kwargs": {},
+    "input_embedding": None,  # deprecated
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
     "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
     "attention_args": {"units": 32, "use_final_activation": False, "use_edge_features": True,
@@ -46,6 +46,7 @@ model_default = {
     "verbose": 10,
     "output_embedding": "graph",
     "output_to_tensor": True,
+    "output_tensor_type": "padded",
     "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
                    "activation": ["relu", "relu", "sigmoid"]},
     "output_scaling": None,
@@ -54,7 +55,9 @@ model_default = {
 
 @update_model_kwargs(model_default, update_recursive=0)
 def make_model(inputs: list = None,
+               input_tensor_type: str = None,
                cast_disjoint_kwargs: dict = None,
+               input_embedding: dict = None,
                input_node_embedding: dict = None,
                input_edge_embedding: dict = None,
                attention_args: dict = None,
@@ -67,7 +70,8 @@ def make_model(inputs: list = None,
                output_embedding: str = None,
                output_to_tensor: bool = None,
                output_mlp: dict = None,
-               output_scaling: dict = None
+               output_scaling: dict = None,
+               output_tensor_type: str = None,
                ):
     r"""Make `GAT <https://arxiv.org/abs/1710.10903>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.GAT.model_default`.
@@ -89,6 +93,8 @@ def make_model(inputs: list = None,
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
+        input_tensor_type (str): Input type of graph tensor. Default is "padded".
+        input_embedding (dict): Deprecated in favour of input_node_embedding etc.
         input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of arguments for edge unpacked in :obj:`Embedding` layers.
         attention_args (dict): Dictionary of layer arguments unpacked in :obj:`AttentionHeadGAT` layer.
@@ -100,6 +106,7 @@ def make_model(inputs: list = None,
         verbose (int): Level of print output.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
+        output_tensor_type (str): Output type of graph tensors such as nodes or edges. Default is "padded".
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
         output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
@@ -108,11 +115,20 @@ def make_model(inputs: list = None,
         :obj:`ks.models.Model`
     """
     # Make input
-    model_inputs = [ks.layers.Input(**x) for x in inputs]
-    batched_nodes, batched_edges, batched_indices, total_nodes, total_edges = model_inputs
-    n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
-        **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
-    ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
+    model_inputs = [Input(**x) for x in inputs]
+
+    if input_tensor_type in ["padded", "masked"]:
+        batched_nodes, batched_edges, batched_indices, total_nodes, total_edges = model_inputs
+        n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
+            **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
+        ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
+    elif input_tensor_type in ["ragged", "jagged"]:
+        batched_nodes, batched_edges, batched_indices = model_inputs
+        n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastRaggedIndicesToDisjoint(
+            **cast_disjoint_kwargs)([batched_nodes, batched_indices])
+        ed, _, _, _ = CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_edges)
+    else:
+        n, ed, disjoint_indices, batch_id_node, count_nodes, node_id = model_inputs
 
     # Wrapping disjoint model.
     out = model_disjoint(
@@ -128,8 +144,15 @@ def make_model(inputs: list = None,
     if output_embedding == 'graph':
         out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == 'node':
-        if output_to_tensor:
-            out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
+        if output_tensor_type in ["padded", "masked"]:
+            if input_tensor_type in ["padded", "masked"]:
+                out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)(
+                    [batched_nodes, out, batch_id_node, node_id, count_nodes])  # noqa
+            else:
+                out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)(
+                    [out, batch_id_node, node_id, count_nodes])
+        if output_tensor_type in ["ragged", "jagged"]:
+            out = CastDisjointToRaggedAttributes()([out, batch_id_node, node_id, count_nodes])
         else:
             out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
 
@@ -147,47 +170,3 @@ def make_model(inputs: list = None,
         setattr(model, "set_scale", set_scale)
 
     return model
-
-
-def model_disjoint(inputs,
-                   use_node_embedding: bool = None,
-                   use_edge_embedding: bool = None,
-                   input_node_embedding: dict = None,
-                   input_edge_embedding: dict = None,
-                   attention_args: dict = None,
-                   pooling_nodes_args: dict = None,
-                   depth: int = None,
-                   attention_heads_num: int = None,
-                   attention_heads_concat: bool = None,
-                   output_embedding: str = None,
-                   output_mlp: dict = None):
-    # Model implementation with disjoint representation.
-    n, ed, disjoint_indices, batch_id_node, count_nodes = inputs
-
-    # Embedding, if no feature dimension
-    if use_node_embedding:
-        n = Embedding(**input_node_embedding)(n)
-    if use_edge_embedding:
-        ed = Embedding(**input_edge_embedding)(ed)
-
-    # Model
-    nk = Dense(units=attention_args["units"], activation="linear")(n)
-    for i in range(0, depth):
-        heads = [AttentionHeadGAT(**attention_args)([nk, ed, disjoint_indices]) for _ in range(attention_heads_num)]
-        if attention_heads_concat:
-            nk = Concatenate(axis=-1)(heads)
-        else:
-            nk = Average()(heads)
-            nk = Activation(activation=attention_args["activation"])(nk)
-    n = nk
-
-    # Output embedding choice
-    if output_embedding == 'graph':
-        out = PoolingNodes(**pooling_nodes_args)([count_nodes, n, batch_id_node])
-        out = MLP(**output_mlp)(out)
-    elif output_embedding == 'node':
-        out = GraphMLP(**output_mlp)([n, batch_id_node, count_nodes])
-    else:
-        raise ValueError("Unsupported output embedding for `GAT` .")
-
-    return out

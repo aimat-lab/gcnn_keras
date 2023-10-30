@@ -109,6 +109,7 @@ def make_model(name: str = None,
         inputs (list): List of dictionaries unpacked in :obj:`keras.layers.Input`. Order must match model definition.
         input_tensor_type (str): Input type of graph tensor. Default is "padded".
         cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
+        input_embedding (dict): Deprecated in favour of input_node_embedding etc.
         input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of arguments for edge unpacked in :obj:`Embedding` layers.
         input_graph_embedding (dict): Dictionary of arguments for edge unpacked in :obj:`Embedding` layers.
@@ -174,7 +175,7 @@ def make_model(name: str = None,
         if output_tensor_type in ["padded", "masked"]:
             if input_tensor_type in ["padded", "masked"]:
                 out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)(
-                    [batched_nodes, out, batch_id_node, node_id])  # noqa
+                    [batched_nodes, out, batch_id_node, node_id, count_nodes])  # noqa
             else:
                 out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([
                     out, batch_id_node, node_id, count_nodes])
