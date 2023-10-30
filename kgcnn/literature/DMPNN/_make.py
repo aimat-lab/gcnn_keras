@@ -6,6 +6,7 @@ from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttri
 from kgcnn.layers.scale import get as get_scaler
 from kgcnn.models.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
+from kgcnn.layers.modules import Input
 from ._model import model_disjoint
 
 # Keep track of model version from commit date in literature.
@@ -132,7 +133,7 @@ def make_model(name: str = None,
         :obj:`keras.models.Model`
     """
     # Make input
-    model_inputs = [ks.layers.Input(**x) for x in inputs]
+    model_inputs = [Input(**x) for x in inputs]
 
     if input_tensor_type in ["padded", "masked"]:
         batched_nodes, batched_edges, batched_indices, batched_reverse, total_nodes, total_edges = model_inputs[:6]

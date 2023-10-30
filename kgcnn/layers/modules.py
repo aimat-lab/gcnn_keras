@@ -60,3 +60,26 @@ class ExpandDims(ks.layers.Layer):
         config = super(ExpandDims, self).get_config()
         config.update({"axis": self.axis})
         return config
+
+
+def Input(
+        shape=None,
+        batch_size=None,
+        dtype=None,
+        sparse=None,
+        batch_shape=None,
+        name=None,
+        tensor=None,
+        ragged=None
+    ):
+
+    layer = ks.layers.InputLayer(
+        shape=shape,
+        batch_size=batch_size,
+        dtype=dtype,
+        sparse=sparse,
+        batch_shape=batch_shape,
+        name=name,
+        input_tensor=tensor,
+    )
+    return layer.output
