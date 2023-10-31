@@ -7,6 +7,7 @@ from kgcnn.layers.scale import get as get_scaler
 from ._model import model_disjoint
 from kgcnn.layers.modules import Input
 from kgcnn.models.utils import update_model_kwargs
+from kgcnn.models.casting import template_cast_output, template_cast_input
 from keras_core.backend import backend as backend_to_use
 
 # from keras_core.layers import Activation
@@ -117,18 +118,10 @@ def make_model(inputs: list = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    if input_tensor_type in ["padded", "masked"]:
-        batched_nodes, batched_edges, batched_indices, total_nodes, total_edges = model_inputs
-        n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
-            **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
-        ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
-    elif input_tensor_type in ["ragged", "jagged"]:
-        batched_nodes, batched_edges, batched_indices = model_inputs
-        n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastRaggedIndicesToDisjoint(
-            **cast_disjoint_kwargs)([batched_nodes, batched_indices])
-        ed, _, _, _ = CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_edges)
-    else:
-        n, ed, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_inputs
+    disjoint_model_inputs = template_cast_input(
+        model_inputs, input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs)
+
+    n, ed, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_model_inputs
 
     out = model_disjoint(
         [n, ed, disjoint_indices, batch_id_node, count_nodes],
@@ -139,20 +132,12 @@ def make_model(inputs: list = None,
     )
 
     # Output embedding choice
-    if output_embedding == 'graph':
-        out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
-    elif output_embedding == 'node':
-        if output_tensor_type in ["padded", "masked"]:
-            if input_tensor_type in ["padded", "masked"]:
-                out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)(
-                    [batched_nodes, out, batch_id_node, node_id, count_nodes])  # noqa
-            else:
-                out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)(
-                    [out, batch_id_node, node_id, count_nodes])
-        if output_tensor_type in ["ragged", "jagged"]:
-            out = CastDisjointToRaggedAttributes()([out, batch_id_node, node_id, count_nodes])
-        else:
-            out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
+    out = template_cast_output(
+        [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
+        output_embedding=output_embedding, output_tensor_type=output_tensor_type,
+        input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
+        batched_model_output=model_inputs[:2]
+    )
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)

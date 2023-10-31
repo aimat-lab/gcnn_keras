@@ -324,7 +324,8 @@ def make_crystal_model(inputs: list = None,
     # Wrapp disjoint model
     out = model_disjoint_crystal(
         [n, x, disjoint_indices, edge_image, lattice, batch_id_node, batch_id_edge, count_nodes],
-        use_node_embedding=len(inputs[0]['shape']) < 2, input_node_embedding=input_node_embedding,
+        use_node_embedding=len(inputs[0]['shape']) < 2,
+        input_node_embedding=input_node_embedding,
         make_distance=make_distance, expand_distance=expand_distance, gauss_args=gauss_args,
         interaction_args=interaction_args, node_pooling_args=node_pooling_args, depth=depth, last_mlp=last_mlp,
         output_embedding=output_embedding, use_output_mlp=use_output_mlp, output_mlp=output_mlp

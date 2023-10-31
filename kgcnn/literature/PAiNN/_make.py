@@ -138,8 +138,12 @@ def make_model(inputs: list = None,
     )
 
     # Output embedding choice
-    out = template_cast_output([batched_nodes, out, batch_id_node, node_id, count_nodes],
-                               output_embedding, output_tensor_type, input_tensor_type, cast_disjoint_kwargs)
+    out = template_cast_output(
+        [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
+        output_embedding=output_embedding, output_tensor_type=output_tensor_type,
+        input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
+        batched_model_output=model_inputs[:2]
+    )
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
@@ -267,8 +271,12 @@ def make_crystal_model(inputs: list = None,
     )
 
     # Output embedding choice
-    out = template_cast_output([batched_nodes, out, batch_id_node, node_id, count_nodes],
-                                output_embedding, output_tensor_type, input_tensor_type, cast_disjoint_kwargs)
+    out = template_cast_output(
+        [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
+        output_embedding=output_embedding, output_tensor_type=output_tensor_type,
+        input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
+        batched_model_output=model_inputs[:2]
+    )
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
