@@ -53,7 +53,7 @@ model_default = {
 }
 
 
-@update_model_kwargs(model_default, update_recursive=0)
+@update_model_kwargs(model_default, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
 def make_model(inputs: list = None,
                input_tensor_type: str = None,
                cast_disjoint_kwargs: dict = None,
@@ -128,7 +128,7 @@ def make_model(inputs: list = None,
             **cast_disjoint_kwargs)([batched_nodes, batched_indices])
         ed, _, _, _ = CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_edges)
     else:
-        n, ed, disjoint_indices, batch_id_node, count_nodes, node_id = model_inputs
+        n, ed, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_inputs
 
     # Wrapping disjoint model.
     out = model_disjoint(

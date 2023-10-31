@@ -155,7 +155,11 @@ def make_model(name: str = None,
         _, ed_pairs, _, _, _, _, _, _ = CastRaggedIndicesToDisjoint(
             **cast_disjoint_kwargs)([batched_indices, batched_reverse])
     else:
-        n, ed, edi, batch_id_node, ed_pairs, count_nodes, graph_state, node_id = model_inputs
+        if use_graph_state:
+            n, ed, edi, ed_pairs, graph_state, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_inputs
+        else:
+            n, ed, edi, ed_pairs, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_inputs
+            graph_state = None
 
     # Wrapping disjoint model.
     out = model_disjoint(

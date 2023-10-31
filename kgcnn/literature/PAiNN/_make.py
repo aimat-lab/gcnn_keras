@@ -1,28 +1,22 @@
 import keras_core as ks
-from ._layers import PAiNNUpdate, EquivariantInitialize
-from ._layers import PAiNNconv
-from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
-                                  CastDisjointToBatchedGraphState, CastDisjointToBatchedAttributes, CastBatchedGraphStateToDisjoint)
-from kgcnn.layers.geom import NodeDistanceEuclidean, BesselBasisLayer, EdgeDirectionNormalized, CosCutOffEnvelope, \
-    NodePosition, ShiftPeriodicLattice
-from keras_core.layers import Add
-from kgcnn.layers.modules import Embedding
-from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.layers.norm import GraphLayerNormalization, GraphBatchNormalization
+from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint)
+from kgcnn.layers.modules import Input
 from kgcnn.models.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
 from kgcnn.layers.scale import get as get_scaler
+from kgcnn.models.casting import template_cast_output
+from ._model import model_disjoint, model_disjoint_crystal
 
 # To be updated if model is changed in a significant way.
 __model_version__ = "2023-10-04"
 
 # Supported backends
 __kgcnn_model_backend_supported__ = ["tensorflow", "torch", "jax"]
+
 if backend_to_use() not in __kgcnn_model_backend_supported__:
     raise NotImplementedError("Backend '%s' for model 'PAiNN' is not supported." % backend_to_use())
 
-# Implementation of PAiNN in `tf.keras` from paper:
+# Implementation of PAiNN in `keras` from paper:
 # Equivariant message passing for the prediction of tensorial properties and molecular spectra
 # Kristof T. Schuett, Oliver T. Unke and Michael Gastegger
 # https://arxiv.org/pdf/2102.03150.pdf
@@ -36,8 +30,11 @@ model_default = {
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
+    "input_tensor_type": "padded",
+    "input_embedding": None,  # deprecated
     "cast_disjoint_kwargs": {},
     "input_node_embedding": {"input_dim": 95, "output_dim": 128},
+    "has_equivariant_input": False,
     "equiv_initialize_kwargs": {"dim": 3, "method": "zeros", "units": 128},
     "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
     "pooling_args": {"pooling_method": "scatter_sum"},
@@ -54,8 +51,11 @@ model_default = {
 
 @update_model_kwargs(model_default, update_recursive=0)
 def make_model(inputs: list = None,
+               input_tensor_type: str = None,
                cast_disjoint_kwargs: dict = None,
+               input_embedding: dict = None,
                input_node_embedding: dict = None,
+               has_equivariant_input: bool = None,
                equiv_initialize_kwargs: dict = None,
                bessel_basis: dict = None,
                depth: int = None,
@@ -69,7 +69,8 @@ def make_model(inputs: list = None,
                output_embedding: str = None,
                output_to_tensor: bool = None,
                output_mlp: dict = None,
-               output_scaling: dict = None
+               output_scaling: dict = None,
+               output_tensor_type: str = None
                ):
     r"""Make `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.PAiNN.model_default`.
@@ -88,7 +89,7 @@ def make_model(inputs: list = None,
             - total_edges(Tensor): Number of Edges in graph if not same sized graphs of shape `(batch, )` .
 
     Outputs:
-        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+        Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
@@ -114,7 +115,8 @@ def make_model(inputs: list = None,
         :obj:`keras.models.Model`
     """
     # Make input
-    model_inputs = [ks.layers.Input(**x) for x in inputs]
+    model_inputs = [Input(**x) for x in inputs]
+
     batched_nodes, batched_x, batched_indices, total_nodes, total_edges = model_inputs[:5]
     z, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
         **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
@@ -123,48 +125,21 @@ def make_model(inputs: list = None,
     if len(model_inputs) > 5:
         v, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([model_inputs[6], total_edges])
     else:
-        v = EquivariantInitialize(**equiv_initialize_kwargs)(z)
+        v = None
 
-    use_node_embedding = len(inputs[0]['shape']) < 2
-    # Optional Embedding.
-    if use_node_embedding:
-        z = Embedding(**input_node_embedding)(z)
+    # Wrapping disjoint model.
+    out = model_disjoint(
+        [z, x, edi, batch_id_node, batch_id_edge, count_nodes, count_edges, v],
+        use_node_embedding=len(inputs[0]['shape']) < 2,
+        input_node_embedding=input_node_embedding, equiv_initialize_kwargs=equiv_initialize_kwargs,
+        bessel_basis=bessel_basis, depth=depth, pooling_args=pooling_args, conv_args=conv_args,
+        update_args=update_args, equiv_normalization=equiv_normalization, node_normalization=node_normalization,
+        output_embedding=output_embedding, output_mlp=output_mlp
+    )
 
-    pos1, pos2 = NodePosition()([x, edi])
-    rij = EdgeDirectionNormalized()([pos1, pos2])
-    d = NodeDistanceEuclidean()([pos1, pos2])
-    env = CosCutOffEnvelope(conv_args["cutoff"])(d)
-    rbf = BesselBasisLayer(**bessel_basis)(d)
-
-    for i in range(depth):
-        # Message
-        ds, dv = PAiNNconv(**conv_args)([z, v, rbf, env, rij, edi])
-        z = Add()([z, ds])
-        v = Add()([v, dv])
-        # Update
-        ds, dv = PAiNNUpdate(**update_args)([z, v])
-        z = Add()([z, ds])
-        v = Add()([v, dv])
-
-        if equiv_normalization:
-            v = GraphLayerNormalization(axis=2)([v, batch_id_edge, count_edges])
-        if node_normalization:
-            z = GraphBatchNormalization(axis=-1)([z, batch_id_node, count_nodes])
-
-    n = z
     # Output embedding choice
-    if output_embedding == "graph":
-        out = PoolingNodes(**pooling_args)([count_nodes, n, batch_id_node])
-        out = MLP(**output_mlp)(out)
-        out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
-    elif output_embedding == "node":
-        out = GraphMLP(**output_mlp)([n, batch_id_node, count_nodes])
-        if output_to_tensor:
-            out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
-        else:
-            out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
-    else:
-        raise ValueError("Unsupported output embedding for mode `PAiNN`")
+    out = template_cast_output([batched_nodes, out, batch_id_node, node_id, count_nodes],
+                               output_embedding, output_tensor_type, input_tensor_type, cast_disjoint_kwargs)
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
@@ -195,13 +170,14 @@ model_crystal_default = {
         {'shape': (None, 3), 'name': "edge_image", 'dtype': 'int64', 'ragged': True},
         {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
     ],
-    "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
+    "input_embedding": {"input_dim": 95, "output_dim": 128},
     "equiv_initialize_kwargs": {"dim": 3, "method": "zeros"},
     "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
-    "pooling_args": {"pooling_method": "sum"},
-    "conv_args": {"units": 128, "cutoff": None, "conv_pool": "sum"},
+    "pooling_args": {"pooling_method": "scatter_sum"},
+    "conv_args": {"units": 128, "cutoff": None, "conv_pool": "scatter_sum"},
     "update_args": {"units": 128},
-    "equiv_normalization": False, "node_normalization": False,
+    "equiv_normalization": False,
+    "node_normalization": False,
     "depth": 3,
     "verbose": 10,
     "output_embedding": "graph", "output_to_tensor": True,
@@ -268,62 +244,48 @@ def make_crystal_model(inputs: list = None,
         :obj:`tf.keras.models.Model`
     """
     # Make input
-    node_input = ks.layers.Input(**inputs[0])
-    xyz_input = ks.layers.Input(**inputs[1])
-    bond_index_input = ks.layers.Input(**inputs[2])
-    edge_image = ks.layers.Input(**inputs[3])
-    lattice = ks.layers.Input(**inputs[4])
-    z = OptionalInputEmbedding(**input_embedding['node'],
-                               use_embedding=len(inputs[0]['shape']) < 2)(node_input)
+    model_inputs = [Input(**x) for x in inputs]
 
-    if len(inputs) > 5:
-        equiv_input = ks.layers.Input(**inputs[5])
+    batched_nodes, batched_x, batched_indices, total_nodes, total_edges = model_inputs[:5]
+    z, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
+        **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
+    x, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_nodes])
+
+    if len(model_inputs) > 5:
+        v, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([model_inputs[6], total_edges])
     else:
-        equiv_input = EquivariantInitialize(**equiv_initialize_kwargs)(z)
+        v = None
 
-    edi = bond_index_input
-    x = xyz_input
-    v = equiv_input
+    # Wrapping disjoint model.
+    out = model_disjoint_crystal(
+        [z, x, edi, edge_image, lattice, batch_id_node, batch_id_edge, count_nodes, count_edges, v],
+        use_node_embedding=len(inputs[0]['shape']) < 2,
+        input_node_embedding=input_node_embedding, equiv_initialize_kwargs=equiv_initialize_kwargs,
+        bessel_basis=bessel_basis, depth=depth, pooling_args=pooling_args, conv_args=conv_args,
+        update_args=update_args, equiv_normalization=equiv_normalization, node_normalization=node_normalization,
+        output_embedding=output_embedding, output_mlp=output_mlp
+    )
 
-    pos1, pos2 = NodePosition()([x, edi])
-    pos2 = ShiftPeriodicLattice()([pos2, edge_image, lattice])
-    rij = EdgeDirectionNormalized()([pos1, pos2])
-    d = NodeDistanceEuclidean()([pos1, pos2])
-    env = CosCutOffEnvelope(conv_args["cutoff"])(d)
-    rbf = BesselBasisLayer(**bessel_basis)(d)
-
-    for i in range(depth):
-        # Message
-        ds, dv = PAiNNconv(**conv_args)([z, v, rbf, env, rij, edi])
-        z = LazyAdd()([z, ds])
-        v = LazyAdd()([v, dv])
-        # Update
-        ds, dv = PAiNNUpdate(**update_args)([z, v])
-        z = LazyAdd()([z, ds])
-        v = LazyAdd()([v, dv])
-
-        if equiv_normalization:
-            v = GraphLayerNormalization(axis=2)(v)
-        if node_normalization:
-            z = GraphBatchNormalization(axis=-1)(z)
-
-    n = z
     # Output embedding choice
-    if output_embedding == "graph":
-        out = PoolingNodes(**pooling_args)(n)
-        out = MLP(**output_mlp)(out)
-    elif output_embedding == "node":
-        out = GraphMLP(**output_mlp)(n)
-        if output_to_tensor:  # For tf version < 2.8 cast to tensor below.
-            out = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
-    else:
-        raise ValueError("Unsupported output embedding for mode `PAiNN`")
+    out = template_cast_output([batched_nodes, out, batch_id_node, node_id, count_nodes],
+                                output_embedding, output_tensor_type, input_tensor_type, cast_disjoint_kwargs)
 
-    if len(inputs) > 5:
-        model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input, edge_image, lattice, equiv_input],
-                                outputs=out)
-    else:
-        model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input, edge_image, lattice], outputs=out)
+    if output_scaling is not None:
+        scaler = get_scaler(output_scaling["name"])(**output_scaling)
+        if scaler.extensive:
+            # Node information must be numbers, or we need an additional input.
+            out = scaler([out, batched_nodes])
+        else:
+            out = scaler(out)
+
+    model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
+    model.__kgcnn_model_version__ = __model_version__
+
+    if output_scaling is not None:
+        def set_scale(*args, **kwargs):
+            scaler.set_scale(*args, **kwargs)
+
+        setattr(model, "set_scale", set_scale)
 
     model.__kgcnn_model_version__ = __model_version__
     return model

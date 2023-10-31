@@ -1,12 +1,11 @@
 import keras_core as ks
-from keras_core.layers import Dense
-from kgcnn.layers.modules import Embedding
 from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
-                                  CastDisjointToBatchedGraphState, CastDisjointToBatchedAttributes)
-from kgcnn.layers.conv import GCN
-from kgcnn.layers.mlp import MLP, GraphMLP
+                                  CastDisjointToBatchedGraphState, CastDisjointToBatchedAttributes,
+                                  CastBatchedGraphStateToDisjoint, CastRaggedAttributesToDisjoint,
+                                  CastRaggedIndicesToDisjoint, CastDisjointToRaggedAttributes)
 from kgcnn.layers.scale import get as get_scaler
-from kgcnn.layers.pooling import PoolingNodes
+from ._model import model_disjoint
+from kgcnn.layers.modules import Input
 from kgcnn.models.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
 
@@ -37,6 +36,8 @@ model_default = {
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
+    "input_tensor_type": "padded",
+    "input_embedding": None,  # deprecated
     "cast_disjoint_kwargs": {},
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
     "input_edge_embedding": {"input_dim": 25, "output_dim": 1},
@@ -46,15 +47,18 @@ model_default = {
     "node_pooling_args": {"pooling_method": "scatter_sum"},
     "output_embedding": "graph",
     "output_to_tensor": True,
+    "output_tensor_type": "padded",
     "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
                    "activation": ["relu", "relu", "sigmoid"]},
     "output_scaling": None,
 }
 
 
-@update_model_kwargs(model_default, update_recursive=0)
+@update_model_kwargs(model_default, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
 def make_model(inputs: list = None,
+               input_tensor_type: str = None,
                cast_disjoint_kwargs: dict = None,
+               input_embedding: dict = None,
                input_node_embedding: dict = None,
                input_edge_embedding: dict = None,
                depth: int = None,
@@ -64,6 +68,7 @@ def make_model(inputs: list = None,
                node_pooling_args: dict = None,
                output_embedding: str = None,
                output_to_tensor: bool = None,
+               output_tensor_type: str = None,
                output_mlp: dict = None,
                output_scaling: dict = None):
     r"""Make `GCN <https://arxiv.org/abs/1609.02907>`_ graph network via functional API.
@@ -85,7 +90,9 @@ def make_model(inputs: list = None,
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`ks.layers.Input`. Order must match model definition.
+        input_tensor_type (str): Input type of graph tensor. Default is "padded".
         cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
+        input_embedding (dict): Deprecated in favour of input_node_embedding etc.
         input_node_embedding (dict): Dictionary of embedding arguments unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of embedding arguments unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
@@ -98,6 +105,7 @@ def make_model(inputs: list = None,
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
         output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
+        output_tensor_type (str): Output type of graph tensors such as nodes or edges. Default is "padded".
 
     Returns:
         :obj:`ks.models.Model`
@@ -107,26 +115,42 @@ def make_model(inputs: list = None,
                          must be shape (batch, None, 1), but got (without batch-dimension): %s." % inputs[1]['shape'])
 
     # Make input
-    model_inputs = [ks.layers.Input(**x) for x in inputs]
-    batched_nodes, batched_edges, batched_indices, total_nodes, total_edges = model_inputs
-    n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
-        **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
-    e, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
+    model_inputs = [Input(**x) for x in inputs]
+
+    if input_tensor_type in ["padded", "masked"]:
+        batched_nodes, batched_edges, batched_indices, total_nodes, total_edges = model_inputs
+        n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
+            **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
+        ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
+    elif input_tensor_type in ["ragged", "jagged"]:
+        batched_nodes, batched_edges, batched_indices = model_inputs
+        n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastRaggedIndicesToDisjoint(
+            **cast_disjoint_kwargs)([batched_nodes, batched_indices])
+        ed, _, _, _ = CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_edges)
+    else:
+        n, ed, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_inputs
 
     out = model_disjoint(
-        [n, e, disjoint_indices, batch_id_node, count_nodes],
+        [n, ed, disjoint_indices, batch_id_node, count_nodes],
         use_node_embedding=len(inputs[0]['shape']) < 2, use_edge_embedding=len(inputs[1]['shape']) < 2,
         input_node_embedding=input_node_embedding, input_edge_embedding=input_edge_embedding,
         depth=depth, gcn_args=gcn_args, node_pooling_args=node_pooling_args, output_embedding=output_embedding,
         output_mlp=output_mlp
     )
 
-    # Cast to tensor
-    if output_embedding == "graph":
+    # Output embedding choice
+    if output_embedding == 'graph':
         out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
-    elif output_embedding == "node":
-        if output_to_tensor:
-            out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
+    elif output_embedding == 'node':
+        if output_tensor_type in ["padded", "masked"]:
+            if input_tensor_type in ["padded", "masked"]:
+                out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)(
+                    [batched_nodes, out, batch_id_node, node_id, count_nodes])  # noqa
+            else:
+                out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)(
+                    [out, batch_id_node, node_id, count_nodes])
+        if output_tensor_type in ["ragged", "jagged"]:
+            out = CastDisjointToRaggedAttributes()([out, batch_id_node, node_id, count_nodes])
         else:
             out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
 
@@ -143,45 +167,3 @@ def make_model(inputs: list = None,
 
         setattr(model, "set_scale", set_scale)
     return model
-
-
-def model_disjoint(inputs,
-                   use_node_embedding: bool = None,
-                   use_edge_embedding: bool = None,
-                   input_node_embedding: dict = None,
-                   input_edge_embedding: dict = None,
-                   depth: int = None,
-                   gcn_args: dict = None,
-                   node_pooling_args: dict = None,
-                   output_embedding: str = None,
-                   output_mlp: dict = None,
-                   ):
-    n, e, disjoint_indices, batch_id_node, count_nodes = inputs
-
-    # Embedding, if no feature dimension
-    if use_node_embedding:
-        n = Embedding(**input_node_embedding)(n)
-    if use_edge_embedding:
-        e = Embedding(**input_edge_embedding)(e)
-
-    # Model
-    n = Dense(gcn_args["units"], use_bias=True, activation='linear')(n)  # Map to units
-    for i in range(0, depth):
-        n = GCN(**gcn_args)([n, e, disjoint_indices])
-
-        # # Equivalent as:
-        # no = Dense(gcn_args["units"], activation="linear")(n)
-        # no = GatherNodesOutgoing()([no, disjoint_indices])
-        # nu = AggregateWeightedLocalEdges()([n, no, disjoint_indices, e])
-        # n = Activation(gcn_args["activation"])(nu)
-
-    # Output embedding choice
-    if output_embedding == "graph":
-        out = PoolingNodes(**node_pooling_args)([count_nodes, n, batch_id_node])  # will return tensor
-        out = MLP(**output_mlp)(out)
-    elif output_embedding == "node":
-        out = GraphMLP(**output_mlp)([n, batch_id_node, count_nodes])
-    else:
-        raise ValueError("Unsupported output embedding for `GCN` .")
-
-    return out
