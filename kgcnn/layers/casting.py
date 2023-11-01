@@ -17,8 +17,8 @@ def _cat_one(t):
 class _CastBatchedDisjointBase(Layer):
 
     def __init__(self, reverse_indices: bool = False, dtype_batch: str = "int64", dtype_index=None,
-                 padded_disjoint: bool = False, uses_mask: bool = False, static_node_shape: tuple = None,
-                 static_edge_shape: tuple = None,
+                 padded_disjoint: bool = False, uses_mask: bool = False, static_batched_node_shape: tuple = None,
+                 static_batched_edge_shape: tuple = None,
                  **kwargs):
         r"""Initialize layer.
 
@@ -29,8 +29,8 @@ class _CastBatchedDisjointBase(Layer):
             padded_disjoint (bool): Whether to keep padding in disjoint representation. Default is False.
             uses_mask (bool): Whether the padding is marked by a boolean mask or by a length tensor, counting the
                 non-padded nodes from index 0. Default is False.
-            static_node_shape (tuple): Statically shape of nodes. Default is None.
-            static_edge_shape (tuple): Statically shape of edges. Default is None.
+            static_batched_node_shape (tuple): Statically shape of nodes. Default is None.
+            static_batched_edge_shape (tuple): Statically shape of edges. Default is None.
         """
         super(_CastBatchedDisjointBase, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
@@ -39,8 +39,8 @@ class _CastBatchedDisjointBase(Layer):
         self.uses_mask = uses_mask
         self.padded_disjoint = padded_disjoint
         self.supports_jit = padded_disjoint
-        self.static_node_shape = static_node_shape
-        self.static_edge_shape = static_edge_shape
+        self.static_batched_node_shape = static_batched_node_shape
+        self.static_batched_edge_shape = static_batched_edge_shape
 
     def get_config(self):
         """Get config dictionary for this layer."""
@@ -402,7 +402,7 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
             target_shape = ops.shape(target)
         else:
             attr, graph_id_attr, attr_id, attr_len = inputs
-            target_shape = self.static_node_shape
+            target_shape = (ops.shape(attr_len)[0], ops.amax(attr_len))
 
         if not self.padded_disjoint:
             output_shape = [target_shape[0]*target_shape[1]] + list(ops.shape(attr)[1:])
