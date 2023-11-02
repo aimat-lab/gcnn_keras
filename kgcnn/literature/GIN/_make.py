@@ -7,6 +7,7 @@ from ._model import model_disjoint, model_disjoint_edge
 from kgcnn.models.utils import update_model_kwargs
 from kgcnn.layers.scale import get as get_scaler
 from kgcnn.layers.modules import Input
+from kgcnn.models.casting import template_cast_output
 from keras_core.backend import backend as backend_to_use
 from kgcnn.ops.activ import *
 
@@ -130,20 +131,11 @@ def make_model(inputs: list = None,
     )
 
     # Output embedding choice
-    if output_embedding == 'graph':
-        out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
-    elif output_embedding == 'node':
-        if output_tensor_type in ["padded", "masked"]:
-            if input_tensor_type in ["padded", "masked"]:
-                out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)(
-                    [batched_nodes, out, batch_id_node, node_id, count_nodes])  # noqa
-            else:
-                out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)(
-                    [out, batch_id_node, node_id, count_nodes])
-        if output_tensor_type in ["ragged", "jagged"]:
-            out = CastDisjointToRaggedAttributes()([out, batch_id_node, node_id, count_nodes])
-        else:
-            out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
+    out = template_cast_output(
+        [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
+        output_embedding=output_embedding, output_tensor_type=output_tensor_type,
+        input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs
+    )
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)

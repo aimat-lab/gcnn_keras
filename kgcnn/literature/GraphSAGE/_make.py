@@ -143,8 +143,7 @@ def make_model(inputs: list = None,
     out = template_cast_output(
         [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
         output_embedding=output_embedding, output_tensor_type=output_tensor_type,
-        input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
-        batched_model_output=model_inputs[:2]
+        input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs
     )
 
     if output_scaling is not None:

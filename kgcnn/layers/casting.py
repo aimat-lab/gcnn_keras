@@ -17,8 +17,9 @@ def _cat_one(t):
 class _CastBatchedDisjointBase(Layer):
 
     def __init__(self, reverse_indices: bool = False, dtype_batch: str = "int64", dtype_index=None,
-                 padded_disjoint: bool = False, uses_mask: bool = False, static_batched_node_shape: tuple = None,
-                 static_batched_edge_shape: tuple = None,
+                 padded_disjoint: bool = False, uses_mask: bool = False,
+                 static_batched_node_output_shape: tuple = None,
+                 static_batched_edge_output_shape: tuple = None,
                  **kwargs):
         r"""Initialize layer.
 
@@ -29,8 +30,8 @@ class _CastBatchedDisjointBase(Layer):
             padded_disjoint (bool): Whether to keep padding in disjoint representation. Default is False.
             uses_mask (bool): Whether the padding is marked by a boolean mask or by a length tensor, counting the
                 non-padded nodes from index 0. Default is False.
-            static_batched_node_shape (tuple): Statically shape of nodes. Default is None.
-            static_batched_edge_shape (tuple): Statically shape of edges. Default is None.
+            static_batched_node_output_shape (tuple): Statically shape of nodes. Default is None.
+            static_batched_edge_output_shape (tuple): Statically shape of edges. Default is None.
         """
         super(_CastBatchedDisjointBase, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
@@ -39,16 +40,17 @@ class _CastBatchedDisjointBase(Layer):
         self.uses_mask = uses_mask
         self.padded_disjoint = padded_disjoint
         self.supports_jit = padded_disjoint
-        self.static_batched_node_shape = static_batched_node_shape
-        self.static_batched_edge_shape = static_batched_edge_shape
+        self.static_batched_node_output_shape = static_batched_node_output_shape
+        self.static_batched_edge_output_shape = static_batched_edge_output_shape
 
     def get_config(self):
         """Get config dictionary for this layer."""
         config = super(_CastBatchedDisjointBase, self).get_config()
         config.update({"reverse_indices": self.reverse_indices, "dtype_batch": self.dtype_batch,
                        "dtype_index": self.dtype_index, "padded_disjoint": self.padded_disjoint,
-                       "uses_mask": self.uses_mask, "static_node_shape": self.static_node_shape,
-                       "static_edge_shape": self.static_edge_shape})
+                       "uses_mask": self.uses_mask,
+                       "static_batched_node_output_shape": self.static_batched_node_output_shape,
+                       "static_batched_edge_output_shape": self.static_batched_edge_output_shape})
         return config
 
 
@@ -373,8 +375,9 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
     Reconstructs batched tensor with the help of ID tensor information.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, static_output_shape: tuple = None, **kwargs):
         super(CastDisjointToBatchedAttributes, self).__init__(**kwargs)
+        self.static_output_shape = static_output_shape
 
     def build(self, input_shape):
         self.built = True
@@ -397,11 +400,10 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
         Returns:
             Tensor: Batched output tensor of node or edge attributes of shape `(batch, N, F, ...)` .
         """
-        if len(inputs) == 5:
-            target, attr, graph_id_attr, attr_id, attr_len = inputs
-            target_shape = ops.shape(target)
+        attr, graph_id_attr, attr_id, attr_len = inputs
+        if self.static_output_shape is not None:
+            target_shape = self.static_output_shape
         else:
-            attr, graph_id_attr, attr_id, attr_len = inputs
             target_shape = (ops.shape(attr_len)[0], ops.amax(attr_len))
 
         if not self.padded_disjoint:
@@ -418,6 +420,12 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
             out = out[target_shape[1]:]  # Because first actual graph is 1*size shifted.
             out = ops.reshape(out, list(target_shape[:2]) + list(ops.shape(attr)[1:]))
         return out
+
+    def get_config(self):
+        """Get config dictionary for this layer."""
+        config = super(_CastBatchedDisjointBase, self).get_config()
+        config.update({"static_output_shape": self.static_output_shape})
+        return config
 
 
 CastDisjointToBatchedAttributes.__init__.__doc__ = _CastBatchedDisjointBase.__init__.__doc__

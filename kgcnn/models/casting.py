@@ -19,10 +19,11 @@ def template_cast_output(model_outputs,
     elif output_embedding == 'node':
         if output_tensor_type in ["padded", "masked"]:
             if input_tensor_type in ["padded", "masked"]:
-                out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)(
-                    [batched_nodes, out, batch_id_node, node_id, count_nodes])  # noqa
-            else:
-                out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)(
+                if "static_batched_node_output_shape" in cast_disjoint_kwargs:
+                    out_node_shape = cast_disjoint_kwargs["static_batched_node_output_shape"]
+                else:
+                    out_node_shape = None
+                out = CastDisjointToBatchedAttributes(static_output_shape=out_node_shape, **cast_disjoint_kwargs)(
                     [out, batch_id_node, node_id, count_nodes])
         if output_tensor_type in ["ragged", "jagged"]:
             out = CastDisjointToRaggedAttributes()([out, batch_id_node, node_id, count_nodes])
