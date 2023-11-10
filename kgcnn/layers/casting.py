@@ -402,7 +402,7 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
         """
         attr, graph_id_attr, attr_id, attr_len = inputs
         if self.static_output_shape is not None:
-            target_shape = self.static_output_shape
+            target_shape = (ops.shape(attr_len)[0], self.static_output_shape[0])
         else:
             target_shape = (ops.shape(attr_len)[0], ops.amax(attr_len))
 

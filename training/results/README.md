@@ -31,7 +31,7 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 | model     | kgcnn   |   epochs | Categorical accuracy   |
 |:----------|:--------|---------:|:-----------------------|
 | DMPNN     | 4.0.0   |      300 | 0.2476 &pm; 0.1706     |
-| GAT       | 4.0.0   |      250 | 0.6132 &pm; 0.0115     |
+| GAT       | 4.0.0   |      250 | 0.6157 &pm; 0.0071     |
 | GATv2     | 4.0.0   |     1000 | 0.6211 &pm; 0.0048     |
 | GCN       | 4.0.0   |      300 | 0.6232 &pm; 0.0054     |
 | GIN       | 4.0.0   |      800 | **0.6263 &pm; 0.0080** |
@@ -44,7 +44,7 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attribu
 | model     | kgcnn   |   epochs | Categorical accuracy   |
 |:----------|:--------|---------:|:-----------------------|
 | DMPNN     | 4.0.0   |      300 | 0.8357 &pm; 0.0156     |
-| GAT       | 4.0.0   |      250 | 0.8464 &pm; 0.0105     |
+| GAT       | 4.0.0   |      250 | 0.8397 &pm; 0.0122     |
 | GATv2     | 4.0.0   |      250 | 0.8331 &pm; 0.0104     |
 | GCN       | 4.0.0   |      300 | 0.8072 &pm; 0.0109     |
 | GIN       | 4.0.0   |      500 | 0.8279 &pm; 0.0170     |

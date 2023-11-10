@@ -12,7 +12,8 @@ hyper = {
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
-                "cast_disjoint_kwargs": {"padded_disjoint": False, "static_batched_node_output_shape": None},
+                "cast_disjoint_kwargs": {"padded_disjoint": False,
+                                         "static_batched_node_output_shape": (19793, 70)},
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 25, "output_dim": 1},
                 "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
@@ -78,7 +79,7 @@ hyper = {
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
-                "cast_disjoint_kwargs": {"static_batched_node_output_shape": None},
+                "cast_disjoint_kwargs": {"static_batched_node_output_shape": (19793, 70)},
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 25, "output_dim": 64},
                 "attention_args": {"units": 140, "use_bias": True, "use_edge_features": True,
@@ -146,7 +147,7 @@ hyper = {
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
-                "cast_disjoint_kwargs": {"static_batched_node_output_shape": None},
+                "cast_disjoint_kwargs": {"static_batched_node_output_shape": (19793, 70)},
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 8, "output_dim": 64},
                 "attention_args": {"units": 70, "use_bias": True, "use_edge_features": True, "activation": "relu",
@@ -213,7 +214,7 @@ hyper = {
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
-                "cast_disjoint_kwargs": {"padded_disjoint": False, "static_batched_node_output_shape": None},
+                "cast_disjoint_kwargs": {"padded_disjoint": False, "static_batched_node_output_shape": (19793, 70)},
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 25, "output_dim": 1},
                 "node_mlp_args": {"units": [70, 70], "use_bias": True, "activation": ["relu", "linear"]},
@@ -275,7 +276,7 @@ hyper = {
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
-                "cast_disjoint_kwargs": {"padded_disjoint": False, "static_batched_node_output_shape": None},
+                "cast_disjoint_kwargs": {"padded_disjoint": False, "static_batched_node_output_shape": (19793, 70)},
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "depth": 4,
                 "dropout": 0.01,
@@ -336,7 +337,7 @@ hyper = {
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
-                "cast_disjoint_kwargs": {"static_batched_node_output_shape": None},
+                "cast_disjoint_kwargs": {"static_batched_node_output_shape": (19793, 70)},
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
                 "input_graph_embedding": {"input_dim": 100, "output_dim": 64},
