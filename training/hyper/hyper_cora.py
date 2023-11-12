@@ -336,7 +336,7 @@ hyper = {
                     {"shape": (None, 1), "name": "edge_indices_reverse", "dtype": "int64"},
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"},
-                    {"shape": (), "name": "total_edges", "dtype": "int64"}
+                    {"shape": (), "name": "total_reverse", "dtype": "int64"}
                 ],
                 "cast_disjoint_kwargs": {"static_batched_node_output_shape": (19793, 70)},
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
@@ -387,6 +387,7 @@ hyper = {
                 {"map_list": {"method": "normalize_edge_weights_sym"}},
                 {"map_list": {"method": "set_edge_indices_reverse"}},
                 {"map_list": {"method": "count_nodes_and_edges"}},
+                {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_reverse"}},
             ]
         },
         "data": {

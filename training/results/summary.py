@@ -76,21 +76,21 @@ benchmark_datasets = {
              "is_min_max": True}
         ]
     },
-    # "ISO17Dataset": {
-    #     "general_info": [
-    #         "The database consist of 129 molecules each containing 5,000 conformational geometries, ",
-    #         "energies and forces with a resolution of 1 femtosecond in the molecular dynamics trajectories. ",
-    #         "The molecules were randomly drawn from the largest set of isomers in the QM9 dataset. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_energy_scaled_mean_absolute_error", "name": "Energy (test_within)", "find_best": "min"},
-    #         {"metric": "val_force_scaled_mean_absolute_error", "name": "Force (test_within)", "find_best": "min"},
-    #         {"metric": "min_val_energy_scaled_mean_absolute_error", "name": "*Min. Energy* (test_within)",
-    #          "find_best": "min", "is_min_max": True},
-    #         {"metric": "min_val_force_scaled_mean_absolute_error", "name": "*Min. Force* (test_within)",
-    #          "find_best": "min", "is_min_max": True},
-    #     ]
-    # },
+    "ISO17Dataset": {
+        "general_info": [
+            "The database consist of 129 molecules each containing 5,000 conformational geometries, ",
+            "energies and forces with a resolution of 1 femtosecond in the molecular dynamics trajectories. ",
+            "The molecules were randomly drawn from the largest set of isomers in the QM9 dataset. "
+        ],
+        "targets": [
+            {"metric": "val_energy_scaled_mean_absolute_error", "name": "Energy (test_within)", "find_best": "min"},
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Force (test_within)", "find_best": "min"},
+            {"metric": "min_val_energy_scaled_mean_absolute_error", "name": "*Min. Energy* (test_within)",
+             "find_best": "min", "is_min_max": True},
+            {"metric": "min_val_force_scaled_mean_absolute_error", "name": "*Min. Force* (test_within)",
+             "find_best": "min", "is_min_max": True},
+        ]
+    },
     "LipopDataset": {
         "general_info": [
             "Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. ",

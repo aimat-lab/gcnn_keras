@@ -56,13 +56,13 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 
 | model     | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
 |:----------|:--------|---------:|:-----------------------|:-----------------------|
-| DMPNN     | 4.0.0   |      300 | **0.4556 &pm; 0.0281** | **0.6471 &pm; 0.0299** |
+| DMPNN     | 4.0.0   |      300 | **0.4401 &pm; 0.0165** | **0.6203 &pm; 0.0292** |
 | GAT       | 4.0.0   |      500 | 0.4818 &pm; 0.0240     | 0.6919 &pm; 0.0694     |
 | GATv2     | 4.0.0   |      500 | 0.4598 &pm; 0.0234     | 0.6650 &pm; 0.0409     |
 | GCN       | 4.0.0   |      800 | 0.4613 &pm; 0.0205     | 0.6534 &pm; 0.0513     |
-| GIN       | 4.0.0   |      300 | 0.5352 &pm; 0.0461     | 0.8251 &pm; 0.1839     |
+| GIN       | 4.0.0   |      300 | 0.5369 &pm; 0.0334     | 0.7954 &pm; 0.0861     |
 | GraphSAGE | 4.0.0   |      500 | 0.4874 &pm; 0.0228     | 0.6982 &pm; 0.0608     |
-| Schnet    | 4.0.0   |      800 | 0.4677 &pm; 0.0223     | 0.7002 &pm; 0.0910     |
+| Schnet    | 4.0.0   |      800 | 0.4777 &pm; 0.0294     | 0.6977 &pm; 0.0538     |
 
 #### FreeSolvDataset
 
@@ -77,6 +77,14 @@ FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their correspondi
 | GIN       | 4.0.0   |      300 | 0.8100 &pm; 0.1016     | 1.2695 &pm; 0.1192     |
 | GraphSAGE | 4.0.0   |      500 | 0.5894 &pm; 0.0675     | 1.0009 &pm; 0.1491     |
 | Schnet    | 4.0.0   |      800 | 0.6070 &pm; 0.0285     | 1.0603 &pm; 0.0549     |
+
+#### ISO17Dataset
+
+The database consist of 129 molecules each containing 5,000 conformational geometries, energies and forces with a resolution of 1 femtosecond in the molecular dynamics trajectories. The molecules were randomly drawn from the largest set of isomers in the QM9 dataset. 
+
+| model                   | kgcnn   |   epochs | Energy (test_within)   | Force (test_within)   |
+|:------------------------|:--------|---------:|:-----------------------|:----------------------|
+| Schnet.EnergyForceModel | 4.0.0   |     1000 | **0.0061 &pm; nan**    | **0.0134 &pm; nan**   |
 
 #### LipopDataset
 

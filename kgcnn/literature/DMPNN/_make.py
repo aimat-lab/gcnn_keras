@@ -37,7 +37,7 @@ model_default = {
         {"shape": (None, 1), "name": "edge_indices_reverse", "dtype": "int64"},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"},
-        {"shape": (), "name": "total_edges", "dtype": "int64"}
+        {"shape": (), "name": "total_reverse", "dtype": "int64"}
     ],
     "input_tensor_type": "padded",
     "cast_disjoint_kwargs": {},
