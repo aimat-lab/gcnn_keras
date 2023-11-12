@@ -1,5 +1,6 @@
 import keras_core as ks
 from typing import Union
+from kgcnn.layers.pooling import PoolingNodes
 import numpy as np
 from keras_core import ops
 
@@ -73,6 +74,7 @@ class ExtensiveMolecularLabelScaler(ks.layers.Layer):  # noqa
         self._weights_trainable = trainable
         self.dtype_scale = dtype_scale
         self.extensive = True
+        self.layer_pool = PoolingNodes(pooling_method="scatter_sum")
 
         self._fit_atom_selection_mask = self.add_weight(
             shape=(self.max_atomic_number, ), trainable=False, dtype="bool", initializer="zeros")
@@ -103,9 +105,9 @@ class ExtensiveMolecularLabelScaler(ks.layers.Layer):  # noqa
         return input_shape[0]
 
     def call(self, inputs, **kwargs):
-        graph, nodes = inputs
+        graph, nodes, batch_id = inputs
         energy_per_node = ops.take(self.ridge_kernel_, nodes, axis=0)
-        extensive_energies = ops.sum(energy_per_node, axis=1)
+        extensive_energies = self.layer_pool([graph, energy_per_node, batch_id])
         return ops.cast(graph, dtype=self.dtype_scale)*self.scale_ + extensive_energies
 
     def get_config(self):

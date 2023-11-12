@@ -4,7 +4,7 @@ from kgcnn.layers.modules import Input
 from kgcnn.models.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
 from kgcnn.layers.scale import get as get_scaler
-from kgcnn.models.casting import template_cast_output
+from kgcnn.models.casting import template_cast_output, template_cast_input
 from ._model import model_disjoint, model_disjoint_crystal
 
 # To be updated if model is changed in a significant way.
@@ -117,15 +117,16 @@ def make_model(inputs: list = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    batched_nodes, batched_x, batched_indices, total_nodes, total_edges = model_inputs[:5]
-    z, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
-        **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
-    x, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_nodes])
+    disjoint_inputs = template_cast_input(model_inputs, input_tensor_type=input_tensor_type,
+                                          cast_disjoint_kwargs=cast_disjoint_kwargs,
+                                          has_edges=True,
+                                          has_coordinates_as_edges=True)
 
-    if len(model_inputs) > 5:
-        v, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([model_inputs[6], total_edges])
-    else:
+    if not has_equivariant_input:
+        z, x, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
         v = None
+    else:
+        v, z, x, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
 
     # Wrapping disjoint model.
     out = model_disjoint(
@@ -137,20 +138,20 @@ def make_model(inputs: list = None,
         output_embedding=output_embedding, output_mlp=output_mlp
     )
 
+    if output_scaling is not None:
+        scaler = get_scaler(output_scaling["name"])(**output_scaling)
+        if scaler.extensive:
+            # Node information must be numbers, or we need an additional input.
+            out = scaler([out, z, batch_id_node])
+        else:
+            out = scaler(out)
+
     # Output embedding choice
     out = template_cast_output(
         [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
         output_embedding=output_embedding, output_tensor_type=output_tensor_type,
         input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
     )
-
-    if output_scaling is not None:
-        scaler = get_scaler(output_scaling["name"])(**output_scaling)
-        if scaler.extensive:
-            # Node information must be numbers, or we need an additional input.
-            out = scaler([out, batched_nodes])
-        else:
-            out = scaler(out)
 
     model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
     model.__kgcnn_model_version__ = __model_version__
@@ -269,13 +270,6 @@ def make_crystal_model(inputs: list = None,
         output_embedding=output_embedding, output_mlp=output_mlp
     )
 
-    # Output embedding choice
-    out = template_cast_output(
-        [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
-        output_embedding=output_embedding, output_tensor_type=output_tensor_type,
-        input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
-    )
-
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
         if scaler.extensive:
@@ -283,6 +277,13 @@ def make_crystal_model(inputs: list = None,
             out = scaler([out, batched_nodes])
         else:
             out = scaler(out)
+
+    # Output embedding choice
+    out = template_cast_output(
+        [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
+        output_embedding=output_embedding, output_tensor_type=output_tensor_type,
+        input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
+    )
 
     model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
     model.__kgcnn_model_version__ = __model_version__

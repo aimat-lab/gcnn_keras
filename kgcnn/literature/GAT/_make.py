@@ -129,16 +129,16 @@ def make_model(inputs: list = None,
         output_embedding=output_embedding, output_mlp=output_mlp
     )
 
+    if output_scaling is not None:
+        scaler = get_scaler(output_scaling["name"])(**output_scaling)
+        out = scaler(out)
+
     # Output embedding choice
     out = template_cast_output(
         [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
         output_embedding=output_embedding, output_tensor_type=output_tensor_type,
         input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
     )
-
-    if output_scaling is not None:
-        scaler = get_scaler(output_scaling["name"])(**output_scaling)
-        out = scaler(out)
 
     model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
     model.__kgcnn_model_version__ = __model_version__

@@ -340,6 +340,7 @@ hyper = {
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
                     {"shape": (None, 1), "name": "edge_indices_reverse", "dtype": "int64"},
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
                 "cast_disjoint_kwargs": {"static_batched_node_output_shape": (2708, 7)},

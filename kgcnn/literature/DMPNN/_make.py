@@ -36,6 +36,7 @@ model_default = {
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
         {"shape": (None, 1), "name": "edge_indices_reverse", "dtype": "int64"},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
+        {"shape": (), "name": "total_edges", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
     "input_tensor_type": "padded",
@@ -138,18 +139,24 @@ def make_model(name: str = None,
     model_inputs = [Input(**x) for x in inputs]
 
     if input_tensor_type in ["padded", "masked"]:
-        batched_nodes, batched_edges, batched_indices, batched_reverse, total_nodes, total_edges = model_inputs[:6]
-        graph_state = CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(
-            model_inputs[7]) if use_graph_state else None
+        if use_graph_state:
+            batched_nodes, batched_edges, graph_state, batched_indices, batched_reverse, total_nodes, total_edges = model_inputs[:7]
+            gs = CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(graph_state)
+        else:
+            batched_nodes, batched_edges, batched_indices, batched_reverse, total_nodes, total_edges = model_inputs[:6]
+            gs = None
         n, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
             **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
         ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
         _, ed_pairs, _, _, _, _, _, _ = CastBatchedIndicesToDisjoint(
             **cast_disjoint_kwargs)([batched_indices, batched_reverse, count_edges, count_edges])
     elif input_tensor_type in ["ragged", "jagged"]:
-        batched_nodes, batched_edges, batched_indices, batched_reverse = model_inputs[:4]
-        graph_state = CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(
-            model_inputs[5]) if use_graph_state else None
+        if use_graph_state:
+            batched_nodes, batched_edges, graph_state, batched_indices, batched_reverse = model_inputs
+            gs = graph_state
+        else:
+            batched_nodes, batched_edges, batched_indices, batched_reverse = model_inputs
+            gs = None
         n, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastRaggedIndicesToDisjoint(
             **cast_disjoint_kwargs)([batched_nodes, batched_indices])
         ed, _, _, _ = CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_edges)
@@ -157,14 +164,14 @@ def make_model(name: str = None,
             **cast_disjoint_kwargs)([batched_indices, batched_reverse])
     else:
         if use_graph_state:
-            n, ed, edi, ed_pairs, graph_state, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_inputs
+            n, ed, gs, edi, ed_pairs, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_inputs
         else:
             n, ed, edi, ed_pairs, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_inputs
-            graph_state = None
+            gs = None
 
     # Wrapping disjoint model.
     out = model_disjoint(
-        [n, ed, edi, batch_id_node, ed_pairs, count_nodes, graph_state],
+        [n, ed, edi, batch_id_node, ed_pairs, count_nodes, gs],
         use_node_embedding=len(inputs[0]['shape']) < 2, use_edge_embedding=len(inputs[1]['shape']) < 2,
         use_graph_embedding=len(inputs[7]["shape"]) < 1 if use_graph_state else False,
         input_node_embedding=input_node_embedding,
@@ -174,16 +181,16 @@ def make_model(name: str = None,
         output_embedding=output_embedding, output_mlp=output_mlp, edge_dense=edge_dense
     )
 
+    if output_scaling is not None:
+        scaler = get_scaler(output_scaling["name"])(**output_scaling)
+        out = scaler(out)
+
     # Output embedding choice
     out = template_cast_output(
         [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
         output_embedding=output_embedding, output_tensor_type=output_tensor_type,
         input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs
     )
-
-    if output_scaling is not None:
-        scaler = get_scaler(output_scaling["name"])(**output_scaling)
-        out = scaler(out)
 
     model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
     model.__kgcnn_model_version__ = __model_version__

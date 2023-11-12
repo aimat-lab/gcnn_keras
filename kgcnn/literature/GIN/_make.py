@@ -7,7 +7,7 @@ from ._model import model_disjoint, model_disjoint_edge
 from kgcnn.models.utils import update_model_kwargs
 from kgcnn.layers.scale import get as get_scaler
 from kgcnn.layers.modules import Input
-from kgcnn.models.casting import template_cast_output
+from kgcnn.models.casting import template_cast_output, template_cast_input
 from keras_core.backend import backend as backend_to_use
 from kgcnn.ops.activ import *
 
@@ -111,16 +111,10 @@ def make_model(inputs: list = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    if input_tensor_type in ["padded", "masked"]:
-        batched_nodes, batched_indices, total_nodes, total_edges = model_inputs
-        n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
-            **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
-    elif input_tensor_type in ["ragged", "jagged"]:
-        batched_nodes, batched_indices = model_inputs
-        n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastRaggedIndicesToDisjoint(
-            **cast_disjoint_kwargs)([batched_nodes, batched_indices])
-    else:
-        n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_inputs
+    disjoint_inputs = template_cast_input(
+        model_inputs, input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs, has_edges=False)
+
+    n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
 
     # Wrapping disjoint model.
     out = model_disjoint(
@@ -130,16 +124,16 @@ def make_model(inputs: list = None,
         output_embedding=output_embedding, output_mlp=output_mlp
     )
 
+    if output_scaling is not None:
+        scaler = get_scaler(output_scaling["name"])(**output_scaling)
+        out = scaler(out)
+
     # Output embedding choice
     out = template_cast_output(
         [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
         output_embedding=output_embedding, output_tensor_type=output_tensor_type,
         input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs
     )
-
-    if output_scaling is not None:
-        scaler = get_scaler(output_scaling["name"])(**output_scaling)
-        out = scaler(out)
 
     model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
     model.__kgcnn_model_version__ = __model_version__
@@ -214,7 +208,7 @@ def make_model_edge(inputs: list = None,
             - total_edges(Tensor, optional): Number of Edges in graph if not same sized graphs of shape `(batch, )` .
 
     Outputs:
-        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+        Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
@@ -243,18 +237,10 @@ def make_model_edge(inputs: list = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    if input_tensor_type in ["padded", "masked"]:
-        batched_nodes, batched_edges, batched_indices, total_nodes, total_edges = model_inputs
-        n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
-            **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
-        ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
-    elif input_tensor_type in ["ragged", "jagged"]:
-        batched_nodes, batched_edges, batched_indices = model_inputs
-        n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastRaggedIndicesToDisjoint(
-            **cast_disjoint_kwargs)([batched_nodes, batched_indices])
-        ed, _, _, _ = CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_edges)
-    else:
-        n, ed, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_inputs
+    disjoint_inputs = template_cast_input(
+        model_inputs, input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs)
+
+    n, ed, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
 
     # Wrapping disjoint model.
     out = model_disjoint_edge(
@@ -265,25 +251,16 @@ def make_model_edge(inputs: list = None,
         dropout=dropout, output_embedding=output_embedding, output_mlp=output_mlp
     )
 
-    # Output embedding choice
-    if output_embedding == 'graph':
-        out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
-    elif output_embedding == 'node':
-        if output_tensor_type in ["padded", "masked"]:
-            if input_tensor_type in ["padded", "masked"]:
-                out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)(
-                    [batched_nodes, out, batch_id_node, node_id, count_nodes])  # noqa
-            else:
-                out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)(
-                    [out, batch_id_node, node_id, count_nodes])
-        if output_tensor_type in ["ragged", "jagged"]:
-            out = CastDisjointToRaggedAttributes()([out, batch_id_node, node_id, count_nodes])
-        else:
-            out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
-
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
         out = scaler(out)
+
+    # Output embedding choice
+    out = template_cast_output(
+        [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
+        output_embedding=output_embedding, output_tensor_type=output_tensor_type,
+        input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs
+    )
 
     model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
     model.__kgcnn_model_version__ = __model_version__
