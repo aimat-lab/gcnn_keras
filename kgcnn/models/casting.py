@@ -17,15 +17,26 @@ def template_cast_output(model_outputs,
         out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == 'node':
         if output_tensor_type in ["padded", "masked"]:
-            if input_tensor_type in ["padded", "masked"]:
-                if "static_batched_node_output_shape" in cast_disjoint_kwargs:
-                    out_node_shape = cast_disjoint_kwargs["static_batched_node_output_shape"]
-                else:
-                    out_node_shape = None
-                out = CastDisjointToBatchedAttributes(static_output_shape=out_node_shape, **cast_disjoint_kwargs)(
-                    [out, batch_id_node, node_id, count_nodes])
+            if "static_batched_node_output_shape" in cast_disjoint_kwargs:
+                out_node_shape = cast_disjoint_kwargs["static_batched_node_output_shape"]
+            else:
+                out_node_shape = None
+            out = CastDisjointToBatchedAttributes(static_output_shape=out_node_shape, **cast_disjoint_kwargs)(
+                [out, batch_id_node, node_id, count_nodes])
         if output_tensor_type in ["ragged", "jagged"]:
             out = CastDisjointToRaggedAttributes()([out, batch_id_node, node_id, count_nodes])
+        else:
+            out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
+    elif output_embedding == 'edge':
+        if output_tensor_type in ["padded", "masked"]:
+            if "static_batched_edge_output_shape" in cast_disjoint_kwargs:
+                out_edge_shape = cast_disjoint_kwargs["static_batched_edge_output_shape"]
+            else:
+                out_edge_shape = None
+            out = CastDisjointToBatchedAttributes(static_output_shape=out_edge_shape, **cast_disjoint_kwargs)(
+                [out, batch_id_edge, edge_id, count_edges])
+        if output_tensor_type in ["ragged", "jagged"]:
+            out = CastDisjointToRaggedAttributes()([out, batch_id_edge, edge_id, count_edges])
         else:
             out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
     else:

@@ -34,7 +34,7 @@ model_default = {
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
     "input_tensor_type": "padded",
-    "cast_disjoint_kwargs": {"padded_disjoint": False},
+    "cast_disjoint_kwargs": {},
     "input_embedding": None,  # deprecated
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
     "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
@@ -245,7 +245,8 @@ def make_model_edge(inputs: list = None,
     # Wrapping disjoint model.
     out = model_disjoint_edge(
         [n, ed, disjoint_indices, batch_id_node, count_nodes],
-        use_node_embedding=len(inputs[0]['shape']) < 2, use_edge_embedding=len(inputs[1]['shape']) < 2,
+        use_node_embedding="float" not in inputs[0]['dtype'],
+        use_edge_embedding="float" not in inputs[1]['dtype'],
         input_node_embedding=input_node_embedding, input_edge_embedding=input_edge_embedding,
         depth=depth, gin_args=gin_args, gin_mlp=gin_mlp, last_mlp=last_mlp,
         dropout=dropout, output_embedding=output_embedding, output_mlp=output_mlp
