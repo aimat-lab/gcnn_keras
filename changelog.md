@@ -1,6 +1,10 @@
 v4.0.0
 
-* 
+* Reworked training scripts to have a single ``train_graph.py`` script. Command line arguments are now optional and just used for verification, but `category` to select a model/hyperparameter combination from hyper file.
+Since the hyperparameter file already contains all necessary information.
+* Train test indices can now also be set and loaded from the dataset directly.
+* Scaler behaviour has changed with regard to `transform_dataset`. Key names of properties to transform has been moved to the constructor!
+
 
 
 v3.1.0

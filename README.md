@@ -136,7 +136,7 @@ class MyMessageNN(MessagePassingBase):
     def __init__(self, units, **kwargs):
         super(MyMessageNN, self).__init__(**kwargs)
         self.dense = ks.layers.Dense(units)
-        self.add = ks.layers.Add(axis=-1)
+        self.add = ks.layers.Add()
 
     def message_function(self, inputs, **kwargs):
         n_in, n_out, edges = inputs
