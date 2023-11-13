@@ -181,7 +181,11 @@ Data handling classes are given in `kgcnn.data` which stores graphs as `List[Dic
 Graphs are represented by a dictionary `GraphDict` of (numpy) arrays which behaves like a python `dict`.
 There are graph pre- and postprocessors in ``kgcnn.graph`` which take specific properties by name and apply a
 processing function or transformation. 
-They can do any operation but note that `GraphDict` does not impose an actual graph structure !
+
+> [!IMPORTANT]  
+> They can do any operation but note that `GraphDict` does not impose an actual graph structure!
+> For example to sort edge indices make sure that all attributes are sorted accordingly. 
+
 
 ```python
 from kgcnn.graph import GraphDict
