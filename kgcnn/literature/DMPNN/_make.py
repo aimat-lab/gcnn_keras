@@ -5,7 +5,7 @@ from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttri
                                   CastRaggedIndicesToDisjoint, CastDisjointToRaggedAttributes)
 from kgcnn.layers.scale import get as get_scaler
 from kgcnn.models.utils import update_model_kwargs
-from kgcnn.models.casting import template_cast_output
+from kgcnn.models.casting import template_cast_output, template_cast_list_input
 from keras_core.backend import backend as backend_to_use
 from kgcnn.layers.modules import Input
 from ._model import model_disjoint
@@ -138,40 +138,22 @@ def make_model(name: str = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    if input_tensor_type in ["padded", "masked"]:
-        if use_graph_state:
-            batched_nodes, batched_edges, graph_state, batched_indices, batched_reverse, total_nodes, total_edges = model_inputs[:7]
-            gs = CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(graph_state)
-        else:
-            batched_nodes, batched_edges, batched_indices, batched_reverse, total_nodes, total_edges = model_inputs[:6]
-            gs = None
-        n, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
-            **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
-        ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
-        _, ed_pairs, _, _, _, _, _, _ = CastBatchedIndicesToDisjoint(
-            **cast_disjoint_kwargs)([batched_indices, batched_reverse, count_edges, count_edges])
-    elif input_tensor_type in ["ragged", "jagged"]:
-        if use_graph_state:
-            batched_nodes, batched_edges, graph_state, batched_indices, batched_reverse = model_inputs
-            gs = graph_state
-        else:
-            batched_nodes, batched_edges, batched_indices, batched_reverse = model_inputs
-            gs = None
-        n, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastRaggedIndicesToDisjoint(
-            **cast_disjoint_kwargs)([batched_nodes, batched_indices])
-        ed, _, _, _ = CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_edges)
-        _, ed_pairs, _, _, _, _, _, _ = CastRaggedIndicesToDisjoint(
-            **cast_disjoint_kwargs)([batched_indices, batched_reverse])
+    di = template_cast_list_input(
+        model_inputs, input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
+        has_nodes=True, has_edges=True, has_graph_state=use_graph_state,
+        has_angle_indices=True,  # Treat reverse indices as edge indices
+        has_edge_indices=True
+    )
+
+    if use_graph_state:
+        n, ed, edi, e_pairs, gs, batch_id_node, batch_id_edge, _, node_id, edge_id, _, count_nodes, count_edges, _ = di
     else:
-        if use_graph_state:
-            n, ed, gs, edi, ed_pairs, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_inputs
-        else:
-            n, ed, edi, ed_pairs, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_inputs
-            gs = None
+        n, ed, edi, e_pairs, batch_id_node, batch_id_edge, _,  node_id, edge_id, _, count_nodes, count_edges, _ = di
+        gs = None
 
     # Wrapping disjoint model.
     out = model_disjoint(
-        [n, ed, edi, batch_id_node, ed_pairs, count_nodes, gs],
+        [n, ed, edi, batch_id_node, e_pairs, count_nodes, gs],
         use_node_embedding=len(inputs[0]['shape']) < 2, use_edge_embedding=len(inputs[1]['shape']) < 2,
         use_graph_embedding=len(inputs[7]["shape"]) < 1 if use_graph_state else False,
         input_node_embedding=input_node_embedding,

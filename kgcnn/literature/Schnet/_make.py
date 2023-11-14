@@ -6,7 +6,7 @@ from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttri
 from kgcnn.layers.scale import get as get_scaler
 from ._model import model_disjoint, model_disjoint_crystal
 from kgcnn.layers.modules import Input
-from kgcnn.models.casting import template_cast_output, template_cast_input
+from kgcnn.models.casting import template_cast_output, template_cast_list_input
 from kgcnn.models.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
 
@@ -29,7 +29,7 @@ if backend_to_use() not in __kgcnn_model_backend_supported__:
 model_default = {
     "name": "Schnet",
     "inputs": [
-        {"shape": (None,), "name": "node_attributes", "dtype": "float32"},
+        {"shape": (None,), "name": "node_number", "dtype": "int64"},
         {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32"},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
@@ -133,15 +133,16 @@ def make_model(inputs: list = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    disjoint_inputs = template_cast_input(model_inputs, input_tensor_type=input_tensor_type,
-                                          cast_disjoint_kwargs=cast_disjoint_kwargs,
-                                          has_edges=(not make_distance), has_nodes=1 + int(make_distance))
+    disjoint_inputs = template_cast_list_input(model_inputs, input_tensor_type=input_tensor_type,
+                                               cast_disjoint_kwargs=cast_disjoint_kwargs,
+                                               has_edges=(not make_distance), has_nodes=1 + int(make_distance))
 
     n, x, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
 
     out = model_disjoint(
         [n, x, disjoint_indices, batch_id_node, count_nodes],
-        use_node_embedding=len(inputs[0]['shape']) < 2, input_node_embedding=input_node_embedding,
+        use_node_embedding=len(inputs[0]['shape']) < 2,
+        input_node_embedding=input_node_embedding,
         make_distance=make_distance, expand_distance=expand_distance, gauss_args=gauss_args,
         interaction_args=interaction_args, node_pooling_args=node_pooling_args, depth=depth,
         last_mlp=last_mlp, output_embedding=output_embedding, use_output_mlp=use_output_mlp,

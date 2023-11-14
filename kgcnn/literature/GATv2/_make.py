@@ -2,7 +2,7 @@ from ._model import model_disjoint
 from kgcnn.models.utils import update_model_kwargs
 from kgcnn.layers.scale import get as get_scaler
 from kgcnn.layers.modules import Input
-from kgcnn.models.casting import template_cast_input, template_cast_output
+from kgcnn.models.casting import template_cast_list_input, template_cast_output
 from keras_core.backend import backend as backend_to_use
 from kgcnn.ops.activ import *
 
@@ -116,7 +116,7 @@ def make_model(inputs: list = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    disjoint_model_inputs = template_cast_input(
+    disjoint_model_inputs = template_cast_list_input(
         model_inputs, input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs)
 
     n, ed, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_model_inputs

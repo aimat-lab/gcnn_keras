@@ -386,33 +386,42 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
         r"""Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
 
         Args:
-            inputs (list): List of `[(target), attr, graph_id_attr, attr_id, attr_counts]` ,
+            inputs (list): List of `[attr, graph_id_attr, (attr_id), attr_counts]` ,
 
-                - target (Tensor, Optional): Target tensor of shape equal to desired output of
-                  shape `(batch, N, F, ...)` .
-                  Only first dimension is required for making new tensor e.g. of shape  `(batch,)` .
                 - attr (Tensor): Features are represented by a keras tensor of shape `([N], F, ...)` ,
                   where N denotes the number of nodes or edges.
                 - graph_id_attr (Tensor): ID tensor of graph assignment in disjoint graph of shape `([N], )` .
-                - attr_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
+                - attr_id (Tensor, optional): The ID-tensor to assign each node to its respective graph
+                  of shape `([N], )` . For padded disjoint graphs this is required.
                 - attr_counts (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
 
         Returns:
             Tensor: Batched output tensor of node or edge attributes of shape `(batch, N, F, ...)` .
         """
-        attr, graph_id_attr, attr_id, attr_len = inputs
+        if len(inputs) == 4:
+            attr, graph_id_attr, attr_id, attr_len = inputs
+        else:
+            attr, graph_id_attr, attr_len = inputs
+            attr_id = None
+
         if self.static_output_shape is not None:
             target_shape = (ops.shape(attr_len)[0], self.static_output_shape[0])
         else:
             target_shape = (ops.shape(attr_len)[0], ops.amax(attr_len))
 
         if not self.padded_disjoint:
+            if attr_id is None:
+                attr_id = ops.arange(0, ops.shape(graph_id_attr)[0], dtype=graph_id_attr.dtype)
+                attr_splits = _pad_left(attr_len[1:]-attr_len[:1])
+                attr_id = attr_id - repeat_static_length(attr_splits[:1], attr_len, ops.shape(graph_id_attr)[0])
             output_shape = [target_shape[0]*target_shape[1]] + list(ops.shape(attr)[1:])
             indices = graph_id_attr*ops.convert_to_tensor(target_shape[1], dtype=graph_id_attr.dtype) + ops.cast(
                 attr_id, dtype=graph_id_attr.dtype)
             out = scatter_reduce_sum(indices, attr, output_shape)
             out = ops.reshape(out, list(target_shape[:2]) + list(ops.shape(attr)[1:]))
         else:
+            if attr_id is None:
+                raise ValueError("Require sub-graph IDs in addition to batch IDs for padded disjoint graphs.")
             output_shape = [(target_shape[0]+1)*target_shape[1]] + list(ops.shape(attr)[1:])
             indices = graph_id_attr * ops.convert_to_tensor(target_shape[1], dtype=graph_id_attr.dtype) + ops.cast(
                 attr_id, dtype=graph_id_attr.dtype)

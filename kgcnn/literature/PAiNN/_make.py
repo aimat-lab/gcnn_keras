@@ -4,7 +4,7 @@ from kgcnn.layers.modules import Input
 from kgcnn.models.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
 from kgcnn.layers.scale import get as get_scaler
-from kgcnn.models.casting import template_cast_output, template_cast_input
+from kgcnn.models.casting import template_cast_output, template_cast_list_input
 from ._model import model_disjoint, model_disjoint_crystal
 
 # To be updated if model is changed in a significant way.
@@ -117,10 +117,10 @@ def make_model(inputs: list = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    disjoint_inputs = template_cast_input(model_inputs, input_tensor_type=input_tensor_type,
-                                          cast_disjoint_kwargs=cast_disjoint_kwargs,
-                                          has_edges=True,
-                                          has_coordinates_as_edges=True)
+    disjoint_inputs = template_cast_list_input(model_inputs, input_tensor_type=input_tensor_type,
+                                               cast_disjoint_kwargs=cast_disjoint_kwargs,
+                                               has_nodes=2+int(has_equivariant_input),
+                                               has_edges=False)
 
     if not has_equivariant_input:
         z, x, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
