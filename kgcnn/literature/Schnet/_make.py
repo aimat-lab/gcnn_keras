@@ -285,24 +285,12 @@ def make_crystal_model(inputs: list = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    if input_tensor_type in ["padded", "masked"]:
-        batched_nodes, batched_x, batched_indices, edge_image, lattice, total_nodes, total_edges = model_inputs
-        n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
-            **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
-        lattice = CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(lattice)
-        edge_image, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([edge_image, total_edges])
-        if make_distance:
-            x, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_nodes])
-        else:
-            x, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_edges])
-    elif input_tensor_type in ["ragged", "jagged"]:
-        batched_nodes, batched_x, batched_indices, edge_image, lattice = model_inputs
-        n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastRaggedIndicesToDisjoint(
-            **cast_disjoint_kwargs)([batched_nodes, batched_indices])
-        x, _, _, _ = CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_x)
-        edge_image, _, _, _ = CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(edge_image)
-    else:
-        n, x, disjoint_indices, edge_image, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_inputs
+    disjoint_inputs = template_cast_list_input(model_inputs, input_tensor_type=input_tensor_type,
+                                               cast_disjoint_kwargs=cast_disjoint_kwargs,
+                                               has_edges=(not make_distance), has_nodes=1 + int(make_distance),
+                                               has_crystal_input=2)
+
+    n, x, disjoint_indices, edge_image, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
 
     # Wrapp disjoint model
     out = model_disjoint_crystal(

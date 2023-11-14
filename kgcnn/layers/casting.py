@@ -412,7 +412,7 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
         if not self.padded_disjoint:
             if attr_id is None:
                 attr_id = ops.arange(0, ops.shape(graph_id_attr)[0], dtype=graph_id_attr.dtype)
-                attr_splits = _pad_left(attr_len[1:]-attr_len[:1])
+                attr_splits = ops.pad(ops.cumsum(attr_len), [[1, 0]])
                 attr_id = attr_id - repeat_static_length(attr_splits[:1], attr_len, ops.shape(graph_id_attr)[0])
             output_shape = [target_shape[0]*target_shape[1]] + list(ops.shape(attr)[1:])
             indices = graph_id_attr*ops.convert_to_tensor(target_shape[1], dtype=graph_id_attr.dtype) + ops.cast(

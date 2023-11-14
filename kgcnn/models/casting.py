@@ -50,12 +50,11 @@ def template_cast_list_input(model_inputs,
                              has_nodes: Union[int, bool] = True,
                              has_edges: Union[int, bool] = True,
                              has_angles: Union[int, bool] = False,
-                             has_edge_indices: bool = True,
-                             has_angle_indices: bool = False,
+                             has_edge_indices: Union[int, bool] = True,
+                             has_angle_indices: Union[int, bool] = False,
                              has_graph_state: Union[int, bool] = False,
+                             has_crystal_input: Union[int, bool] = False,
                              return_sub_id: bool = True):
-
-
 
     standard_inputs = [x for x in model_inputs]
 
@@ -65,6 +64,7 @@ def template_cast_list_input(model_inputs,
     batched_state = []
     batched_indices = []
     batched_angle_indices = []
+    batched_crystal_info = []
 
     for i in range(int(has_nodes)):
         batched_nodes.append(standard_inputs.pop(0))
@@ -78,6 +78,8 @@ def template_cast_list_input(model_inputs,
         batched_angle_indices.append(standard_inputs.pop(0))
     for i in range(int(has_graph_state)):
         batched_state.append(standard_inputs.pop(0))
+    for i in range(int(has_crystal_input)):
+        batched_crystal_info.append(standard_inputs.pop(0))
 
     batched_id = standard_inputs
 
@@ -87,6 +89,7 @@ def template_cast_list_input(model_inputs,
     disjoint_angles = []
     disjoint_indices = []
     disjoint_angle_indices = []
+    disjoint_crystal_info = []
     disjoint_id = []
 
     if input_tensor_type in ["padded", "masked"]:
@@ -123,6 +126,14 @@ def template_cast_list_input(model_inputs,
             disjoint_state.append(
                 CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(x))
 
+        if has_crystal_input > 0:
+            disjoint_crystal_info.append(
+                CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_crystal_info[0], part_edges])[0]
+            )
+            disjoint_crystal_info.append(
+                CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(batched_crystal_info[1])
+            )
+
     elif input_tensor_type in ["ragged", "jagged"]:
 
         for x in batched_indices:
@@ -147,6 +158,14 @@ def template_cast_list_input(model_inputs,
             disjoint_angles.append(
                 CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(x)[0])
 
+        if has_crystal_input > 0:
+            disjoint_crystal_info.append(
+                CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_crystal_info[0])[0]
+            )
+            disjoint_crystal_info.append(
+                batched_crystal_info[1]
+            )
+
         disjoint_state = batched_state
 
     else:
@@ -156,6 +175,7 @@ def template_cast_list_input(model_inputs,
         disjoint_state = batched_state
         disjoint_angle_indices = batched_angle_indices
         disjoint_angles = batched_angles
+        disjoint_crystal_info = batched_crystal_info
 
     if input_tensor_type in ["ragged", "jagged", "padded", "masked"]:
         disjoint_id.append(batch_id_node)  # noqa
@@ -174,17 +194,7 @@ def template_cast_list_input(model_inputs,
     else:
         disjoint_id = batched_id
 
-    disjoint_model_inputs = disjoint_nodes + disjoint_edges + disjoint_angles + disjoint_indices + disjoint_angle_indices + disjoint_state + disjoint_id
+    disjoint_model_inputs = disjoint_nodes + disjoint_edges + disjoint_angles + disjoint_indices + disjoint_angle_indices + disjoint_state + disjoint_crystal_info  + disjoint_id
 
     return disjoint_model_inputs
 
-
-def template_cast_list_crystal_input(model_inputs,
-                                     input_tensor_type,
-                                     cast_disjoint_kwargs,
-                                     has_nodes: Union[int, bool] = True,
-                                     has_edges: Union[int, bool] = True,
-                                     has_graph_state: Union[int, bool] = False,
-                                     has_angle_indices: bool = False,
-                                     return_sub_id: bool = False):
-    pass
