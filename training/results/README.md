@@ -138,7 +138,7 @@ Materials Project dataset from Matbench with 636 crystal structures and their co
 
 | model                     | kgcnn   |   epochs | MAE [meV/atom]           | RMSE [meV/atom]           |
 |:--------------------------|:--------|---------:|:-------------------------|:--------------------------|
-| Schnet.make_crystal_model | 4.0.0   |      800 | **47.0970 &pm; 12.1636** | **121.0402 &pm; 38.7995** |
+| Schnet.make_crystal_model | 4.0.0   |      800 | **45.2412 &pm; 11.6395** | **115.6890 &pm; 39.0929** |
 
 #### MatProjectLogGVRHDataset
 

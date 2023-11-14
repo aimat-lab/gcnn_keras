@@ -550,6 +550,14 @@ class CastRaggedAttributesToDisjoint(_CastRaggedToDisjointBase):
         out_gn, out_id_n, out_size_n = out_n[:1], out_n[:1], input_shape[:1]
         return out_n, out_gn, out_id_n, out_size_n
 
+    def compute_output_spec(self, inputs_spec):
+        """Compute output spec as possible."""
+        output_shape = self.compute_output_shape(inputs_spec.shape)
+        dtype_batch = self.dtype_batch
+        output_dtypes = [inputs_spec[0].dtype, dtype_batch, dtype_batch, dtype_batch]
+        output_spec = [ks.KerasTensor(s, dtype=d) for s, d in zip(output_shape, output_dtypes)]
+        return output_spec
+
     def build(self, input_shape):
         self.built = True
 

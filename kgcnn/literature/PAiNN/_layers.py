@@ -119,7 +119,8 @@ class PAiNNconv(ks.layers.Layer):
         config_dense = self.lay_dense1.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation", "use_bias"]:
-            config.update({x: config_dense[x]})
+            if x in config_dense:
+                config.update({x: config_dense[x]})
         return config
 
 
@@ -220,7 +221,8 @@ class PAiNNUpdate(ks.layers.Layer):
         config_dense = self.lay_dense1.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation", "use_bias"]:
-            config.update({x: config_dense[x]})
+            if x in config_dense:
+                config.update({x: config_dense[x]})
         return config
 
 

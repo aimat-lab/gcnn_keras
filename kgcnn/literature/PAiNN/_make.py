@@ -44,7 +44,8 @@ model_default = {
     "depth": 3,
     "verbose": 10,
     "output_embedding": "graph",
-    "output_to_tensor": True,
+    "output_to_tensor": True, "output_tensor_type": "padded",
+    "output_scaling": None,
     "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]}
 }
 
@@ -168,13 +169,17 @@ def make_model(inputs: list = None,
 model_crystal_default = {
     "name": "PAiNN",
     "inputs": [
-        {"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
+        {"shape": (None,), "name": "node_attributes", "dtype": "int64", "ragged": True},
         {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
         {'shape': (None, 3), 'name': "edge_image", 'dtype': 'int64', 'ragged': True},
         {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
     ],
-    "input_embedding": {"input_dim": 95, "output_dim": 128},
+    "input_tensor_type": "padded",
+    "input_embedding": None,  # deprecated
+    "cast_disjoint_kwargs": {},
+    "input_node_embedding": {"input_dim": 95, "output_dim": 128},
+    "has_equivariant_input": False,
     "equiv_initialize_kwargs": {"dim": 3, "method": "zeros"},
     "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
     "pooling_args": {"pooling_method": "scatter_sum"},
@@ -185,13 +190,18 @@ model_crystal_default = {
     "depth": 3,
     "verbose": 10,
     "output_embedding": "graph", "output_to_tensor": True,
+    "output_scaling": None, "output_tensor_type": "padded",
     "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]}
 }
 
 
 @update_model_kwargs(model_crystal_default)
 def make_crystal_model(inputs: list = None,
+                       input_tensor_type: str = None,
                        input_embedding: dict = None,
+                       cast_disjoint_kwargs: dict = None,
+                       has_equivariant_input: bool = None,
+                       input_node_embedding: dict = None,
                        equiv_initialize_kwargs: dict = None,
                        bessel_basis: dict = None,
                        depth: int = None,
@@ -204,7 +214,9 @@ def make_crystal_model(inputs: list = None,
                        verbose: int = None,
                        output_embedding: str = None,
                        output_to_tensor: bool = None,
-                       output_mlp: dict = None
+                       output_mlp: dict = None,
+                       output_scaling: dict = None,
+                       output_tensor_type: str = None
                        ):
     r"""Make `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.PAiNN.model_crystal_default`.
@@ -250,15 +262,16 @@ def make_crystal_model(inputs: list = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    batched_nodes, batched_x, batched_indices, total_nodes, total_edges = model_inputs[:5]
-    z, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
-        **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
-    x, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_nodes])
+    disjoint_inputs = template_cast_list_input(model_inputs, input_tensor_type=input_tensor_type,
+                                               cast_disjoint_kwargs=cast_disjoint_kwargs,
+                                               has_nodes=2+int(has_equivariant_input), has_crystal_input=2,
+                                               has_edges=False)
 
-    if len(model_inputs) > 5:
-        v, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([model_inputs[6], total_edges])
-    else:
+    if not has_equivariant_input:
+        z, x, edi, edge_image, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
         v = None
+    else:
+        v, z, x, edi, edge_image, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
 
     # Wrapping disjoint model.
     out = model_disjoint_crystal(
@@ -274,7 +287,7 @@ def make_crystal_model(inputs: list = None,
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
         if scaler.extensive:
             # Node information must be numbers, or we need an additional input.
-            out = scaler([out, batched_nodes])
+            out = scaler([out, z, batch_id_node])
         else:
             out = scaler(out)
 
