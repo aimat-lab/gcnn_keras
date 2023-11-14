@@ -73,3 +73,57 @@ def decompose_ragged_tensor(x, batch_dtype="int64"):
     if any_symbolic_tensors((x,)):
         return _DecomposeRaggedTensor(batch_dtype=batch_dtype).symbolic_call(x)
     return kgcnn_backend.decompose_ragged_tensor(x)
+
+
+def _reduce_shape(shape, axis=None, keepdims=False):
+    shape = list(shape)
+    if axis is None:
+        if keepdims:
+            return tuple([1 for _ in shape])
+        else:
+            return tuple([])
+
+    if keepdims:
+        for ax in axis:
+            shape[ax] = 1
+        return tuple(shape)
+    else:
+        for ax in sorted(axis, reverse=True):
+            del shape[ax]
+        return tuple(shape)
+
+
+class _Norm(Operation):
+    def __init__(self, ord='fro', axis=None, keepdims=False):
+        super().__init__()
+        self.ord = ord
+        if isinstance(axis, int):
+            axis = [axis]
+        self.axis = axis
+        self.keepdims = keepdims
+
+    def call(self, x):
+        return kgcnn_backend.norm(x, ord=self.ord, axis=self.axis, keepdims=self.keepdims)
+
+    def compute_output_spec(self, x):
+        return KerasTensor(
+            _reduce_shape(x.shape, axis=self.axis, keepdims=self.keepdims),
+            dtype=x.dtype,
+        )
+
+
+def norm(x, ord='fro', axis=None, keepdims=False):
+    """Compute linalg norm.
+
+    Args:
+        x: Input tensor
+        ord: Order of the norm.
+        axis: dimensions over which to compute the vector or matrix norm.
+        keepdims: If set to True, the reduced dimensions are retained in the result.
+
+    Returns:
+        output tensor.
+    """
+    if any_symbolic_tensors((x,)):
+        return _Norm(ord=ord, axis=axis, keepdims=keepdims).symbolic_call(x)
+    return kgcnn_backend.norm(x, ord=ord, axis=axis, keepdims=keepdims)

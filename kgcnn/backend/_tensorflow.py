@@ -51,3 +51,7 @@ def decompose_ragged_tensor(x, batch_dtype="int64"):
     in_ids = in_ids - tf.repeat(row_starts, row_lengths, axis=0)
     # in_ids = tf.ragged.range(row_lengths).values
     return x.values, row_ids, in_ids, row_lengths
+
+
+def norm(x, ord='fro', axis=None, keepdims=False):
+    return tf.norm(x, ord=ord, dim=axis, keepdims=keepdims)

@@ -50,3 +50,7 @@ def repeat_static_length(x, repeats, axis=None, total_repeat_length: int = None)
 
 def decompose_ragged_tensor(x):
     raise NotImplementedError("Operation supported this backend '%s'." % __name__)
+
+
+def norm(x, ord='fro', axis=None, keepdims=False):
+    return torch.linalg.norm(x, ord=ord, dim=axis, keepdims=keepdims)
