@@ -468,4 +468,66 @@ hyper = {
             "kgcnn_version": "4.0.0"
         }
     },
+    "PAiNN": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.PAiNN",
+            "config": {
+                "name": "PAiNN",
+                "inputs": [
+                    {"shape": [None], "name": "node_number", "dtype": "int64", "ragged": True},
+                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                ],
+                "input_tensor_type": "ragged",
+                "cast_disjoint_kwargs": {},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 128},
+                "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
+                "pooling_args": {"pooling_method": "scatter_sum"}, "conv_args": {"units": 128, "cutoff": None},
+                "update_args": {"units": 128}, "depth": 3, "verbose": 10,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]},
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 32, "epochs": 250, "validation_freq": 10, "verbose": 2,
+                "callbacks": []
+            },
+            "compile": {
+                "optimizer": {
+                    "class_name": "Adam", "config": {
+                        "learning_rate": {
+                            "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
+                                "learning_rate": 0.001, "warmup_steps": 30.0, "decay_steps": 40000.0,
+                                "decay_rate": 0.01
+                            }
+                        }, "amsgrad": True, "use_ema": True
+                    }
+                },
+                "loss": "mean_absolute_error",
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}},
+        },
+        "data": {
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "module_name": "kgcnn.data.datasets.ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {"add_hydrogen": True}},
+                    {"map_list": {"method": "set_range", "max_distance": 3, "max_neighbours": 10000}}
+                ]
+            },
+            "data_unit": "mol/L"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "4.0.0"
+        }
+    },
 }

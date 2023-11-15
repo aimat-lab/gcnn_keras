@@ -27,8 +27,8 @@ if backend_to_use() not in __kgcnn_model_backend_supported__:
 model_default = {
     "name": "DMPNN",
     "inputs": [
-        {"shape": (None,), "name": "node_attributes", "dtype": "float32"},
-        {"shape": (None,), "name": "edge_attributes", "dtype": "float32"},
+        {"shape": (None,), "name": "node_number", "dtype": "int64"},
+        {"shape": (None,), "name": "edge_number", "dtype": "int64"},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
         {"shape": (None, 1), "name": "edge_indices_reverse", "dtype": "int64"},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
@@ -48,7 +48,8 @@ model_default = {
     "edge_activation": {"activation": "relu"},
     "node_dense": {"units": 128, "use_bias": True, "activation": "relu"},
     "verbose": 10, "depth": 5, "dropout": {"rate": 0.1},
-    "output_embedding": "graph", "output_to_tensor": True,
+    "output_embedding": "graph",
+    "output_to_tensor": None,  # deprecated
     "output_tensor_type": "padded",
     "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
                    "activation": ["relu", "relu", "linear"]},
@@ -61,7 +62,7 @@ def make_model(name: str = None,
                inputs: list = None,
                input_tensor_type: str = None,
                cast_disjoint_kwargs: dict = None,
-               input_embedding: dict = None,
+               input_embedding: dict = None,  # noqa
                input_node_embedding: dict = None,
                input_edge_embedding: dict = None,
                input_graph_embedding: dict = None,
@@ -72,10 +73,10 @@ def make_model(name: str = None,
                node_dense: dict = None,
                dropout: dict = None,
                depth: int = None,
-               verbose: int = None,
+               verbose: int = None,  # noqa
                use_graph_state: bool = False,
                output_embedding: str = None,
-               output_to_tensor: bool = None,
+               output_to_tensor: bool = None,  # noqa
                output_tensor_type: str = None,
                output_mlp: dict = None,
                output_scaling: dict = None
@@ -83,30 +84,25 @@ def make_model(name: str = None,
     r"""Make `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`__ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.DMPNN.model_default`.
 
-    Inputs:
-        list: `[node_attributes, edge_attributes, edge_indices, edge_pairs, total_nodes, total_edges]` or
-        `[node_attributes, edge_attributes, edge_indices, edge_pairs, total_nodes, total_edges, state_attributes]`
-        if `use_graph_state=True` .
+    Model inputs:
+    Model uses the list template of inputs and standard output template.
+    The supported inputs are  :obj:`[nodes, edges, edge_indices, reverse_indices, (graph_state), ...]`
+    with '...' indicating mask or id tensors following the template below.
+    Here, reverse indices are in place of angle indices and refer to edges. The graph state is optional and controlled
+    by `use_graph_state` parameter.
 
-            - node_attributes (Tensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
-              using an embedding layer.
-            - edge_attributes (Tensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
-              using an embedding layer.
-            - edge_indices (Tensor): Index list for edges of shape `(batch, None, 2)`.
-            - edge_pairs (Tensor): Pair mappings for reverse edge for each edge `(batch, None, 1)`.
-            - state_attributes (Tensor): Environment or graph state attributes of shape `(batch, F)` or `(batch,)`
-              using an embedding layer.
-            - total_nodes(Tensor): Number of Nodes in graph of shape `(batch, )` .
-            - total_edges(Tensor): Number of Edges in graph of shape `(batch, )` .
+    %s
 
-    Outputs:
-        Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+    Model outputs:
+    The standard output template:
+
+    %s
 
     Args:
         name (str): Name of the model. Should be "DMPNN".
-        inputs (list): List of dictionaries unpacked in :obj:`keras.layers.Input`. Order must match model definition.
+        inputs (list): List of dictionaries unpacked in :obj:`Input`. Order must match model definition.
         input_tensor_type (str): Input type of graph tensor. Default is "padded".
-        cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
+        cast_disjoint_kwargs (dict): Dictionary of arguments for casting layers if used.
         input_embedding (dict): Deprecated in favour of input_node_embedding etc.
         input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of arguments for edge unpacked in :obj:`Embedding` layers.
@@ -122,7 +118,7 @@ def make_model(name: str = None,
         verbose (int): Level for print information.
         use_graph_state (bool): Whether to use graph state information. Default is False.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
-        output_to_tensor (bool): Whether to cast model output to :obj:`Tensor`.
+        output_to_tensor (bool): WDeprecated in favour of `output_tensor_type` .
         output_tensor_type (str): Output type of graph tensors such as nodes or edges. Default is "padded".
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
@@ -150,10 +146,12 @@ def make_model(name: str = None,
     # Wrapping disjoint model.
     out = model_disjoint(
         [n, ed, edi, batch_id_node, e_pairs, count_nodes, gs],
-        use_node_embedding=len(inputs[0]['shape']) < 2, use_edge_embedding=len(inputs[1]['shape']) < 2,
-        use_graph_embedding=len(inputs[7]["shape"]) < 1 if use_graph_state else False,
+        use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
+        use_edge_embedding=("int" in inputs[1]['dtype']) if input_edge_embedding is not None else False,
+        use_graph_embedding=("int" in inputs[4]['dtype']) if input_graph_embedding is not None else False,
         input_node_embedding=input_node_embedding,
-        input_edge_embedding=input_edge_embedding, input_graph_embedding=input_graph_embedding,
+        input_edge_embedding=input_edge_embedding,
+        input_graph_embedding=input_graph_embedding,
         pooling_args=pooling_args, edge_initialize=edge_initialize, edge_activation=edge_activation,
         node_dense=node_dense, dropout=dropout, depth=depth, use_graph_state=use_graph_state,
         output_embedding=output_embedding, output_mlp=output_mlp, edge_dense=edge_dense
@@ -180,3 +178,6 @@ def make_model(name: str = None,
         setattr(model, "set_scale", set_scale)
 
     return model
+
+
+make_model.__doc__ = make_model.__doc__ % (template_cast_list_input.__doc__, template_cast_output.__doc__)

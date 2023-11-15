@@ -1,8 +1,4 @@
-import keras_core as ks
-from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
-                                  CastDisjointToBatchedGraphState, CastDisjointToBatchedAttributes,
-                                  CastBatchedGraphStateToDisjoint, CastRaggedAttributesToDisjoint,
-                                  CastRaggedIndicesToDisjoint, CastDisjointToRaggedAttributes)
+# import keras_core as ks
 from ._model import model_disjoint, model_disjoint_edge
 from kgcnn.models.utils import update_model_kwargs
 from kgcnn.layers.scale import get as get_scaler
@@ -28,7 +24,7 @@ if backend_to_use() not in __kgcnn_model_backend_supported__:
 model_default = {
     "name": "GIN",
     "inputs": [
-        {"shape": (None,), "name": "node_attributes", "dtype": "float32"},
+        {"shape": (None,), "name": "node_number", "dtype": "int64"},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
@@ -44,7 +40,8 @@ model_default = {
     "depth": 3, "dropout": 0.0, "verbose": 10,
     "last_mlp": {"use_bias": [True, True, True], "units": [64, 64, 64],
                  "activation": ["relu", "relu", "linear"]},
-    "output_embedding": 'graph', "output_to_tensor": True,
+    "output_embedding": 'graph',
+    "output_to_tensor": None,  # deprecated
     "output_tensor_type": "padded",
     "output_mlp": {"use_bias": True, "units": 1,
                    "activation": "softmax"}
@@ -55,7 +52,7 @@ model_default = {
 def make_model(inputs: list = None,
                input_tensor_type: str = None,
                cast_disjoint_kwargs: dict = None,
-               input_embedding: dict = None,
+               input_embedding: dict = None,  # noqa
                input_node_embedding: dict = None,
                depth: int = None,
                gin_args: dict = None,
@@ -63,32 +60,32 @@ def make_model(inputs: list = None,
                last_mlp: dict = None,
                dropout: float = None,
                name: str = None,
-               verbose: int = None,
+               verbose: int = None,  # noqa
                output_embedding: str = None,
-               output_to_tensor: bool = None,
+               output_to_tensor: bool = None,  # noqa
                output_mlp: dict = None,
                output_scaling: dict = None,
                output_tensor_type: str = None,
                ):
-    r"""Make `GIN <https://arxiv.org/abs/1810.00826>`_ graph network via functional API.
+    r"""Make `GIN <https://arxiv.org/abs/1810.00826>`__ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.GIN.model_default`.
 
-    Inputs:
-        list: `[node_attributes, edge_attributes, edge_indices, total_nodes, total_edges]`
+    Model inputs:
+    Model uses the list template of inputs and standard output template.
+    The supported inputs are  :obj:`[nodes, edge_indices, ...]`
+    with '...' indicating mask or ID tensors following the template below:
 
-            - node_attributes (Tensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
-              using an embedding layer.
-            - edge_indices (Tensor): Index list for edges of shape `(batch, None, 2)`.
-            - total_nodes(Tensor, optional): Number of Nodes in graph if not same sized graphs of shape `(batch, )` .
-            - total_edges(Tensor, optional): Number of Edges in graph if not same sized graphs of shape `(batch, )` .
+    %s
 
-    Outputs:
-        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+    Model outputs:
+    The standard output template:
+
+    %s
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_tensor_type (str): Input type of graph tensor. Default is "padded".
-        cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
+        cast_disjoint_kwargs (dict): Dictionary of arguments for castin layers.
         input_embedding (dict): Deprecated in favour of input_node_embedding etc.
         input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
@@ -99,14 +96,14 @@ def make_model(inputs: list = None,
         name (str): Name of the model.
         verbose (int): Level of print output.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
-        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
+        output_to_tensor (bool): Deprecated in favour of `output_tensor_type` .
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
         output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
         output_tensor_type (str): Output type of graph tensors such as nodes or edges. Default is "padded".
 
     Returns:
-        :obj:`tf.keras.models.Model`
+        :obj:`keras.models.Model`
     """
     # Make input
     model_inputs = [Input(**x) for x in inputs]
@@ -121,8 +118,10 @@ def make_model(inputs: list = None,
     # Wrapping disjoint model.
     out = model_disjoint(
         [n, disjoint_indices, batch_id_node, count_nodes],
-        use_node_embedding=len(inputs[0]['shape']) < 2, input_node_embedding=input_node_embedding,
-        depth=depth, gin_args=gin_args, gin_mlp=gin_mlp, last_mlp=last_mlp, dropout=dropout,
+        use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
+        input_node_embedding=input_node_embedding,
+        depth=depth, gin_args=gin_args, gin_mlp=gin_mlp,
+        last_mlp=last_mlp, dropout=dropout,
         output_embedding=output_embedding, output_mlp=output_mlp
     )
 
@@ -148,11 +147,14 @@ def make_model(inputs: list = None,
     return model
 
 
+make_model.__doc__ = make_model.__doc__ % (template_cast_list_input.__doc__, template_cast_output.__doc__)
+
+
 model_default_edge = {
     "name": "GINE",
     "inputs": [
-        {"shape": (None,), "name": "node_attributes", "dtype": "float32"},
-        {"shape": (None,), "name": "edge_attributes", "dtype": "float32"},
+        {"shape": (None,), "name": "node_number", "dtype": "int64"},
+        {"shape": (None,), "name": "edge_number", "dtype": "int64"},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
@@ -161,7 +163,7 @@ model_default_edge = {
     "cast_disjoint_kwargs": {},
     "input_embedding": None,  # deprecated
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
-    "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
+    "input_edge_embedding": {"input_dim": 10, "output_dim": 64},
     "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
                 "use_normalization": True, "normalization_technique": "graph_batch"},
     "gin_args": {"epsilon_learnable": False},
@@ -179,7 +181,7 @@ model_default_edge = {
 def make_model_edge(inputs: list = None,
                     input_tensor_type: str = None,
                     cast_disjoint_kwargs: dict = None,
-                    input_embedding: dict = None,
+                    input_embedding: dict = None,  # noqa
                     input_node_embedding: dict = None,
                     input_edge_embedding: dict = None,
                     depth: int = None,
@@ -188,9 +190,9 @@ def make_model_edge(inputs: list = None,
                     last_mlp: dict = None,
                     dropout: float = None,
                     name: str = None,
-                    verbose: int = None,
+                    verbose: int = None,  # noqa
                     output_embedding: str = None,
-                    output_to_tensor: bool = None,
+                    output_to_tensor: bool = None,  # noqa
                     output_mlp: dict = None,
                     output_scaling: dict = None,
                     output_tensor_type: str = None,
@@ -198,24 +200,22 @@ def make_model_edge(inputs: list = None,
     r"""Make `GINE <https://arxiv.org/abs/1905.12265>`__ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.GIN.model_default_edge` .
 
-    Inputs:
-        list: `[node_attributes, edge_attributes, edge_indices, total_nodes, total_edges]`
+    Model inputs:
+    Model uses the list template of inputs and standard output template.
+    The supported inputs are  :obj:`[nodes, edges, edge_indices, ...]`
+    with '...' indicating mask or ID tensors following the template below:
 
-            - node_attributes (Tensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
-              using an embedding layer.
-            - edge_attributes (Tensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
-              using an embedding layer.
-            - edge_indices (Tensor): Index list for edges of shape `(batch, None, 2)`.
-            - total_nodes(Tensor, optional): Number of Nodes in graph if not same sized graphs of shape `(batch, )` .
-            - total_edges(Tensor, optional): Number of Edges in graph if not same sized graphs of shape `(batch, )` .
+    %s
 
-    Outputs:
-        Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+    Model outputs:
+    The standard output template:
+
+    %s
 
     Args:
-        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        inputs (list): List of dictionaries unpacked in :obj:`Input`. Order must match model definition.
         input_tensor_type (str): Input type of graph tensor. Default is "padded".
-        cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
+        cast_disjoint_kwargs (dict): Dictionary of arguments for casting layers.
         input_embedding (dict): Deprecated in favour of input_node_embedding etc.
         input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of arguments for edge unpacked in :obj:`Embedding` layers.
@@ -227,14 +227,14 @@ def make_model_edge(inputs: list = None,
         name (str): Name of the model.
         verbose (int): Level of print output.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
-        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
+        output_to_tensor (bool): Deprecated in favour of `output_tensor_type` .
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
         output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
         output_tensor_type (str): Output type of graph tensors such as nodes or edges. Default is "padded".
 
     Returns:
-        :obj:`ks.models.Model`
+        :obj:`keras.models.Model`
     """
     # Make input
     model_inputs = [Input(**x) for x in inputs]
@@ -247,9 +247,10 @@ def make_model_edge(inputs: list = None,
     # Wrapping disjoint model.
     out = model_disjoint_edge(
         [n, ed, disjoint_indices, batch_id_node, count_nodes],
-        use_node_embedding="float" not in inputs[0]['dtype'],
-        use_edge_embedding="float" not in inputs[1]['dtype'],
-        input_node_embedding=input_node_embedding, input_edge_embedding=input_edge_embedding,
+        use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
+        use_edge_embedding=("int" in inputs[1]['dtype']) if input_edge_embedding is not None else False,
+        input_node_embedding=input_node_embedding,
+        input_edge_embedding=input_edge_embedding,
         depth=depth, gin_args=gin_args, gin_mlp=gin_mlp, last_mlp=last_mlp,
         dropout=dropout, output_embedding=output_embedding, output_mlp=output_mlp
     )
@@ -276,3 +277,4 @@ def make_model_edge(inputs: list = None,
     return model
 
 
+make_model_edge.__doc__ = make_model_edge.__doc__ % (template_cast_list_input.__doc__, template_cast_output.__doc__)

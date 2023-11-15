@@ -23,7 +23,7 @@ if backend_to_use() not in __kgcnn_model_backend_supported__:
 model_default = {
     "name": "PAiNN",
     "inputs": [
-        {"shape": (None,), "name": "node_attributes", "dtype": "float32"},
+        {"shape": (None,), "name": "node_number", "dtype": "int64"},
         {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32"},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
@@ -43,7 +43,8 @@ model_default = {
     "depth": 3,
     "verbose": 10,
     "output_embedding": "graph",
-    "output_to_tensor": True, "output_tensor_type": "padded",
+    "output_to_tensor": None,  # deprecated
+    "output_tensor_type": "padded",
     "output_scaling": None,
     "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]}
 }
@@ -53,7 +54,7 @@ model_default = {
 def make_model(inputs: list = None,
                input_tensor_type: str = None,
                cast_disjoint_kwargs: dict = None,
-               input_embedding: dict = None,
+               input_embedding: dict = None,  # noqa
                input_node_embedding: dict = None,
                has_equivariant_input: bool = None,
                equiv_initialize_kwargs: dict = None,
@@ -65,39 +66,40 @@ def make_model(inputs: list = None,
                equiv_normalization: bool = None,
                node_normalization: bool = None,
                name: str = None,
-               verbose: int = None,
+               verbose: int = None,  # noqa
                output_embedding: str = None,
-               output_to_tensor: bool = None,
+               output_to_tensor: bool = None,  # noqa
                output_mlp: dict = None,
                output_scaling: dict = None,
                output_tensor_type: str = None
                ):
-    r"""Make `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`_ graph network via functional API.
+    r"""Make `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`__ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.PAiNN.model_default`.
 
-    Inputs:
-        list: `[node_attributes, node_coordinates, bond_indices, total_nodes, total_edges]`
-        or `[node_attributes, node_coordinates, bond_indices, total_nodes, total_edges, equiv_initial]`
-        if a custom equivariant initialization is chosen other than zero.
+    Model inputs:
+    Model uses the list template of inputs and standard output template.
+    The supported inputs are  :obj:`[nodes, coordinates, edge_indices, ...]`
+    with '...' indicating mask or ID tensors following the template below.
+    If equivariant input is used via `has_equivariant_input` then input is extended to
+    :obj:`[equiv, nodes, coordinates, edge_indices, ...]`
 
-            - node_attributes (Tensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
-              using an embedding layer.
-            - node_coordinates (Tensor): Atomic coordinates of shape `(batch, None, 3)`.
-            - bond_indices (Tensor): Index list for edges or bonds of shape `(batch, None, 2)`.
-            - equiv_initial (Tensor): Equivariant initialization `(batch, None, 3, F)`. Optional.
-            - total_nodes(Tensor): Number of Nodes in graph if not same sized graphs of shape `(batch, )` .
-            - total_edges(Tensor): Number of Edges in graph if not same sized graphs of shape `(batch, )` .
+    %s
 
-    Outputs:
-        Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+    Model outputs:
+    The standard output template:
+
+    %s
 
     Args:
-        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
+        inputs (list): List of dictionaries unpacked in :obj:`Input`. Order must match model definition.
+        input_tensor_type (str): Input type of graph tensor. Default is "padded".
+        input_embedding (dict): Deprecated in favour of input_node_embedding etc.
+        cast_disjoint_kwargs (dict): Dictionary of arguments for casting layers.
         input_node_embedding (dict): Dictionary of embedding arguments for nodes unpacked in :obj:`Embedding` layers.
         equiv_initialize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`EquivariantInitialize` layer.
         bessel_basis (dict): Dictionary of layer arguments unpacked in final :obj:`BesselBasisLayer` layer.
         depth (int): Number of graph embedding units or depth of the network.
+        has_equivariant_input (bool): Whether the first equivariant node embedding is passed to the model.
         pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layer.
         conv_args (dict): Dictionary of layer arguments unpacked in :obj:`PAiNNconv` layer.
         update_args (dict): Dictionary of layer arguments unpacked in :obj:`PAiNNUpdate` layer.
@@ -106,10 +108,11 @@ def make_model(inputs: list = None,
         verbose (int): Level of verbosity.
         name (str): Name of the model.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
-        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
+        output_to_tensor (bool): Deprecated in favour of `output_tensor_type` .
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
         output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
+        output_tensor_type (str): Output type of graph tensors such as nodes or edges. Default is "padded".
 
     Returns:
         :obj:`keras.models.Model`
@@ -119,7 +122,7 @@ def make_model(inputs: list = None,
 
     disjoint_inputs = template_cast_list_input(model_inputs, input_tensor_type=input_tensor_type,
                                                cast_disjoint_kwargs=cast_disjoint_kwargs,
-                                               has_nodes=2+int(has_equivariant_input),
+                                               has_nodes=2 + int(has_equivariant_input),
                                                has_edges=False)
 
     if not has_equivariant_input:
@@ -131,8 +134,9 @@ def make_model(inputs: list = None,
     # Wrapping disjoint model.
     out = model_disjoint(
         [z, x, edi, batch_id_node, batch_id_edge, count_nodes, count_edges, v],
-        use_node_embedding=len(inputs[0]['shape']) < 2,
-        input_node_embedding=input_node_embedding, equiv_initialize_kwargs=equiv_initialize_kwargs,
+        use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
+        input_node_embedding=input_node_embedding,
+        equiv_initialize_kwargs=equiv_initialize_kwargs,
         bessel_basis=bessel_basis, depth=depth, pooling_args=pooling_args, conv_args=conv_args,
         update_args=update_args, equiv_normalization=equiv_normalization, node_normalization=node_normalization,
         output_embedding=output_embedding, output_mlp=output_mlp
@@ -165,14 +169,19 @@ def make_model(inputs: list = None,
     return model
 
 
+make_model.__doc__ = make_model.__doc__ % (template_cast_list_input.__doc__, template_cast_output.__doc__)
+
+
 model_crystal_default = {
     "name": "PAiNN",
     "inputs": [
-        {"shape": (None,), "name": "node_attributes", "dtype": "int64", "ragged": True},
-        {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
-        {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
-        {'shape': (None, 3), 'name': "edge_image", 'dtype': 'int64', 'ragged': True},
-        {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
+        {"shape": (None,), "name": "node_number", "dtype": "int64"},
+        {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32"},
+        {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
+        {'shape': (None, 3), 'name': "edge_image", 'dtype': 'int64'},
+        {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32'},
+        {"shape": (), "name": "total_nodes", "dtype": "int64"},
+        {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
     "input_tensor_type": "padded",
     "input_embedding": None,  # deprecated
@@ -197,7 +206,7 @@ model_crystal_default = {
 @update_model_kwargs(model_default, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
 def make_crystal_model(inputs: list = None,
                        input_tensor_type: str = None,
-                       input_embedding: dict = None,
+                       input_embedding: dict = None,  # noqa
                        cast_disjoint_kwargs: dict = None,
                        has_equivariant_input: bool = None,
                        input_node_embedding: dict = None,
@@ -210,40 +219,41 @@ def make_crystal_model(inputs: list = None,
                        equiv_normalization: bool = None,
                        node_normalization: bool = None,
                        name: str = None,
-                       verbose: int = None,
+                       verbose: int = None,  # noqa
                        output_embedding: str = None,
-                       output_to_tensor: bool = None,
+                       output_to_tensor: bool = None,  # noqa
                        output_mlp: dict = None,
                        output_scaling: dict = None,
                        output_tensor_type: str = None
                        ):
-    r"""Make `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`_ graph network via functional API.
+    r"""Make `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`__ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.PAiNN.model_crystal_default`.
 
-    Inputs:
-        list: `[node_attributes, node_coordinates, bond_indices, edge_image, lattice]`
-        or `[node_attributes, node_coordinates, bond_indices, edge_image, lattice, equiv_initial]` if a custom
-        equivariant initialization is chosen other than zero.
+    Model inputs:
+    Model uses the list template of inputs and standard output template.
+    The supported inputs are  :obj:`[nodes, coordinates, edge_indices, image_translation, lattice, ...]`
+    with '...' indicating mask or ID tensors following the template below.
+    If equivariant input is used via `has_equivariant_input` then input is extended to
+    :obj:`[equiv, nodes, coordinates, edge_indices, image_translation, lattice, ...]`
 
-            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
-              using an embedding layer.
-            - node_coordinates (tf.RaggedTensor): Atomic coordinates of shape `(batch, None, 3)`.
-            - bond_indices (tf.RaggedTensor): Index list for edges or bonds of shape `(batch, None, 2)`.
-            - equiv_initial (tf.RaggedTensor): Equivariant initialization `(batch, None, 3, F)`. Optional.
-            - lattice (tf.Tensor): Lattice matrix of the periodic structure of shape `(batch, 3, 3)`.
-            - edge_image (tf.RaggedTensor): Indices of the periodic image the sending node is located. The indices
-                of and edge are :math:`(i, j)` with :math:`j` being the sending node.
+    %s
 
-    Outputs:
-        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+    Model outputs:
+    The standard output template:
+
+    %s
 
     Args:
-        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
+        inputs (list): List of dictionaries unpacked in :obj:`Input`. Order must match model definition.
+        input_tensor_type (str): Input type of graph tensor. Default is "padded".
+        input_embedding (dict): Deprecated in favour of input_node_embedding etc.
+        cast_disjoint_kwargs (dict): Dictionary of arguments for casting layers.
+        input_node_embedding (dict): Dictionary of embedding arguments for nodes unpacked in :obj:`Embedding` layers.
         bessel_basis (dict): Dictionary of layer arguments unpacked in final :obj:`BesselBasisLayer` layer.
         equiv_initialize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`EquivariantInitialize` layer.
         depth (int): Number of graph embedding units or depth of the network.
         pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layer.
+        has_equivariant_input (bool): Whether the first equivariant node embedding is passed to the model.
         conv_args (dict): Dictionary of layer arguments unpacked in :obj:`PAiNNconv` layer.
         update_args (dict): Dictionary of layer arguments unpacked in :obj:`PAiNNUpdate` layer.
         equiv_normalization (bool): Whether to apply :obj:`GraphLayerNormalization` to equivariant tensor update.
@@ -251,31 +261,34 @@ def make_crystal_model(inputs: list = None,
         verbose (int): Level of verbosity.
         name (str): Name of the model.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
-        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
+        output_to_tensor (bool): Deprecated in favour of `output_tensor_type` .
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
+        output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
+        output_tensor_type (str): Output type of graph tensors such as nodes or edges. Default is "padded".
 
     Returns:
-        :obj:`tf.keras.models.Model`
+        :obj:`keras.models.Model`
     """
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    disjoint_inputs = template_cast_list_input(model_inputs, input_tensor_type=input_tensor_type,
-                                               cast_disjoint_kwargs=cast_disjoint_kwargs,
-                                               has_nodes=2+int(has_equivariant_input), has_crystal_input=2,
-                                               has_edges=False)
+    dj_inputs = template_cast_list_input(
+        model_inputs, input_tensor_type=input_tensor_type,
+        cast_disjoint_kwargs=cast_disjoint_kwargs,
+        has_nodes=2 + int(has_equivariant_input), has_crystal_input=2,
+        has_edges=False)
 
     if not has_equivariant_input:
-        z, x, edi, edge_image, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
+        z, x, edi, img, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = dj_inputs
         v = None
     else:
-        v, z, x, edi, edge_image, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
+        v, z, x, edi, img, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = dj_inputs
 
     # Wrapping disjoint model.
     out = model_disjoint_crystal(
-        [z, x, edi, edge_image, lattice, batch_id_node, batch_id_edge, count_nodes, count_edges, v],
-        use_node_embedding=len(inputs[0]['shape']) < 2,
+        [z, x, edi, img, lattice, batch_id_node, batch_id_edge, count_nodes, count_edges, v],
+        use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
         input_node_embedding=input_node_embedding, equiv_initialize_kwargs=equiv_initialize_kwargs,
         bessel_basis=bessel_basis, depth=depth, pooling_args=pooling_args, conv_args=conv_args,
         update_args=update_args, equiv_normalization=equiv_normalization, node_normalization=node_normalization,
@@ -308,3 +321,7 @@ def make_crystal_model(inputs: list = None,
 
     model.__kgcnn_model_version__ = __model_version__
     return model
+
+
+make_crystal_model.__doc__ = make_crystal_model.__doc__ % (
+    template_cast_list_input.__doc__, template_cast_output.__doc__)

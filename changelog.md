@@ -1,9 +1,19 @@
 v4.0.0
 
-* Reworked training scripts to have a single ``train_graph.py`` script. Command line arguments are now optional and just used for verification, but `category` to select a model/hyperparameter combination from hyper file.
+Completely reworked version of kgcnn for Keras 3.0 and multi-backend support. A lot of fundamental changes have been made.
+However, we tried to keep as much of the API from kgcnn 3.0 so that models in literature can be used with minimal changes.
+Mainly, the ``"input_tensor_type"="ragged"`` model parameter has to be added if ragged tensors are used as input in tensorflow.
+The scope of models has been reduced for initial release but will be extended in upcoming versions.
+
+* Reworked training scripts to have a single ``train_graph.py`` script. Command line arguments are now optional and just used for verification, all but `category` which has to select a model/hyperparameter combination from hyper file.
 Since the hyperparameter file already contains all necessary information.
 * Train test indices can now also be set and loaded from the dataset directly.
 * Scaler behaviour has changed with regard to `transform_dataset`. Key names of properties to transform has been moved to the constructor!
+Also be sure to check ``StandardLabelScaler`` if you want to scale regression targets, since target properties are default here.
+* Literature Models have an optional output scaler from new `kgcnn.layers.scale` layer controlled by `output_scaling` model argument.
+* Input embedding in literature models is now controlled with separate ``input_node_embedding`` or ``input_edge_embedding`` arguments which can be set to `None` for no embedding.
+Also embedding input tokens must be of dtype int now. No autocasting from float anymore.
+*  
 
 
 

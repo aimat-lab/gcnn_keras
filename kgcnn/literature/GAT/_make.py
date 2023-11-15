@@ -24,8 +24,8 @@ if backend_to_use() not in __kgcnn_model_backend_supported__:
 model_default = {
     "name": "GAT",
     "inputs": [
-        {"shape": (None,), "name": "node_attributes", "dtype": "float32"},
-        {"shape": (None,), "name": "edge_attributes", "dtype": "float32"},
+        {"shape": (None,), "name": "node_number", "dtype": "int64"},
+        {"shape": (None,), "name": "edge_number", "dtype": "int64"},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
@@ -34,15 +34,16 @@ model_default = {
     "cast_disjoint_kwargs": {},
     "input_embedding": None,  # deprecated
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
-    "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
+    "input_edge_embedding": {"input_dim": 10, "output_dim": 64},
     "attention_args": {"units": 32, "use_final_activation": False, "use_edge_features": True,
                        "has_self_loops": True, "activation": "kgcnn>leaky_relu", "use_bias": True},
     "pooling_nodes_args": {"pooling_method": "scatter_mean"},
-    "depth": 3, "attention_heads_num": 5,
+    "depth": 3,
+    "attention_heads_num": 5,
     "attention_heads_concat": False,
     "verbose": 10,
     "output_embedding": "graph",
-    "output_to_tensor": True,
+    "output_to_tensor": None,  # deprecated
     "output_tensor_type": "padded",
     "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
                    "activation": ["relu", "relu", "sigmoid"]},
@@ -54,7 +55,7 @@ model_default = {
 def make_model(inputs: list = None,
                input_tensor_type: str = None,
                cast_disjoint_kwargs: dict = None,
-               input_embedding: dict = None,
+               input_embedding: dict = None,  # noqa
                input_node_embedding: dict = None,
                input_edge_embedding: dict = None,
                attention_args: dict = None,
@@ -63,14 +64,14 @@ def make_model(inputs: list = None,
                attention_heads_num: int = None,
                attention_heads_concat: bool = None,
                name: str = None,
-               verbose: int = None,
+               verbose: int = None,  # noqa
                output_embedding: str = None,
-               output_to_tensor: bool = None,
+               output_to_tensor: bool = None,  # noqa
                output_mlp: dict = None,
                output_scaling: dict = None,
                output_tensor_type: str = None,
                ):
-    r"""Make `GAT <https://arxiv.org/abs/1710.10903>`_ graph network via functional API.
+    r"""Make `GAT <https://arxiv.org/abs/1710.10903>`__ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.GAT.model_default`.
 
     Model inputs:
@@ -85,10 +86,9 @@ def make_model(inputs: list = None,
 
     %s
 
-
     Args:
-        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
+        inputs (list): List of dictionaries unpacked in :obj:`Input`. Order must match model definition.
+        cast_disjoint_kwargs (dict): Dictionary of arguments for casting layers if used.
         input_tensor_type (str): Input type of graph tensor. Default is "padded".
         input_embedding (dict): Deprecated in favour of input_node_embedding etc.
         input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
@@ -108,7 +108,7 @@ def make_model(inputs: list = None,
         output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers.
 
     Returns:
-        :obj:`ks.models.Model`
+        :obj:`keras.models.Model`
     """
     # Make input
     model_inputs = [Input(**x) for x in inputs]
@@ -121,8 +121,10 @@ def make_model(inputs: list = None,
     # Wrapping disjoint model.
     out = model_disjoint(
         [n, ed, disjoint_indices, batch_id_node, count_nodes],
-        use_node_embedding=len(inputs[0]['shape']) < 2, use_edge_embedding=len(inputs[1]['shape']) < 2,
-        input_node_embedding=input_node_embedding, input_edge_embedding=input_edge_embedding,
+        use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
+        use_edge_embedding=("int" in inputs[1]['dtype']) if input_edge_embedding is not None else False,
+        input_node_embedding=input_node_embedding,
+        input_edge_embedding=input_edge_embedding,
         attention_args=attention_args, pooling_nodes_args=pooling_nodes_args, depth=depth,
         attention_heads_num=attention_heads_num, attention_heads_concat=attention_heads_concat,
         output_embedding=output_embedding, output_mlp=output_mlp

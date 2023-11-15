@@ -36,7 +36,7 @@ model_default = {
     ],
     "input_tensor_type": "padded",
     "cast_disjoint_kwargs": {},
-    "input_embedding": None,
+    "input_embedding": None,  # deprecated
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
     "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
     "attention_args": {"units": 32},
@@ -44,7 +44,8 @@ model_default = {
     "depthato": 2,
     "dropout": 0.1,
     "verbose": 10,
-    "output_embedding": "graph", "output_to_tensor": True,
+    "output_embedding": "graph",
+    "output_to_tensor": True,  # deprecated
     "output_tensor_type": "padded",
     "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
                    "activation": ["relu", "relu", "sigmoid"]}
@@ -57,36 +58,37 @@ def make_model(inputs: list = None,
                input_tensor_type: str = None,
                input_node_embedding: dict = None,
                input_edge_embedding: dict = None,
-               input_embedding: dict = None,
+               input_embedding: dict = None,  # noqa
                depthmol: int = None,
                depthato: int = None,
                dropout: float = None,
                attention_args: dict = None,
                name: str = None,
-               verbose: int = None,
+               verbose: int = None,  # noqa
                output_embedding: str = None,
-               output_to_tensor: bool = None,
+               output_to_tensor: bool = None,  # noqa
                output_tensor_type: str = None,
                output_scaling: dict = None,
                output_mlp: dict = None
                ):
-    r"""Make `AttentiveFP <https://doi.org/10.1021/acs.jmedchem.9b00959>`_ graph network via functional API.
+    r"""Make `AttentiveFP <https://doi.org/10.1021/acs.jmedchem.9b00959>`__ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.AttentiveFP.model_default`.
 
     Model inputs:
     Model uses the list template of inputs and standard output template.
     The supported inputs are  :obj:`[nodes, edges, edge_indices, ...]`
     with '...' indicating mask or id tensors following the template below:
+
     %s
 
     Model outputs:
     The standard output template:
+
     %s
 
-
     Args:
-        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
+        inputs (list): List of dictionaries unpacked in :obj:`Input`. Order must match model definition.
+        cast_disjoint_kwargs (dict): Dictionary of arguments for casting layers if used.
         input_tensor_type (str): Input type of graph tensor. Default is "padded".
         input_embedding (dict): Deprecated in favour of `input_node_embedding` etc.
         input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
@@ -119,8 +121,8 @@ def make_model(inputs: list = None,
     # Wrapping disjoint model.
     out = model_disjoint(
         [n, ed, disjoint_indices, batch_id_node, count_nodes],
-        use_node_embedding=len(inputs[0]['shape']) < 2,
-        use_edge_embedding=len(inputs[1]['shape']) < 2,
+        use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
+        use_edge_embedding=("int" in inputs[1]['dtype']) if input_edge_embedding is not None else False,
         input_node_embedding=input_node_embedding,
         input_edge_embedding=input_edge_embedding,
         depthmol=depthmol,
