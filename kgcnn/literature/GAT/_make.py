@@ -76,11 +76,13 @@ def make_model(inputs: list = None,
     Model inputs:
     Model uses the list template of inputs and standard output template.
     The supported inputs are  :obj:`[nodes, edges, edge_indices, ...]`
-    with '...' indicating mask or id tensors following the template below:
+    with '...' indicating mask or ID tensors following the template below:
+
     %s
 
     Model outputs:
     The standard output template:
+
     %s
 
 
