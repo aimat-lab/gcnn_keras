@@ -1,5 +1,4 @@
 import keras_core as ks
-from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint)
 from kgcnn.layers.modules import Input
 from kgcnn.models.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
@@ -50,7 +49,7 @@ model_default = {
 }
 
 
-@update_model_kwargs(model_default, update_recursive=0)
+@update_model_kwargs(model_default, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
 def make_model(inputs: list = None,
                input_tensor_type: str = None,
                cast_disjoint_kwargs: dict = None,
@@ -195,7 +194,7 @@ model_crystal_default = {
 }
 
 
-@update_model_kwargs(model_crystal_default)
+@update_model_kwargs(model_default, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
 def make_crystal_model(inputs: list = None,
                        input_tensor_type: str = None,
                        input_embedding: dict = None,

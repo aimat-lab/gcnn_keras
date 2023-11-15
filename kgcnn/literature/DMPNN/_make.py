@@ -1,8 +1,4 @@
 import keras_core as ks
-from kgcnn.layers.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
-                                  CastDisjointToBatchedGraphState, CastDisjointToBatchedAttributes,
-                                  CastBatchedGraphStateToDisjoint, CastRaggedAttributesToDisjoint,
-                                  CastRaggedIndicesToDisjoint, CastDisjointToRaggedAttributes)
 from kgcnn.layers.scale import get as get_scaler
 from kgcnn.models.utils import update_model_kwargs
 from kgcnn.models.casting import template_cast_output, template_cast_list_input
