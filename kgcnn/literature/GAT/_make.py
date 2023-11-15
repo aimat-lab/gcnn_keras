@@ -73,19 +73,16 @@ def make_model(inputs: list = None,
     r"""Make `GAT <https://arxiv.org/abs/1710.10903>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.GAT.model_default`.
 
-    Inputs:
-        list: `[node_attributes, edge_attributes, edge_indices, total_nodes, total_edges]`
+    Model inputs:
+    Model uses the list template of inputs and standard output template.
+    The supported inputs are  :obj:`[nodes, edges, edge_indices, ...]`
+    with '...' indicating mask or id tensors following the template below:
+    %s
 
-            - node_attributes (Tensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
-              using an embedding layer.
-            - edge_attributes (Tensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
-              using an embedding layer.
-            - edge_indices (Tensor): Index list for edges of shape `(batch, None, 2)`.
-            - total_nodes(Tensor): Number of Nodes in graph if not same sized graphs of shape `(batch, )` .
-            - total_edges(Tensor): Number of Edges in graph if not same sized graphs of shape `(batch, )` .
+    Model outputs:
+    The standard output template:
+    %s
 
-    Outputs:
-        Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
@@ -150,3 +147,6 @@ def make_model(inputs: list = None,
         setattr(model, "set_scale", set_scale)
 
     return model
+
+
+make_model.__doc__ = make_model.__doc__ % (template_cast_list_input.__doc__, template_cast_output.__doc__)
