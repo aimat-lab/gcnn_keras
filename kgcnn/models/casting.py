@@ -9,6 +9,8 @@ from kgcnn.layers.casting import (
 
 def template_cast_output(model_outputs,
                          output_embedding, output_tensor_type, input_tensor_type, cast_disjoint_kwargs):
+    """TODO"""
+
     out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_outputs
 
     # Output embedding choice
@@ -55,7 +57,7 @@ def template_cast_list_input(model_inputs,
                              has_graph_state: Union[int, bool] = False,
                              has_crystal_input: Union[int, bool] = False,
                              return_sub_id: bool = True):
-
+    """TODO"""
     standard_inputs = [x for x in model_inputs]
 
     batched_nodes = []

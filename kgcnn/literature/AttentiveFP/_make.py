@@ -73,6 +73,17 @@ def make_model(inputs: list = None,
     r"""Make `AttentiveFP <https://doi.org/10.1021/acs.jmedchem.9b00959>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.AttentiveFP.model_default`.
 
+    Model inputs:
+    Model uses the list template of inputs and standard output template.
+    The supported inputs are  :obj:`[nodes, edges, edge_indices, ...]`
+    with '...' indicating mask or id tensors following the template below:
+    %s
+
+    Model outputs:
+    The standard output template:
+    %s
+
+
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
@@ -141,3 +152,6 @@ def make_model(inputs: list = None,
         setattr(model, "set_scale", set_scale)
 
     return model
+
+
+make_model.__doc__ = make_model.__doc__ % (template_cast_list_input.__doc__, template_cast_output.__doc__)
