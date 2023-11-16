@@ -28,6 +28,15 @@ class Aggregate(Layer):  # noqa
             axis (int): Axis to aggregate. Default is 0.
         """
         super(Aggregate, self).__init__(**kwargs)
+        # Shorthand notation
+        if pooling_method == "sum":
+            pooling_method = "scatter_sum"
+        if pooling_method == "max":
+            pooling_method = "scatter_max"
+        if pooling_method == "min":
+            pooling_method = "scatter_min"
+        if pooling_method == "mean":
+            pooling_method = "scatter_mean"
         self.pooling_method = pooling_method
         self.axis = axis
         if axis != 0:

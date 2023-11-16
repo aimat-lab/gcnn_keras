@@ -228,14 +228,14 @@ def make_crystal_model(inputs: list = None,
     r"""Make `SchNet <https://arxiv.org/abs/1706.08566>`__ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.Schnet.model_crystal_default`.
 
-    Model inputs:
+    **Model inputs**:
     Model uses the list template of inputs and standard output template.
     The supported inputs are  :obj:`[nodes, coordinates, edge_indices, image_translation, lattice, ...]`
     with '...' indicating mask or ID tensors following the template below.
 
     %s
 
-    Model outputs:
+    **Model outputs**:
     The standard output template:
 
     %s

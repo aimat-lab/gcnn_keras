@@ -71,7 +71,7 @@ def make_model(inputs: list = None,
     r"""Make `GCN <https://arxiv.org/abs/1609.02907>`__ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.GCN.model_default`.
 
-    Model inputs:
+    **Model inputs**:
     Model uses the list template of inputs and standard output template.
     The supported inputs are  :obj:`[nodes, edges, edge_indices, ...]`
     with '...' indicating mask or ID tensors following the template below.
@@ -79,7 +79,7 @@ def make_model(inputs: list = None,
 
     %s
 
-    Model outputs:
+    **Model outputs**:
     The standard output template:
 
     %s
