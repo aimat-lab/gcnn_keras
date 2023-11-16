@@ -144,9 +144,9 @@ def template_cast_list_input(model_inputs,
             - image_translation (Tensor): Indices of the periodic image the sending node is located in.
               Shape is `([M], 3)` .
             - lattice (Tensor): Lattice matrix of the periodic structure of shape `(batch, 3, 3)` .
-            - graph_id_node (Tensor): ID tensor of graph assignment in disjoint graph of shape `([N], )` .
-            - graph_id_edge (Tensor): ID tensor of graph assignment in disjoint graph of shape `([M], )` .
-            - graph_id_angle (Tensor): ID tensor of graph assignment in disjoint graph of shape `([K], )` .
+            - graph_id_node (Tensor): ID tensor of batch assignment in disjoint graph of shape `([N], )` .
+            - graph_id_edge (Tensor): ID tensor of batch assignment in disjoint graph of shape `([M], )` .
+            - graph_id_angle (Tensor): ID tensor of batch assignment in disjoint graph of shape `([K], )` .
             - nodes_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
             - edges_id (Tensor): The ID-tensor to assign each edge to its respective graph of shape `([M], )` .
             - angle_id (Tensor): The ID-tensor to assign each edge to its respective graph of shape `([K], )` .

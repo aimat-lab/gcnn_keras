@@ -143,8 +143,8 @@ class CastBatchedIndicesToDisjoint(_CastBatchedDisjointBase):
 
                 - node_attr (Tensor): Represents node attributes or coordinates of shape `([N], F, ...)` ,
                 - edge_index (Tensor): Represents the index table of shape `(2, [M])` for directed edges.
-                - graph_id_node (Tensor): ID tensor of graph assignment in disjoint graph of shape `([N], )` .
-                - graph_id_edge (Tensor): ID tensor of graph assignment in disjoint graph of shape `([M], )` .
+                - graph_id_node (Tensor): ID tensor of batch assignment in disjoint graph of shape `([N], )` .
+                - graph_id_edge (Tensor): ID tensor of batch assignment in disjoint graph of shape `([M], )` .
                 - nodes_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
                 - edges_id (Tensor): The ID-tensor to assign each edge to its respective graph of shape `([M], )` .
                 - nodes_count (Tensor): Tensor of number of nodes for each graph of shape `(batch, )` .
@@ -318,7 +318,7 @@ class CastBatchedAttributesToDisjoint(_CastBatchedDisjointBase):
             list: `[attr, graph_id, item_id, item_counts]` .
 
                 - attr (Tensor): Represents attributes or coordinates of shape `([N], F, ...)`
-                - graph_id (Tensor): ID tensor of graph assignment in disjoint graph of shape `([N], )` .
+                - graph_id (Tensor): ID tensor of batch assignment in disjoint graph of shape `([N], )` .
                 - item_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
                 - item_counts (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
         """
@@ -390,7 +390,7 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
 
                 - attr (Tensor): Features are represented by a keras tensor of shape `([N], F, ...)` ,
                   where N denotes the number of nodes or edges.
-                - graph_id_attr (Tensor): ID tensor of graph assignment in disjoint graph of shape `([N], )` .
+                - graph_id_attr (Tensor): ID tensor of batch assignment in disjoint graph of shape `([N], )` .
                 - attr_id (Tensor, optional): The ID-tensor to assign each node to its respective graph
                   of shape `([N], )` . For padded disjoint graphs this is required.
                 - attr_counts (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
@@ -571,7 +571,7 @@ class CastRaggedAttributesToDisjoint(_CastRaggedToDisjointBase):
             list: `[attr, graph_id, item_id, item_counts]` .
 
                 - attr (Tensor): Represents attributes or coordinates of shape `([N], F, ...)`
-                - graph_id (Tensor): ID tensor of graph assignment in disjoint graph of shape `([N], )` .
+                - graph_id (Tensor): ID tensor of batch assignment in disjoint graph of shape `([N], )` .
                 - item_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
                 - item_counts (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
         """
@@ -636,8 +636,8 @@ class CastRaggedIndicesToDisjoint(_CastRaggedToDisjointBase):
 
                 - node_attr (Tensor): Represents node attributes or coordinates of shape `([N], F, ...)` ,
                 - edge_index (Tensor): Represents the index table of shape `(2, [M])` for directed edges.
-                - graph_id_node (Tensor): ID tensor of graph assignment in disjoint graph of shape `([N], )` .
-                - graph_id_edge (Tensor): ID tensor of graph assignment in disjoint graph of shape `([M], )` .
+                - graph_id_node (Tensor): ID tensor of batch assignment in disjoint graph of shape `([N], )` .
+                - graph_id_edge (Tensor): ID tensor of batch assignment in disjoint graph of shape `([M], )` .
                 - nodes_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
                 - edges_id (Tensor): The ID-tensor to assign each edge to its respective graph of shape `([M], )` .
                 - nodes_count (Tensor): Tensor of number of nodes for each graph of shape `(batch, )` .
@@ -683,7 +683,7 @@ class CastDisjointToRaggedAttributes(_CastRaggedToDisjointBase):
             list: `[attr, graph_id, item_id, item_counts]` .
 
                 - attr (Tensor): Represents attributes or coordinates of shape `([N], F, ...)`
-                - graph_id (Tensor): ID tensor of graph assignment in disjoint graph of shape `([N], )` .
+                - graph_id (Tensor): ID tensor of batch assignment in disjoint graph of shape `([N], )` .
                 - item_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
                 - item_counts (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
 

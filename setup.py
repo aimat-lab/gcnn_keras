@@ -14,6 +14,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/aimat-lab/gcnn_keras",
     install_requires=[
+        "dm-tree",
         "keras-core",
         "tensorflow>=2.13",
         "torch>=2.0.0",
