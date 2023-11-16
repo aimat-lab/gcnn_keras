@@ -146,7 +146,7 @@ class CastBatchedIndicesToDisjoint(_CastBatchedDisjointBase):
                 - graph_id_node (Tensor): ID tensor of graph assignment in disjoint graph of shape `([N], )` .
                 - graph_id_edge (Tensor): ID tensor of graph assignment in disjoint graph of shape `([M], )` .
                 - nodes_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
-                - edges_id (Tensor): The ID-tensor to assign each edge to its respective batch of shape `([M], )` .
+                - edges_id (Tensor): The ID-tensor to assign each edge to its respective graph of shape `([M], )` .
                 - nodes_count (Tensor): Tensor of number of nodes for each graph of shape `(batch, )` .
                 - edges_count (Tensor): Tensor of number of edges for each graph of shape `(batch, )` .
         """
@@ -639,7 +639,7 @@ class CastRaggedIndicesToDisjoint(_CastRaggedToDisjointBase):
                 - graph_id_node (Tensor): ID tensor of graph assignment in disjoint graph of shape `([N], )` .
                 - graph_id_edge (Tensor): ID tensor of graph assignment in disjoint graph of shape `([M], )` .
                 - nodes_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
-                - edges_id (Tensor): The ID-tensor to assign each edge to its respective batch of shape `([M], )` .
+                - edges_id (Tensor): The ID-tensor to assign each edge to its respective graph of shape `([M], )` .
                 - nodes_count (Tensor): Tensor of number of nodes for each graph of shape `(batch, )` .
                 - edges_count (Tensor): Tensor of number of edges for each graph of shape `(batch, )` .
         """
