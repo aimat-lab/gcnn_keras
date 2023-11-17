@@ -194,10 +194,13 @@ class GNNExplainer:
         gnnx_optimizer = GNNExplainerOptimizer(
             self.gnn, graph_instance, **self.gnnexplaineroptimizer_options)
         self.gnnx_optimizer = gnnx_optimizer
+
         if output_to_explain is not None:
             gnnx_optimizer.output_to_explain = output_to_explain
+
         gnnx_optimizer.compile(**self.compile_options)
-        gnnx_optimizer.fit(graph_instance, **fit_options)
+
+        gnnx_optimizer.fit(x=graph_instance, y=gnnx_optimizer.output_to_explain, **fit_options)
 
         # Read out information from inspection_callback
         if inspection:
@@ -265,21 +268,20 @@ class GNNExplainer:
             self.node_mask_loss = []
 
         def on_epoch_begin(self, epoch, logs=None):
-            masked = self.model.call(self.graph_instance).numpy()[0]
+            masked = ops.convert_to_numpy(self.model.call(self.graph_instance))[0]
             self.predictions.append(masked)
 
         def on_epoch_end(self, epoch, logs=None):
             """After epoch."""
-            index = 0
-            losses_list = [loss_iter.numpy() for loss_iter in self.model.losses]
             if self.model.edge_mask_loss_weight > 0:
-                self.edge_mask_loss.append(losses_list[index])
-                index = index + 1
+                self.edge_mask_loss.append(ops.convert_to_numpy(self.model._metric_edge_tracker.result()))
+                self.model._metric_edge_tracker.reset_state()
             if self.model.feature_mask_loss_weight > 0:
-                self.feature_mask_loss.append(losses_list[index])
-                index = index + 1
+                self.feature_mask_loss.append(ops.convert_to_numpy(self.model._metric_feature_tracker.result()))
+                self.model._metric_feature_tracker.reset_state()
             if self.model.node_mask_loss_weight > 0:
-                self.node_mask_loss.append(losses_list[index])
+                self.node_mask_loss.append(ops.convert_to_numpy(self.model._metric_node_tracker.result()))
+                self.model._metric_node_tracker.reset_state()
             self.total_loss.append(logs['loss'])
 
 
@@ -320,6 +322,9 @@ class GNNExplainerOptimizer(ks.Model):
         """
         super(GNNExplainerOptimizer, self).__init__(**kwargs)
         self.gnn_model = gnn_model
+        self._metric_node_tracker = ks.metrics.Mean(name="mask_loss")
+        self._metric_edge_tracker = ks.metrics.Mean(name="mask_loss")
+        self._metric_feature_tracker = ks.metrics.Mean(name="mask_loss")
         self._edge_mask_dim = self.gnn_model.get_number_of_edges(
             graph_instance)
         self._feature_mask_dim = self.gnn_model.get_number_of_node_features(
@@ -368,7 +373,7 @@ class GNNExplainerOptimizer(ks.Model):
             training (bool): If training mode. Default is False.
 
         Returns:
-            tf.tensor: Masked prediction of GNN model.
+            Tensor: Masked prediction of GNN model.
         """
         edge_mask = self.get_mask("edge")
         feature_mask = self.get_mask("feature")
@@ -377,16 +382,19 @@ class GNNExplainerOptimizer(ks.Model):
 
         # edge_mask loss
         if self.edge_mask_loss_weight > 0:
-            self.add_loss(lambda: norm(ops.sigmoid(
-                self.edge_mask), ord=self.edge_mask_norm_ord) * self.edge_mask_loss_weight)
+            loss = norm(ops.sigmoid(self.edge_mask), ord=self.edge_mask_norm_ord) * self.edge_mask_loss_weight
+            self.add_loss(loss)
+            self._metric_edge_tracker.update_state([loss])
         # feature_mask loss
         if self.feature_mask_loss_weight > 0:
-            self.add_loss(lambda: norm(ops.sigmoid(
-                self.feature_mask), ord=self.feature_mask_norm_ord) * self.feature_mask_loss_weight)
+            loss = norm(ops.sigmoid(self.feature_mask), ord=self.feature_mask_norm_ord) * self.feature_mask_loss_weight
+            self.add_loss(loss)
+            self._metric_feature_tracker.update_state([loss])
         # node_mask loss
         if self.node_mask_loss_weight > 0:
-            self.add_loss(lambda: norm(ops.sigmoid(
-                self.node_mask), ord=self.node_mask_norm_ord) * self.node_mask_loss_weight)
+            loss = norm(ops.sigmoid(self.node_mask), ord=self.node_mask_norm_ord) * self.node_mask_loss_weight
+            self.add_loss(loss)
+            self._metric_node_tracker.update_state([loss])
 
         return y_pred
 

@@ -407,7 +407,7 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
         if self.static_output_shape is not None:
             target_shape = (ops.shape(attr_len)[0], self.static_output_shape[0])
         else:
-            target_shape = (ops.shape(attr_len)[0], ops.amax(attr_len))
+            target_shape = (ops.shape(attr_len)[0], ops.cast(ops.amax(attr_len), dtype="int32"))
 
         if not self.padded_disjoint:
             if attr_id is None:

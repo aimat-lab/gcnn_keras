@@ -54,4 +54,4 @@ def decompose_ragged_tensor(x, batch_dtype="int64"):
 
 
 def norm(x, ord='fro', axis=None, keepdims=False):
-    return tf.norm(x, ord=ord, dim=axis, keepdims=keepdims)
+    return tf.norm(x, ord=ord, axis=axis, keepdims=keepdims)
