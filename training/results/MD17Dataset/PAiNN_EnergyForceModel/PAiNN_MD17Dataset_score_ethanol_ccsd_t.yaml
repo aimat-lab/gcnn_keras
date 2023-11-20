@@ -1,0 +1,57 @@
+OS: nt_win32
+backend: tensorflow
+cuda_available: 'False'
+data_unit: ''
+date_time: '2023-11-20 18:42:41'
+device_id: '[LogicalDevice(name=''/device:CPU:0'', device_type=''CPU'')]'
+device_memory: '[]'
+device_name: '[{}]'
+energy_scaled_mean_absolute_error:
+- 0.057577501982450485
+epochs:
+- 1000
+execute_folds: null
+force_scaled_mean_absolute_error:
+- 0.09392663091421127
+kgcnn_version: 4.0.0
+loss:
+- 0.019870324060320854
+max_energy_scaled_mean_absolute_error:
+- 14.250847816467285
+max_force_scaled_mean_absolute_error:
+- 17.35145378112793
+max_loss:
+- 3.727259397506714
+max_val_energy_scaled_mean_absolute_error:
+- 24.22459602355957
+max_val_force_scaled_mean_absolute_error:
+- 11.574352264404297
+max_val_loss:
+- 2.5840961933135986
+min_energy_scaled_mean_absolute_error:
+- 0.057520799338817596
+min_force_scaled_mean_absolute_error:
+- 0.09392663091421127
+min_loss:
+- 0.019870324060320854
+min_val_energy_scaled_mean_absolute_error:
+- 0.09087711572647095
+min_val_force_scaled_mean_absolute_error:
+- 0.5804547071456909
+min_val_loss:
+- 0.1241229772567749
+model_class: EnergyForceModel
+model_name: PAiNN
+model_version: ''
+multi_target_indices: null
+number_histories: 1
+seed: 42
+time_list:
+- '6:39:24.417198'
+trajectory_name: ethanol_ccsd_t
+val_energy_scaled_mean_absolute_error:
+- 0.09168438613414764
+val_force_scaled_mean_absolute_error:
+- 0.5804615616798401
+val_loss:
+- 0.12412581592798233
