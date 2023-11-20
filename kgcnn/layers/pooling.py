@@ -23,8 +23,60 @@ class PoolingNodes(Layer):
     def call(self, inputs, **kwargs):
         reference, x, idx = inputs
         return self._to_aggregate([x, idx, reference])
-    
-    
+
+
+class PoolingWeightedNodes(Layer):
+    r"""Weighted polling all embeddings of edges or nodes per batch to obtain a graph level embedding.
+
+    .. note::
+
+        In addition to pooling embeddings a weight tensor must be supplied that scales each embedding before
+        pooling. Must broadcast.
+    """
+
+    def __init__(self, pooling_method="scatter_sum", **kwargs):
+        """Initialize layer.
+
+        Args:
+            pooling_method (str): Pooling method to use i.e. segment_function. Default is 'scatter_sum'.
+        """
+        super(PoolingWeightedNodes, self).__init__(**kwargs)
+        self.pooling_method = pooling_method
+        self._to_aggregate = Aggregate(pooling_method=pooling_method)
+
+    def build(self, input_shape):
+        """Build layer."""
+        assert len(input_shape) == 4
+        ref_shape, attr_shape, weights_shape, index_shape = [list(x) for x in input_shape]
+        self.to_aggregate.build([tuple(x) for x in [attr_shape, index_shape, ref_shape]])
+        self.built = True
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: [reference, attr, weights, batch_index]
+
+                - reference (Tensor): Reference for aggregation of shape `(batch, ...)` .
+                - attr (Tensor): Node or edge embeddings of shape `([N], F)` .
+                - weights (Tensor): Node or message weights. Most broadcast to nodes. Shape ([N], 1).
+                - batch_index (Tensor): Batch assignment of shape `([N], )` .
+
+        Returns:
+            Tensor: Embedding tensor of pooled node of shape `(batch, F)` .
+        """
+        # Need ragged input but can be generalized in the future.
+        reference, x, w, idx = inputs
+        xw = ops.broadcast_to(ops.cast(w, dtype=x.dtype), ops.shape(x)) * x
+        return self._to_aggregate([xw, idx, reference])
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(PoolingWeightedNodes, self).get_config()
+        config.update({"pooling_method": self.pooling_method})
+        return config
+
+
 class PoolingEmbeddingAttention(Layer):
     r"""Polling all embeddings of edges or nodes per batch to obtain a graph level embedding in form of a
     :obj:`Tensor` .
