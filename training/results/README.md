@@ -124,6 +124,14 @@ Materials Project dataset from Matbench with 4764 crystal structures and their c
 |:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
 | Schnet.make_crystal_model | 4.0.0   |      800 | **0.3180 &pm; 0.0359** | **1.8509 &pm; 0.5854** |
 
+#### MatProjectGapDataset
+
+Materials Project dataset from Matbench with 106113 crystal structures and their band gap as calculated by PBE DFT from the Materials Project, in eV. We use a random 5-fold cross-validation. 
+
+| model                     | kgcnn   |   epochs | MAE [eV]               | RMSE [eV]                 |
+|:--------------------------|:--------|---------:|:-----------------------|:--------------------------|
+| Schnet.make_crystal_model | 4.0.0   |      800 | **1.2226 &pm; 1.0573** | **58.3713 &pm; 114.2957** |
+
 #### MatProjectIsMetalDataset
 
 Materials Project dataset from Matbench with 106113 crystal structures and their corresponding Metallicity determined with pymatgen. 1 if the compound is a metal, 0 if the compound is not a metal. We use a random 5-fold cross-validation. 

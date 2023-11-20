@@ -21,8 +21,8 @@ from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_iso17.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet.EnergyForceModel")
+                    default="hyper/hyper_md17.py")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="PAiNN.EnergyForceModel")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)

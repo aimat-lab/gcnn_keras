@@ -92,4 +92,96 @@ hyper = {
             "kgcnn_version": "4.0.0"
         }
     },
+    "PAiNN.EnergyForceModel": {
+        "model": {
+            "class_name": "EnergyForceModel",
+            "module_name": "kgcnn.models.force",
+            "config": {
+                "name": "PAiNN",
+                "nested_model_config": True,
+                "output_to_tensor": False,
+                "output_squeeze_states": True,
+                "coordinate_input": 1,
+                "inputs": [
+                    {"shape": [None], "name": "atomic_number", "dtype": "int32"},
+                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_ranges", "dtype": "int64"}
+                ],
+                "model_energy": {
+                    "class_name": "make_model",
+                    "module_name": "kgcnn.literature.PAiNN",
+                    "config": {
+                        "name": "PAiNNEnergy",
+                        "inputs": [
+                            {"shape": [None], "name": "atomic_number", "dtype": "int32"},
+                            {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32"},
+                            {"shape": [None, 2], "name": "range_indices", "dtype": "int64"},
+                            {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                            {"shape": (), "name": "total_ranges", "dtype": "int64"}
+                        ],
+                        "input_embedding": None,
+                        "input_node_embedding": {"input_dim": 95, "output_dim": 128},
+                        "equiv_initialize_kwargs": {"dim": 3, "method": "eps"},
+                        "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
+                        "pooling_args": {"pooling_method": "scatter_sum"},
+                        "conv_args": {"units": 128, "cutoff": None},
+                        "update_args": {"units": 128}, "depth": 3, "verbose": 10,
+                        "output_embedding": "graph",
+                        "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]},
+                    }
+                },
+                "outputs": {"energy": {"name": "energy", "shape": (1,)},
+                            "force": {"name": "force", "shape": (None, 3)}}
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
+                "callbacks": []
+            },
+            "compile": {
+                "optimizer": {
+                    "class_name": "Adam", "config": {
+                        "learning_rate": {
+                            "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
+                                "learning_rate": 0.001, "warmup_steps": 150.0, "decay_steps": 20000.0,
+                                "decay_rate": 0.01
+                            }
+                        }, "amsgrad": True, "use_ema": True
+                    }
+                },
+                "loss_weights": {"energy": 0.02, "force": 0.98}
+            },
+            "scaler": {"class_name": "EnergyForceExtensiveLabelScaler",
+                       "config": {"standardize_scale": True}},
+        },
+        "data": {
+        },
+        "dataset": {
+            "class_name": "MD17Dataset",
+            "module_name": "kgcnn.data.datasets.MD17Dataset",
+            "config": {
+                # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
+                "trajectory_name": trajectory_name
+            },
+            "methods": [
+                {"rename_property_on_graphs": {"old_property_name": "E", "new_property_name": "energy"}},
+                {"rename_property_on_graphs": {"old_property_name": "F", "new_property_name": "force"}},
+                {"rename_property_on_graphs": {"old_property_name": "z", "new_property_name": "atomic_number"}},
+                {"rename_property_on_graphs": {"old_property_name": "R", "new_property_name": "node_coordinates"}},
+                {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000,
+                              "node_coordinates": "node_coordinates"}},
+                {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
+                              "count_edges": "range_indices", "count_nodes": "atomic_number",
+                              "total_nodes": "total_nodes"}},
+            ]
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "_"+trajectory_name,
+            "kgcnn_version": "4.0.0"
+        }
+    },
 }

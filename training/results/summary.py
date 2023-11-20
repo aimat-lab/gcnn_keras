@@ -177,21 +177,21 @@ benchmark_datasets = {
     #          "is_min_max": True}
     #     ]
     # },
-    # "MatProjectGapDataset": {
-    #     "general_info": [
-    #         "Materials Project dataset from Matbench with 106113 crystal structures ",
-    #         "and their band gap as calculated by PBE DFT from the Materials Project, in eV. ",
-    #         "We use a random 5-fold cross-validation. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV]", "find_best": "min"},
-    #         {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV]", "find_best": "min"},
-    #         {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
-    #          "is_min_max": True},
-    #         {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
-    #          "is_min_max": True}
-    #     ]
-    # },
+    "MatProjectGapDataset": {
+        "general_info": [
+            "Materials Project dataset from Matbench with 106113 crystal structures ",
+            "and their band gap as calculated by PBE DFT from the Materials Project, in eV. ",
+            "We use a random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
+        ]
+    },
     "MatProjectIsMetalDataset": {
         "general_info": [
             "Materials Project dataset from Matbench with 106113 crystal structures ",

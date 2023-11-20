@@ -263,30 +263,31 @@ class EquivariantInitialize(ks.layers.Layer):
             inputs = ops.repeat(inputs, self.units, axis=-1)
 
         if self.method == "zeros":
-            out = ops.zeros_like(inputs)
+            out = ops.zeros_like(inputs, dtype=self.dtype)
             out = ops.expand_dims(out, axis=1)
             out = ops.repeat(out, self.dim, axis=1)
         elif self.method == "eps":
-            out = ops.zeros_like(inputs) + ks.backend.epsilon()
+            out = ops.zeros_like(inputs, dtype=self.dtype) + ks.backend.epsilon()
             out = ops.expand_dims(out, axis=1)
             out = ops.repeat(out, self.dim, axis=1)
         elif self.method == "normal":
             raise NotImplementedError()
         elif self.method == "ones":
-            out = ops.ones_like(inputs)
+            out = ops.ones_like(inputs, dtype=self.dtype)
             out = ops.expand_dims(out, axis=1)
             out = ops.repeat(out, self.dim, axis=1)
         elif self.method == "eye":
-            out = ops.eye(self.dim, ops.shape(inputs)[1], dtype=inputs.dtype)
+            out = ops.eye(self.dim, ops.shape(inputs)[1], dtype=self.dtype)
             out = ops.expand_dims(out, axis=0)
             out = ops.repeat(out, ops.shape(inputs)[0], axis=0)
         elif self.method == "const":
-            out = ops.ones_like(inputs)*self.value
+            out = ops.ones_like(inputs, dtype=self.dtype)*self.value
             out = ops.expand_dims(out, axis=1)
             out = ops.repeat(out, self.dim, axis=1)
         elif self.method == "node":
             out = ops.expand_dims(inputs, axis=1)
             out = ops.repeat(out, self.dim, axis=1)
+            out = ops.cast(out, dtype=self.dtype)
         else:
             raise ValueError("Unknown initialization method %s" % self.method)
         return out
