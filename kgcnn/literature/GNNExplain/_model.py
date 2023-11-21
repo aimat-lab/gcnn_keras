@@ -158,6 +158,10 @@ class GNNExplainer:
         self.gnnx_optimizer = None
         self.graph_instance = None
         self.gnnexplaineroptimizer_options = gnnexplaineroptimizer_options
+        # We need to save options as serialized version to recreate the optimizer on multiple explain calls.
+        if "optimizer" in compile_options:
+            if isinstance(compile_options["optimizer"], ks.optimizers.Optimizer):
+                compile_options["optimizer"] = ks.saving.serialize_keras_object(compile_options["optimizer"])
         self.compile_options = compile_options
         self.fit_options = fit_options
 
@@ -196,7 +200,10 @@ class GNNExplainer:
         self.gnnx_optimizer = gnnx_optimizer
 
         if output_to_explain is not None:
-            gnnx_optimizer.output_to_explain = output_to_explain
+            if gnnx_optimizer._output_to_explain_as_variable:
+                gnnx_optimizer.output_to_explain.assign(output_to_explain)
+            else:
+                gnnx_optimizer.output_to_explain = output_to_explain
 
         gnnx_optimizer.compile(**self.compile_options)
 
@@ -290,6 +297,8 @@ class GNNExplainerOptimizer(ks.Model):
     which then can be used to explain decisions by GNNs.
     """
 
+    _output_to_explain_as_variable = False
+
     def __init__(self, gnn_model, graph_instance,
                  edge_mask_loss_weight=1e-4,
                  edge_mask_norm_ord=1,
@@ -355,7 +364,18 @@ class GNNExplainerOptimizer(ks.Model):
             dtype=self.dtype,
             trainable=True
         )
-        self.output_to_explain = gnn_model.predict(graph_instance)
+        output_to_explain = gnn_model.predict(graph_instance)
+        if self._output_to_explain_as_variable:
+            self.output_to_explain = self.add_weight(
+                name='output_to_explain',
+                shape=output_to_explain.shape,
+                initializer=ks.initializers.Constant(0.),
+                dtype=output_to_explain.dtype,
+                trainable=False
+            )
+            self.output_to_explain.assign(output_to_explain)
+        else:
+            self.output_to_explain = output_to_explain
 
         # Configuration Parameters
         self.edge_mask_loss_weight = edge_mask_loss_weight

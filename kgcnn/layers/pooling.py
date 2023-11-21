@@ -48,7 +48,7 @@ class PoolingWeightedNodes(Layer):
         """Build layer."""
         assert len(input_shape) == 4
         ref_shape, attr_shape, weights_shape, index_shape = [list(x) for x in input_shape]
-        self.to_aggregate.build([tuple(x) for x in [attr_shape, index_shape, ref_shape]])
+        self._to_aggregate.build([tuple(x) for x in [attr_shape, index_shape, ref_shape]])
         self.built = True
 
     def call(self, inputs, **kwargs):
