@@ -12,13 +12,12 @@ The version of **kgcnn>=4.0.0** are developed for **keras>=3.0** and should enab
 The currently supported backends are `PyTorch <https://pytorch.org/>`__ , `TensorFlow <https://www.tensorflow.org/install>`__ and `Jax <https://jax.readthedocs.io/en/latest/installation.html>`__ .
 For graph operations also some additional multi-backend functions are implemented within ``kgcnn.ops`` .
 
-
 All models and layers of kgcnn essentially use the concept of disjoint graphs from `PyTorch Geometric <https://pytorch-geometric.readthedocs.io/en/latest/>`__ .
 The graph convolutions are defined for a single graph that consists of smaller disjoint sub-graphs which represent the mini-batch, fore example
 node aggregating with ``kgcnn.layers.aggr`` and convolutions with ``kgcnn.layers.conv`` .
 Only for (global) pooling operations the batch information must be provided in example in form of a ID assignment tensor to pool each sub-graph separately with ``kgcnn.layers.pool`` .
 
-.. image:: ../_static/disjoint.png
+.. image:: _static/disjoint.png
   :width: 400
   :alt: Image could not be displayed
 
@@ -53,7 +52,7 @@ Also for pooling and clustering graphs may change their nodes. The most simple w
 `padded-disjoint` representation. Here, we simply add a dummy graph at the beginning with ID 0 and index and a single node and a single
 self-loop edge and assign all padded or cropped nodes/edges to this graph, i.e. set it to index 0.
 Data loaders will then decide for a max. disjoint graph size and then fill up with as many disjoint graphs as possible.
-Also for padded batched graphs it is possible within kgcnn to cast to padded-disjoint graph but with a lot more memory and speed-performance loss
+Also for padded batched graphs it is possible within kgcnn to cast to padded-disjoint graph but with a lot more memory and speed-performance loss.
 
 
 

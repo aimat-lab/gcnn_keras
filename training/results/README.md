@@ -104,9 +104,10 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels f
 
 Energies and forces for molecular dynamics trajectories of eight organic molecules. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. Results are for the CCSD and CCSD(T) data in MD17. 
 
-| model                   | kgcnn   |   epochs | Aspirin             | Toluene             | Malonaldehyde       | Benzene             | Ethanol             |
-|:------------------------|:--------|---------:|:--------------------|:--------------------|:--------------------|:--------------------|:--------------------|
-| Schnet.EnergyForceModel | 4.0.0   |     1000 | **1.2173 &pm; nan** | **0.7395 &pm; nan** | **0.8444 &pm; nan** | **0.3353 &pm; nan** | **0.4832 &pm; nan** |
+| model                   | kgcnn   |   epochs | Aspirin          | Toluene          | Malonaldehyde    | Benzene          | Ethanol             |
+|:------------------------|:--------|---------:|:-----------------|:-----------------|:-----------------|:-----------------|:--------------------|
+| PAiNN.EnergyForceModel  | 4.0.0   |     1000 | **nan &pm; nan** | **nan &pm; nan** | **nan &pm; nan** | **nan &pm; nan** | 0.5805 &pm; nan     |
+| Schnet.EnergyForceModel | 4.0.0   |     1000 | 1.2173 &pm; nan  | 0.7395 &pm; nan  | 0.8444 &pm; nan  | 0.3353 &pm; nan  | **0.4832 &pm; nan** |
 
 #### MD17RevisedDataset
 
@@ -123,6 +124,14 @@ Materials Project dataset from Matbench with 4764 crystal structures and their c
 | model                     | kgcnn   |   epochs | MAE [no unit]          | RMSE [no unit]         |
 |:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
 | Schnet.make_crystal_model | 4.0.0   |      800 | **0.3180 &pm; 0.0359** | **1.8509 &pm; 0.5854** |
+
+#### MatProjectEFormDataset
+
+Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use a random 5-fold cross-validation. 
+
+| model                     | kgcnn   |   epochs | MAE [eV/atom]          | RMSE [eV/atom]         |
+|:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| Schnet.make_crystal_model | 4.0.0   |      800 | **0.0211 &pm; 0.0003** | **0.0510 &pm; 0.0024** |
 
 #### MatProjectGapDataset
 
