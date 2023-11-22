@@ -561,8 +561,8 @@ hyper = {
                 "callbacks": []
             },
             "compile": {
-                "optimizer": {"class_name": "AdamW",
-                              "config": {"lr": 0.0031622776601683794, "weight_decay": 1e-05}},
+                "optimizer": {"class_name": "AdamW", "module_name": "keras_core.optimizers",
+                              "config": {"learning_rate": 0.0031622776601683794, "weight_decay": 1e-05}},
                 "loss": "mean_absolute_error"
             },
             "cross_validation": {"class_name": "KFold",
@@ -576,7 +576,8 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.ESOLDataset",
                 "config": {},
                 "methods": [
-                    {"set_attributes": {}}
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "count_nodes_and_edges"}}
                 ]
             },
             "data_unit": "mol/L"

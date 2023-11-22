@@ -1,4 +1,5 @@
 import keras_core as ks
+from kgcnn.ops.activ import *
 from kgcnn.layers.attention import AttentiveHeadFP
 from kgcnn.layers.mlp import MLP, GraphMLP
 from kgcnn.layers.modules import Embedding
