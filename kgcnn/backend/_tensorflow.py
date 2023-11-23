@@ -8,13 +8,13 @@ def scatter_reduce_sum(indices, values, shape):
 
 def scatter_reduce_min(indices, values, shape):
     indices = tf.expand_dims(indices, axis=-1)
-    target = tf.fill(shape, values.dtype.limits[1], dtype=values.dtype)
+    target = tf.cast(tf.fill(shape, values.dtype.limits[1]), dtype=values.dtype)
     return tf.tensor_scatter_nd_min(target, indices, values)
 
 
 def scatter_reduce_max(indices, values, shape):
     indices = tf.expand_dims(indices, axis=-1)
-    target = tf.fill(shape, values.dtype.limits[0], dtype=values.dtype)
+    target = tf.cast(tf.fill(shape, values.dtype.limits[0]), dtype=values.dtype)
     return tf.tensor_scatter_nd_max(target, indices, values)
 
 

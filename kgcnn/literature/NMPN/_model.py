@@ -1,11 +1,14 @@
 import keras_core as ks
+from ._layers import TrafoEdgeNetMessages
 from kgcnn.layers.aggr import AggregateLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
 from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, GaussBasisLayer
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.modules import Embedding
+from kgcnn.layers.message import MatMulMessages
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.update import GRUUpdate
+from kgcnn.layers.set2set import PoolingSet2SetEncoder
 
 
 def model_disjoint(inputs,
@@ -27,6 +30,7 @@ def model_disjoint(inputs,
                    output_mlp: dict = None):
 
     n0, ed, disjoint_indices, batch_id_node, count_nodes = inputs
+
     # embedding, if no feature dimension
     if use_node_embedding:
         n0 = Embedding(**input_node_embedding)(n0)
@@ -69,10 +73,10 @@ def model_disjoint(inputs,
     if output_embedding == 'graph':
         if use_set2set:
             # output
-            out = ks.layers.Dense(set2set_args['channels'], activation="linear")(n)
-            out = PoolingSet2SetEncoder(**set2set_args)(out)
+            n = ks.layers.Dense(units=set2set_args['channels'], activation="linear")(n)
+            out = PoolingSet2SetEncoder(**set2set_args)([count_nodes, n, batch_id_node])
         else:
-            out = PoolingNodes(**pooling_args)(n)
+            out = PoolingNodes(**pooling_args)([count_nodes, n, batch_id_node])
         out = ks.layers.Flatten()(out)  # Flatten() required for to Set2Set output.
         out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':

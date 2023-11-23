@@ -1,4 +1,5 @@
 import keras_core as ks
+from keras_core import ops
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.aggr import AggregateLocalEdges
 
@@ -110,4 +111,49 @@ class MessagePassingBase(ks.layers.Layer):
         """Update config."""
         config = super(MessagePassingBase, self).get_config()
         config.update({"pooling_method": self.pooling_method})
+        return config
+
+
+class MatMulMessages(ks.layers.Layer):
+    r"""Linear transformation of edges or messages, i.e. matrix multiplication.
+
+    The message dimension must be suitable for matrix multiplication. The actual matrix is not a trainable weight of
+    this layer but passed as input.
+    This was proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`__ .
+    For each node or edge :math:`i` the output is given by:
+
+    .. math::
+
+        x_i' = \mathbf{A_i} \; x_i
+
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize layer."""
+        super(MatMulMessages, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(MatMulMessages, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs (list): [mat, edges]
+
+                - mat (Tensor): Transformation matrix for each message of shape ([M], F', F).
+                - edges (Tensor): Edge embeddings or messages ([M], F)
+
+        Returns:
+            Tensor: Transformation of messages by matrix multiplication of shape (batch, [M], F')
+        """
+        mat, e = inputs
+        e_e = ops.expand_dims(e, axis=1)
+        out = ops.sum(mat*e_e, axis=2)
+        return out
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(MatMulMessages, self).get_config()
         return config
