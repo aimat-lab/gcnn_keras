@@ -30,8 +30,8 @@ class _CastBatchedDisjointBase(Layer):
             padded_disjoint (bool): Whether to keep padding in disjoint representation. Default is False.
             uses_mask (bool): Whether the padding is marked by a boolean mask or by a length tensor, counting the
                 non-padded nodes from index 0. Default is False.
-            static_batched_node_output_shape (tuple): Statically shape of nodes. Default is None.
-            static_batched_edge_output_shape (tuple): Statically shape of edges. Default is None.
+            static_batched_node_output_shape (tuple): Statical output shape of nodes. Default is None.
+            static_batched_edge_output_shape (tuple): Statical output shape of edges. Default is None.
         """
         super(_CastBatchedDisjointBase, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
