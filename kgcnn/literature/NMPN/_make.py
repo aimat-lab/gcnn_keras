@@ -138,7 +138,7 @@ def make_model(inputs: list = None,
     n, x, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
 
     out = model_disjoint(
-        [n, x, disjoint_indices, batch_id_node, count_nodes],
+        [n, x, disjoint_indices, batch_id_node, batch_id_edge, count_nodes, count_edges],
         use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
         use_edge_embedding=("int" in inputs[1]['dtype']) if input_edge_embedding is not None else False,
         input_node_embedding=input_node_embedding,

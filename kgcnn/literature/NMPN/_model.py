@@ -29,7 +29,7 @@ def model_disjoint(inputs,
                    output_embedding: str = None,
                    output_mlp: dict = None):
 
-    n0, ed, disjoint_indices, batch_id_node, count_nodes = inputs
+    n0, ed, disjoint_indices, batch_id_node, batch_id_edge, count_nodes, count_edges = inputs
 
     # embedding, if no feature dimension
     if use_node_embedding:
@@ -50,9 +50,9 @@ def model_disjoint(inputs,
     n = ks.layers.Dense(node_dim, activation="linear")(n0)
 
     # Make edge networks.
-    edge_net_in = GraphMLP(**edge_mlp)(ed)
+    edge_net_in = GraphMLP(**edge_mlp)([ed, batch_id_edge, count_edges])
     edge_net_in = TrafoEdgeNetMessages(target_shape=(node_dim, node_dim))(edge_net_in)
-    edge_net_out = GraphMLP(**edge_mlp)(ed)
+    edge_net_out = GraphMLP(**edge_mlp)([ed, batch_id_edge, count_edges])
     edge_net_out = TrafoEdgeNetMessages(target_shape=(node_dim, node_dim))(edge_net_out)
 
     # Gru for node updates
@@ -80,7 +80,7 @@ def model_disjoint(inputs,
         out = ks.layers.Flatten()(out)  # Flatten() required for to Set2Set output.
         out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
-        out = GraphMLP(**output_mlp)(n)
+        out = GraphMLP(**output_mlp)([n, batch_id_node, count_nodes])
     else:
         raise ValueError("Unsupported output embedding for mode `NMPN` .")
 

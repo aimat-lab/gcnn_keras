@@ -20,7 +20,7 @@ def model_disjoint(
         output_embedding: str = None,
         output_mlp: dict = None
 ):
-    n, ed, edi, batch_nodes, count_nodes = inputs
+    n, ed, edi, batch_id_node, count_nodes = inputs
 
     # Embedding, if no feature dimension
     if use_node_embedding:
@@ -41,10 +41,10 @@ def model_disjoint(
 
     # Output embedding choice
     if output_embedding == 'graph':
-        out = PoolingNodesAttentive(units=attention_args['units'], depth=depthmol)([count_nodes, n, batch_nodes])
+        out = PoolingNodesAttentive(units=attention_args['units'], depth=depthmol)([count_nodes, n, batch_id_node])
         out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
-        out = GraphMLP(**output_mlp)(n)
+        out = GraphMLP(**output_mlp)([n, batch_id_node, count_nodes])
     else:
         raise ValueError("Unsupported graph embedding for mode `AttentiveFP`")
 

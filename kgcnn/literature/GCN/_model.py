@@ -76,7 +76,7 @@ def model_disjoint_weighted(inputs,
         out = PoolingWeightedNodes(**node_pooling_args)([count_nodes, n, nw, batch_id_node])  # will return tensor
         out = MLP(**output_mlp)(out)
     elif output_embedding == "node":
-        out = GraphMLP(**output_mlp)(n)
+        out = GraphMLP(**output_mlp)([n, batch_id_node, count_nodes])
     else:
         raise ValueError("Unsupported output embedding for `GCN`")
 

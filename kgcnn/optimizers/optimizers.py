@@ -3,7 +3,7 @@ import keras_core as ks
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='Adan')
 class Adan(ks.optimizers.Optimizer):
-    r"""Optimizer `Adan <https://arxiv.org/abs/2208.06677>`_: Adaptive Nesterov Momentum Algorithm for
+    r"""Optimizer `Adan <https://arxiv.org/abs/2208.06677>`__ : Adaptive Nesterov Momentum Algorithm for
     Faster Optimizing Deep Models.
 
     'Adan develops a Nesterov momentum estimation method to estimate stable and accurate first
@@ -42,7 +42,8 @@ class Adan(ks.optimizers.Optimizer):
 
     def __init__(self, learning_rate: float = 1e-3, name: str = "Adan",
                  beta_1: float = 0.98, beta_2: float = 0.92, beta_3: float = 0.99, eps: float = 1e-8,
-                 weight_decay: float = 0.0, no_prox: bool = False, amsgrad: bool = False, **kwargs):
+                 weight_decay: float = 0.0, no_prox: bool = False,
+                 amsgrad: bool = False, **kwargs):
         """Initialize optimizer.
 
         Args:

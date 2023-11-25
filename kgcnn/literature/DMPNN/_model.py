@@ -69,7 +69,7 @@ def model_disjoint(inputs: list = None,
         if use_graph_state:
             graph_state_node = GatherState()([graph_state, n])
             n = Concatenate()([n, graph_state_node])
-        out = GraphMLP(**output_mlp)(n)
+        out = GraphMLP(**output_mlp)([n, batch_id_node, count_nodes])
     else:
         raise ValueError("Unsupported embedding mode for `DMPNN`.")
 
