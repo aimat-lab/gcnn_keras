@@ -1,4 +1,5 @@
 import keras_core as ks
+from keras_core import ops
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='Adan')
@@ -40,10 +41,22 @@ class Adan(ks.optimizers.Optimizer):
     # https://github.com/sail-sg/Adan/blob/main/adan.py
     # https://github.com/lucidrains/Adan-pytorch
 
-    def __init__(self, learning_rate: float = 1e-3, name: str = "Adan",
-                 beta_1: float = 0.98, beta_2: float = 0.92, beta_3: float = 0.99, eps: float = 1e-8,
-                 weight_decay: float = 0.0, no_prox: bool = False,
-                 amsgrad: bool = False, **kwargs):
+    def __init__(self,
+                 learning_rate: float = 1e-3,
+                 name: str = "Adan",
+                 beta_1: float = 0.98,
+                 beta_2: float = 0.92,
+                 beta_3: float = 0.99,
+                 eps: float = 1e-8,
+                 weight_decay: float = 0.0,
+                 amsgrad: bool = False,
+                 clipnorm=None,
+                 clipvalue=None,
+                 global_clipnorm=None,
+                 use_ema=False,
+                 ema_momentum=0.99,
+                 ema_overwrite_frequency=None,
+                 **kwargs):
         """Initialize optimizer.
 
         Args:
@@ -54,10 +67,19 @@ class Adan(ks.optimizers.Optimizer):
             beta_3 (float): Beta 3 parameter. Default is 0.99.
             eps (float): Numerical epsilon for denominators. Default is 1e-8.
             weight_decay (float): Decoupled weight decay. Default is 0.0.
-            no_prox (bool): How to perform the decoupled weight decay. Default is False.
             amsgrad (bool): Use the maximum of all 2nd moment running averages. Default is False.
         """
-        super(Adan, self).__init__(name=name, **kwargs)
+        super(Adan, self).__init__(
+            learning_rate=learning_rate,
+            name=name,
+            weight_decay=weight_decay,
+            clipnorm=clipnorm,
+            clipvalue=clipvalue,
+            global_clipnorm=global_clipnorm,
+            use_ema=use_ema,
+            ema_momentum=ema_momentum,
+            ema_overwrite_frequency=ema_overwrite_frequency,
+            **kwargs)
 
         if not 0.0 <= learning_rate:
             raise ValueError("Invalid learning rate: {}".format(learning_rate))
@@ -70,114 +92,112 @@ class Adan(ks.optimizers.Optimizer):
         if not 0.0 <= beta_3 < 1.0:
             raise ValueError("Invalid beta_3 parameter: {}".format(beta_3))
 
-        self._set_hyper("learning_rate", kwargs.get("lr", learning_rate))
-        self._set_hyper("eps", eps)
-        self._set_hyper("beta_1", beta_1)
-        self._set_hyper("beta_2", beta_2)
-        self._set_hyper("beta_3", beta_3)
-        self._set_hyper("weight_decay", weight_decay)
-        self._no_prox = no_prox
-        self._use_amsgrad = amsgrad
+        self._input_learning_rate = float(learning_rate)
+        self._eps = float(eps)
+        self._beta_1 = float(beta_1)
+        self._beta_2 = float(beta_2)
+        self._beta_3 = float(beta_3)
+        self._input_weight_decay = weight_decay
+        self._use_amsgrad = bool(amsgrad)
 
-    def _create_slots(self, var_list):
+    def build(self, var_list):
+        """Initialize optimizer variables.
+
+        Args:
+            var_list: list of model variables to build Adam variables on.
+        """
+        if self.built:
+            return
+        super().build(var_list)
+        self._exp_avg = []
+        self._exp_avg_sq = []
+        self._exp_avg_diff = []
+        self._pre_grad = []
         for var in var_list:
-            self.add_slot(var, "exp_avg")
-        for var in var_list:
-            self.add_slot(var, "exp_avg_sq")
-        for var in var_list:
-            self.add_slot(var, "exp_avg_diff")
-        for var in var_list:
-            self.add_slot(var, "pre_grad")
+            self._exp_avg.append(
+                self.add_variable_from_reference(
+                    reference_variable=var, name="exp_avg"
+                )
+            )
+            self._exp_avg_sq.append(
+                self.add_variable_from_reference(
+                    reference_variable=var, name="exp_avg_sqs"
+                )
+            )
+            self._exp_avg_diff.append(
+                self.add_variable_from_reference(
+                    reference_variable=var, name="exp_avg_diff"
+                )
+            )
+            self._pre_grad.append(
+                self.add_variable_from_reference(
+                    reference_variable=var, name="pre_grad"
+                )
+            )
+
         if self._use_amsgrad:
+            self._max_exp_avg_sq = []
             for var in var_list:
-                self.add_slot(var, "max_exp_avg_sq")
+                self._max_exp_avg_sq.append(
+                    self.add_variable_from_reference(
+                        reference_variable=var, name="max_exp_avg_sq"
+                    )
+                )
 
-    def _prepare_local(self, var_device, var_dtype, apply_state):
-        super(Adan, self)._prepare_local(var_device, var_dtype, apply_state)
-
+    def update_step(self, grad, var, learning_rate):
+        """Update step given gradient and the associated model variable."""
+        var_dtype = var.dtype
+        lr_t = ops.cast(learning_rate, var_dtype)  # lr_t = self._decayed_lr(var_dtype) done by super
+        grad = ops.cast(grad, var_dtype)
         local_step = ops.cast(self.iterations + 1, var_dtype)
-        beta_1_t = tf.identity(self._get_hyper('beta_1', var_dtype))
-        beta_2_t = tf.identity(self._get_hyper('beta_2', var_dtype))
-        beta_3_t = tf.identity(self._get_hyper('beta_3', var_dtype))
-        weight_decay = tf.identity(self._get_hyper("weight_decay", var_dtype))
-        bias_correction1 = 1 - tf.pow(beta_1_t, local_step)
-        bias_correction2 = 1 - tf.pow(beta_2_t, local_step)
-        bias_correction3 = 1 - tf.pow(beta_2_t, local_step)
-        eps = tf.convert_to_tensor(self._get_hyper('eps', var_dtype), var_dtype)
-        update_dict = dict(
-            eps=eps,
-            weight_decay=weight_decay,
-            beta_1_t=beta_1_t,
-            beta_2_t=beta_2_t,
-            beta_3_t=beta_3_t,
-            bias_correction1=bias_correction1,
-            bias_correction2=bias_correction2,
-            bias_correction3=bias_correction3
-        )
-        apply_state[(var_device, var_dtype)].update(update_dict)
 
-    def _resource_apply_dense(self, grad, var, apply_state=None):
-        var_device, var_dtype = var.device, var.dtype.base_dtype
-        coefficients = ((apply_state or {}).get((var_device, var_dtype))
-                        or self._fallback_apply_state(var_device, var_dtype))
+        beta1 = ops.cast(self._beta_1, var_dtype)
+        beta2 = ops.cast(self._beta_2, var_dtype)
+        beta3 = ops.cast(self._beta_3, var_dtype)
+        bias_correction1 = 1 - ops.power(beta1, local_step)
+        bias_correction2 = 1 - ops.power(beta2, local_step)
+        bias_correction3 = 1 - ops.power(beta3, local_step)
+        eps = ops.cast(self._eps, var_dtype)
 
-        # Getting coefficients set by `_prepare_local`
-        lr_t = coefficients["lr_t"]  # lr_t = self._decayed_lr(var_dtype) done by super
-        weight_decay = coefficients["weight_decay"]
-        beta1, beta2, beta3 = coefficients["beta_1_t"], coefficients["beta_2_t"], coefficients["beta_3_t"]
-        bias_correction1 = coefficients["bias_correction1"]
-        bias_correction2 = coefficients["bias_correction2"]
-        bias_correction3 = coefficients["bias_correction3"]
-        eps = coefficients["eps"]
-
-        exp_avg = self.get_slot(var, 'exp_avg')
-        exp_avg_sq = self.get_slot(var, 'exp_avg_sq')
-        exp_avg_diff = self.get_slot(var, 'exp_avg_diff')
-        pre_grad = self.get_slot(var, 'pre_grad')
+        exp_avg = self._exp_avg[self._get_variable_index(var)]
+        exp_avg_sq = self._exp_avg_sq[self._get_variable_index(var)]
+        exp_avg_diff = self._exp_avg_diff[self._get_variable_index(var)]
+        pre_grad = self._pre_grad[self._get_variable_index(var)]
 
         diff = grad - pre_grad
-        exp_avg.assign(beta1 * exp_avg + grad * (1 - beta1), use_locking=self._use_locking)
-        exp_avg_diff.assign(exp_avg_diff * beta2 + diff * (1 - beta2), use_locking=self._use_locking)
+
+        self.assign(exp_avg, beta1 * exp_avg + grad * (1 - beta1))
+        self.assign(exp_avg_diff, exp_avg_diff * beta2 + diff * (1 - beta2))
         update = grad + beta2 * diff
-        exp_avg_sq.assign(exp_avg_sq * beta3 + update * update * (1 - beta3), use_locking=self._use_locking)
+        self.assign(exp_avg_sq, exp_avg_sq * beta3 + update * update * (1 - beta3))
 
         if self._use_amsgrad:
-            max_exp_avg_sq = self.get_slot(var, 'max_exp_avg_sq')
+            max_exp_avg_sq = self._max_exp_avg_sq[self._get_variable_index(var)]
             # Maintains the maximum of all 2nd moment running avg. till now
-            max_exp_avg_sq.assign(tf.maximum(max_exp_avg_sq, exp_avg_sq), use_locking=self._use_locking)
+            self.assign(max_exp_avg_sq, ops.maximum(max_exp_avg_sq, exp_avg_sq))
             # Use the max. for normalizing running avg. of gradient
-            denom = (tf.math.sqrt(max_exp_avg_sq) / tf.math.sqrt(bias_correction3)) + eps
+            denominator = (ops.sqrt(max_exp_avg_sq) / ops.sqrt(bias_correction3)) + eps
         else:
-            denom = (tf.math.sqrt(exp_avg_sq) / tf.math.sqrt(bias_correction3)) + eps
+            denominator = (ops.sqrt(exp_avg_sq) / ops.sqrt(bias_correction3)) + eps
 
-        update = (exp_avg / bias_correction1 + beta2 * exp_avg_diff / bias_correction2) / (denom)
+        update = (exp_avg / bias_correction1 + beta2 * exp_avg_diff / bias_correction2) / denominator
 
-        if self._no_prox:
-            var.assign(var * (1 - lr_t * weight_decay), use_locking=self._use_locking)
-            var.assign_add(update * (-lr_t), use_locking=self._use_locking)
-        else:
-            var.assign_add(update * (-lr_t), use_locking=self._use_locking)
-            var.assign(var / (1 + lr_t * weight_decay), use_locking=self._use_locking)
+        self.assign_add(var, update * (-lr_t))
 
-        pre_grad.assign(grad, use_locking=self._use_locking)
-        return tf.group(*[update, exp_avg, exp_avg_diff, exp_avg_sq, pre_grad])
-
-    def _resource_apply_sparse(self, grad, var):
-        raise NotImplementedError("Sparse gradient updates are not supported.")
+        self.assign(pre_grad, grad)
 
     def get_config(self):
         """Get config dictionary."""
         config = super(Adan, self).get_config()
         config.update(
             {
-                "no_prox": bool(self._no_prox),
                 "amsgrad": bool(self._use_amsgrad),
-                "learning_rate": self._serialize_hyperparameter("learning_rate"),
-                "eps": self._serialize_hyperparameter("eps"),
-                "beta_1": self._serialize_hyperparameter("beta_1"),
-                "beta_2": self._serialize_hyperparameter("beta_2"),
-                "beta_3": self._serialize_hyperparameter("beta_3"),
-                "weight_decay": self._serialize_hyperparameter("weight_decay"),
+                "learning_rate": self._input_learning_rate,
+                "eps": self._eps,
+                "beta_1": self._beta_1,
+                "beta_2": self._beta_2,
+                "beta_3": self._beta_3,
+                "weight_decay": self._input_weight_decay
             }
         )
         return config

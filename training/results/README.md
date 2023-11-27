@@ -54,15 +54,17 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attribu
 
 ESOL consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation. 
 
-| model     | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
-|:----------|:--------|---------:|:-----------------------|:-----------------------|
-| DMPNN     | 4.0.0   |      300 | **0.4401 &pm; 0.0165** | **0.6203 &pm; 0.0292** |
-| GAT       | 4.0.0   |      500 | 0.4818 &pm; 0.0240     | 0.6919 &pm; 0.0694     |
-| GATv2     | 4.0.0   |      500 | 0.4598 &pm; 0.0234     | 0.6650 &pm; 0.0409     |
-| GCN       | 4.0.0   |      800 | 0.4613 &pm; 0.0205     | 0.6534 &pm; 0.0513     |
-| GIN       | 4.0.0   |      300 | 0.5369 &pm; 0.0334     | 0.7954 &pm; 0.0861     |
-| GraphSAGE | 4.0.0   |      500 | 0.4874 &pm; 0.0228     | 0.6982 &pm; 0.0608     |
-| Schnet    | 4.0.0   |      800 | 0.4777 &pm; 0.0294     | 0.6977 &pm; 0.0538     |
+| model       | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
+|:------------|:--------|---------:|:-----------------------|:-----------------------|
+| AttentiveFP | 4.0.0   |      200 | **0.4351 &pm; 0.0110** | **0.6080 &pm; 0.0207** |
+| DMPNN       | 4.0.0   |      300 | 0.4401 &pm; 0.0165     | 0.6203 &pm; 0.0292     |
+| GAT         | 4.0.0   |      500 | 0.4818 &pm; 0.0240     | 0.6919 &pm; 0.0694     |
+| GATv2       | 4.0.0   |      500 | 0.4598 &pm; 0.0234     | 0.6650 &pm; 0.0409     |
+| GCN         | 4.0.0   |      800 | 0.4613 &pm; 0.0205     | 0.6534 &pm; 0.0513     |
+| GIN         | 4.0.0   |      300 | 0.5369 &pm; 0.0334     | 0.7954 &pm; 0.0861     |
+| GraphSAGE   | 4.0.0   |      500 | 0.4874 &pm; 0.0228     | 0.6982 &pm; 0.0608     |
+| NMPN        | 4.0.0   |      800 | 0.5046 &pm; 0.0266     | 0.7193 &pm; 0.0607     |
+| Schnet      | 4.0.0   |      800 | 0.4777 &pm; 0.0294     | 0.6977 &pm; 0.0538     |
 
 #### FreeSolvDataset
 
@@ -236,6 +238,14 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 | model   | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]         |
 |:--------|:--------|---------:|:-----------------------|:------------------------|
 | Schnet  | 4.0.0   |      800 | **3.4313 &pm; 0.4757** | **10.8978 &pm; 7.3863** |
+
+#### QM9Dataset
+
+QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels include geometric, energetic, electronic, and thermodynamic properties. We use a random 5-fold cross-validation, but not all splits are evaluated for cheaper evaluation. Test errors are MAE and for energies are given in [eV]. 
+
+| model   | kgcnn   |   epochs | HOMO [eV]              | LUMO [eV]              | U0 [eV]                | H [eV]                 | G [eV]                 |
+|:--------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|:-----------------------|
+| Schnet  | 4.0.0   |      800 | **0.0402 &pm; 0.0007** | **0.0340 &pm; 0.0001** | **0.0142 &pm; 0.0002** | **0.0146 &pm; 0.0002** | **0.0143 &pm; 0.0002** |
 
 #### SIDERDataset
 

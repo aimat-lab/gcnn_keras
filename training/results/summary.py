@@ -336,27 +336,27 @@ benchmark_datasets = {
              "is_min_max": True}
         ]
     },
-    # "QM9Dataset": {
-    #     "general_info": [
-    #         "QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. ",
-    #         "Labels include geometric, energetic, electronic, and thermodynamic properties. ",
-    #         "We use a random 5-fold cross-validation, ",
-    #         "but not all splits are evaluated for cheaper evaluation. ",
-    #         "Test errors are MAE and for energies are given in [eV]. "
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "HOMO [eV]", "find_best": "min",
-    #          "multi_target_indices": [5]},
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "LUMO [eV]", "find_best": "min",
-    #          "multi_target_indices": [6]},
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "U0 [eV]", "find_best": "min",
-    #          "multi_target_indices": [[10], [15]]},
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "H [eV]", "find_best": "min",
-    #          "multi_target_indices": [[12], [17]]},
-    #         {"metric": "val_scaled_mean_absolute_error", "name": "G [eV]", "find_best": "min",
-    #          "multi_target_indices": [[13], [18]]},
-    #     ]
-    # },
+    "QM9Dataset": {
+        "general_info": [
+            "QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. ",
+            "Labels include geometric, energetic, electronic, and thermodynamic properties. ",
+            "We use a random 5-fold cross-validation, ",
+            "but not all splits are evaluated for cheaper evaluation. ",
+            "Test errors are MAE and for energies are given in [eV]. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "HOMO [eV]", "find_best": "min",
+             "multi_target_indices": [5]},
+            {"metric": "val_scaled_mean_absolute_error", "name": "LUMO [eV]", "find_best": "min",
+             "multi_target_indices": [6]},
+            {"metric": "val_scaled_mean_absolute_error", "name": "U0 [eV]", "find_best": "min",
+             "multi_target_indices": [[10], [15]]},
+            {"metric": "val_scaled_mean_absolute_error", "name": "H [eV]", "find_best": "min",
+             "multi_target_indices": [[12], [17]]},
+            {"metric": "val_scaled_mean_absolute_error", "name": "G [eV]", "find_best": "min",
+             "multi_target_indices": [[13], [18]]},
+        ]
+    },
     "SIDERDataset": {
         "general_info": [
             "SIDER (MoleculeNet) consists of 1427 compounds as smiles and ",
