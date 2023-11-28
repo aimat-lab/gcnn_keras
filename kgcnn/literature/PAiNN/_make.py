@@ -76,7 +76,7 @@ def make_model(inputs: list = None,
     r"""Make `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`__ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.PAiNN.model_default`.
 
-    Model inputs:
+    **Model inputs**:
     Model uses the list template of inputs and standard output template.
     The supported inputs are  :obj:`[nodes, coordinates, edge_indices, ...]`
     with '...' indicating mask or ID tensors following the template below.
@@ -85,7 +85,7 @@ def make_model(inputs: list = None,
 
     %s
 
-    Model outputs:
+    **Model outputs**:
     The standard output template:
 
     %s
@@ -197,8 +197,10 @@ model_crystal_default = {
     "node_normalization": False,
     "depth": 3,
     "verbose": 10,
-    "output_embedding": "graph", "output_to_tensor": True,
-    "output_scaling": None, "output_tensor_type": "padded",
+    "output_embedding": "graph",
+    "output_to_tensor": None,  # deprecated
+    "output_scaling": None,
+    "output_tensor_type": "padded",
     "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]}
 }
 

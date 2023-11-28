@@ -223,7 +223,8 @@ class GraphNormalization(Layer):
             inputs (list): `[values, graph_id, reference]` .
 
                 - values (Tensor): Tensor to normalize of shape `(None, F, ...)` .
-                - graph_size (Tensor, optional): Size of each graph for nodes in disjoint batch of shape `(batch, )` .
+                - graph_id (Tensor): Tensor of graph IDs of shape `(None, )` .
+                - reference (Tensor, optional): Graph reference of disjoint batch of shape `(batch, )` .
 
         Returns:
             Tensor: Normalized tensor of identical shape (None, F, ...)

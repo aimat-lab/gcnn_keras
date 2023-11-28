@@ -15,15 +15,21 @@ class MessagePassingBase(ks.layers.Layer):
     The original message passing scheme was proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`__ .
     """
 
-    def __init__(self, pooling_method: str = "scatter_sum", **kwargs):
+    def __init__(self,
+                 pooling_method: str = "scatter_sum",
+                 use_id_tensors: int = None,
+                 **kwargs):
         r"""Initialize :obj:`MessagePassingBase` layer.
 
         Args:
             pooling_method (str): Aggregation method of edges. Default is "sum".
+            use_id_tensors (int): Whether :obj:`call` receives graph ID information, which is passed onto message and
+                aggregation function. Specifies the number of additional tensors.
         """
         super(MessagePassingBase, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.lay_gather = GatherNodes(concat_axis=None)
+        self.use_id_tensors = use_id_tensors
         self.lay_pool_default = AggregateLocalEdges(pooling_method=self.pooling_method)
     
     def build(self, input_shape):
@@ -90,27 +96,34 @@ class MessagePassingBase(ks.layers.Layer):
         Returns:
             Tensor: Updated node embeddings of shape ([N], F)
         """
+        if self.use_id_tensors is not None:
+            ids = inputs[-int(self.use_id_tensors):]
+            inputs = inputs[:-int(self.use_id_tensors)]
+        else:
+            ids = []
+
         if len(inputs) == 2:
-            nodes, edge_index = inputs
+            nodes, edge_index = inputs[:2]
             edges = None
         else:
-            nodes, edges, edge_index = inputs
+            nodes, edges, edge_index = inputs[:3]
 
         n_in, n_out = self.lay_gather([nodes, edge_index], **kwargs)
 
         if edges is None:
-            msg = self.message_function([n_in, n_out], **kwargs)
+            msg = self.message_function([n_in, n_out] + ids, **kwargs)
         else:
-            msg = self.message_function([n_in, n_out, edges], **kwargs)
+            msg = self.message_function([n_in, n_out, edges] + ids, **kwargs)
 
         pool_n = self.aggregate_message([nodes, msg, edge_index], **kwargs)
-        n_new = self.update_nodes([nodes, pool_n], **kwargs)
+
+        n_new = self.update_nodes([nodes, pool_n] + ids, **kwargs)
         return n_new
 
     def get_config(self):
         """Update config."""
         config = super(MessagePassingBase, self).get_config()
-        config.update({"pooling_method": self.pooling_method})
+        config.update({"pooling_method": self.pooling_method, "use_id_tensors": self.use_id_tensors})
         return config
 
 
@@ -125,7 +138,6 @@ class MatMulMessages(ks.layers.Layer):
     .. math::
 
         x_i' = \mathbf{A_i} \; x_i
-
     """
 
     def __init__(self, **kwargs):
