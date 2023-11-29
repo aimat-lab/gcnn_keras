@@ -4,6 +4,19 @@ Completely reworked version of kgcnn for Keras 3.0 and multi-backend support. A 
 However, we tried to keep as much of the API from kgcnn 3.0 so that models in literature can be used with minimal changes.
 Mainly, the ``"input_tensor_type"="ragged"`` model parameter has to be added if ragged tensors are used as input in tensorflow.
 The scope of models has been reduced for initial release but will be extended in upcoming versions.
+Note that some changes are also stem for keras API changes, like for example *learning_rate* rate parameter or serialization.
+Moreover, tensorflow addons had to be dropped for keras 3.0 .
+
+The general representations of graphs has been changed from ragged tensors (tensorflow only, not supported by keras 3.0) to
+the disjoint graph representation compatible with e.g. PyTorchGeometric. 
+Input can be padded or (still) ragged input. Or direct disjoint representations with batch loader.
+(See models chapter in docs).
+
+For jax we added a ``padded_disjoint`` parameter that can enable jit'able jax models but requires a dataloader,
+which is not yet implemented in ``kgcnn``. From padded samples it can already been tested,
+but the padding of each sample is a much larger overhead that padding the batch. 
+
+Some other changes:
 
 * Reworked training scripts to have a single ``train_graph.py`` script. Command line arguments are now optional and just used for verification, all but `category` which has to select a model/hyperparameter combination from hyper file.
 Since the hyperparameter file already contains all necessary information.
@@ -12,8 +25,9 @@ Since the hyperparameter file already contains all necessary information.
 Also be sure to check ``StandardLabelScaler`` if you want to scale regression targets, since target properties are default here.
 * Literature Models have an optional output scaler from new `kgcnn.layers.scale` layer controlled by `output_scaling` model argument.
 * Input embedding in literature models is now controlled with separate ``input_node_embedding`` or ``input_edge_embedding`` arguments which can be set to `None` for no embedding.
-Also embedding input tokens must be of dtype int now. No autocasting from float anymore.
-*  
+Also embedding input tokens must be of dtype int now. No auto-casting from float anymore.
+* New module ``kgcnn.ops`` with ``kgcnn.backend`` to generalize aggregation functions for graph operations.
+* Reduced the models in literature. Will keep bringing all models of kgcnn<4.0.0 back in next versions.
 
 
 

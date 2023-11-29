@@ -10,7 +10,7 @@ or latest release via `Python Package Index <https://pypi.org/>`_ ::
    pip install kgcnn
 
 
-Standard python package requirements are placed in the ``setup.py`` and are installed automatically.
+Standard python package requirements are installed automatically.
 However, you must make sure to install the GPU/TPU acceleration for the backend of your choice.
 For example, to have proper GPU support, make sure that the installed ``tensorflow`` version matches your system requirements.
 Moreover, installed `GPU drivers <https://www.nvidia.com/download/index.aspx?lang=en-us>`_ and `CUDA <https://developer.nvidia.com/cuda-toolkit-archive>`_  and `cuDNN <https://developer.nvidia.com/cudnn>`_ versions must match.

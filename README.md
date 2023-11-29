@@ -38,7 +38,7 @@ If you want to get in contact, feel free to [discuss](https://github.com/aimat-l
 <a name="requirements"></a>
 # Requirements
 
-Standard python package requirements are placed in the `setup.py` and are installed automatically.
+Standard python package requirements are installed automatically.
 However, you must make sure to install the GPU/TPU acceleration for the backend of your choice.
 
 <a name="installation"></a>
@@ -169,6 +169,7 @@ original implementations (with proper licencing).
 * **[AttentiveFP](kgcnn/literature/AttentiveFP)**: [Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism](https://pubs.acs.org/doi/10.1021/acs.jmedchem.9b00959) by Xiong et al. (2019)
 * **[PAiNN](kgcnn/literature/PAiNN)**: [Equivariant message passing for the prediction of tensorial properties and molecular spectra](https://arxiv.org/pdf/2102.03150.pdf) by Schütt et al. (2020)
 * **[NMPN](kgcnn/literature/NMPN)**: [Neural Message Passing for Quantum Chemistry](http://arxiv.org/abs/1704.01212) by Gilmer et al. (2017)
+* **[CGCNN](kgcnn/literature/CGCNN)**: [Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) by Xie et al. (2018)
 
 To be completed ...
 </details>
