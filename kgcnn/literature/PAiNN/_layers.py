@@ -1,7 +1,7 @@
-import keras_core as ks
-from keras_core import ops
+import keras as ks
+from keras import ops
 from kgcnn.layers.aggr import AggregateLocalEdges
-from keras_core.layers import Add, Multiply, Dense, Concatenate
+from keras.layers import Add, Multiply, Dense, Concatenate
 from kgcnn.layers.geom import EuclideanNorm, ScalarProduct
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.modules import ExpandDims

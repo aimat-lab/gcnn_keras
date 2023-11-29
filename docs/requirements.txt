@@ -1,4 +1,4 @@
-keras-core
+keras>=3.0.0
 sphinx==3.4.3
 sphinx_rtd_theme
 jinja2==3.0.0
@@ -8,7 +8,7 @@ scipy
 matplotlib
 pandas
 scikit-learn
-rdkit-pypi
+rdkit
 pyyaml
 pymatgen
 ase

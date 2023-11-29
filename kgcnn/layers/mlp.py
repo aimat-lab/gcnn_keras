@@ -1,6 +1,6 @@
-import keras_core as ks
-from keras_core.layers import Dense, Layer, Activation, Dropout
-from keras_core.layers import LayerNormalization, GroupNormalization, BatchNormalization, UnitNormalization
+import keras as ks
+from keras.layers import Dense, Layer, Activation, Dropout
+from keras.layers import LayerNormalization, GroupNormalization, BatchNormalization, UnitNormalization
 from kgcnn.layers.norm import (GraphNormalization, GraphInstanceNormalization,
                                GraphBatchNormalization, GraphLayerNormalization)
 from kgcnn.layers.norm import global_normalization_args as global_normalization_args_graph

@@ -1,10 +1,10 @@
-import keras_core as ks
-from keras_core.layers import Layer
-from keras_core import ops
-from keras_core import InputSpec
+import keras as ks
+from keras.layers import Layer
+from keras import ops
+from keras import InputSpec
 from kgcnn.ops.scatter import scatter_reduce_sum
-from keras_core.layers import LayerNormalization as _LayerNormalization
-from keras_core.layers import BatchNormalization as _BatchNormalization
+from keras.layers import LayerNormalization as _LayerNormalization
+from keras.layers import BatchNormalization as _BatchNormalization
 
 global_normalization_args = {
     "GraphNormalization": (

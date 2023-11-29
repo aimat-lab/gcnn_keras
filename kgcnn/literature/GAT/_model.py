@@ -1,4 +1,4 @@
-from keras_core.layers import Dense, Concatenate, Average, Activation
+from keras.layers import Dense, Concatenate, Average, Activation
 from kgcnn.layers.attention import AttentionHeadGAT
 from kgcnn.layers.mlp import MLP, GraphMLP
 from kgcnn.layers.modules import Embedding

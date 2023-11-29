@@ -1,5 +1,5 @@
 import numpy as np
-from keras_core import ops
+from keras import ops
 from kgcnn.utils.tests import TestCase
 from kgcnn.layers.aggr import AggregateLocalEdges, AggregateLocalEdgesAttention
 

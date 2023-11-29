@@ -1,8 +1,8 @@
-import keras_core as ks
+import keras as ks
 from typing import Union
 from kgcnn.layers.pooling import PoolingNodes
 import numpy as np
-from keras_core import ops
+from keras import ops
 
 
 class StandardLabelScaler(ks.layers.Layer):  # noqa

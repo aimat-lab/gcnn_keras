@@ -1,7 +1,7 @@
-import keras_core as ks
+import keras as ks
 from kgcnn.layers.modules import Input
 from kgcnn.models.utils import update_model_kwargs
-from keras_core.backend import backend as backend_to_use
+from keras.backend import backend as backend_to_use
 from kgcnn.layers.scale import get as get_scaler
 from kgcnn.models.casting import template_cast_output, template_cast_list_input
 from ._model import model_disjoint_crystal
@@ -25,12 +25,12 @@ model_crystal_default = {
     'name': 'CGCNN',
     'inputs': [
         {'shape': (None,), 'name': 'node_number', 'dtype': 'int64'},
-        # {'shape': (None, 1), 'name': 'multiplicities', 'dtype': 'float32'},  # For asu"
         {'shape': (None, 3), 'name': 'node_frac_coordinates', 'dtype': 'float64'},
-        # {'shape': (None, 4, 4), 'name': 'symmops', 'dtype': 'float64'},
         {'shape': (None, 2), 'name': 'edge_indices', 'dtype': 'int64'},
         {'shape': (None, 3), 'name': 'cell_translations', 'dtype': 'float32'},
         {'shape': (3, 3), 'name': 'lattice_matrix', 'dtype': 'float64'},
+        # {'shape': (None, 1), 'name': 'multiplicities', 'dtype': 'float32'},  # For asu"
+        # {'shape': (None, 4, 4), 'name': 'symmops', 'dtype': 'float64'},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
@@ -75,6 +75,7 @@ def make_crystal_model(inputs: list = None,
                        verbose: int = None,  # noqa
                        gauss_args: dict = None,
                        node_pooling_args: dict = None,
+                       output_to_tensor: dict = None,  # noqa
                        output_mlp: dict = None,
                        output_embedding: str = None,
                        output_scaling: dict = None,
@@ -88,14 +89,14 @@ def make_crystal_model(inputs: list = None,
     Model uses the list template of inputs and standard output template.
     Model supports :obj:`[node_attributes, node_frac_coordinates, bond_indices, lattice, cell_translations, ...]`
     if representation='unit'` and `make_distances=True` or
-    :obj:`[node_attributes, symmops, node_frac_coords, multiplicities, bond_indices, lattice, cell_translations, ...]`
+    :obj:`[node_attributes, node_frac_coords, bond_indices, lattice, cell_translations, multiplicities, symmops, ...]`
     if `representation='asu'` and `make_distances=True`
     or :obj:`[node_attributes, edge_distance, bond_indices, ...]`
     if `make_distances=False` .
     The optional tensor :obj:`multiplicities` is a node-like feature tensor with a single value that gives
     the multiplicity for each node.
     The optional tensor :obj:`symmops` is an edge-like feature tensor with a matrix of shape `(4, 4)` for each edge
-    that defines the symmerty operation.
+    that defines the symmetry operation.
 
     %s
 
@@ -125,6 +126,7 @@ def make_crystal_model(inputs: list = None,
             Defines number of model outputs and activation.
         output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
         output_tensor_type (str): Output type of graph tensors such as nodes or edges. Default is "padded".
+        output_to_tensor (bool): Deprecated in favour of `output_tensor_type` .
 
     Returns:
         :obj:`keras.models.Model`
@@ -136,13 +138,13 @@ def make_crystal_model(inputs: list = None,
         model_inputs,
         input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_edges=int(not make_distances) + int(representation == "asu"),
-        has_nodes=1 + int(make_distances) + int(representation == "asu"),
-        has_crystal_input=2
+        has_edges=int(not make_distances),
+        has_nodes=1 + int(make_distances),
+        has_crystal_input=2+2*int(representation == "asu")
     )
 
     if representation == "asu":
-        n, m, x, sym, djx, img, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = d_in
+        n, x, djx, img, lattice, m, sym, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = d_in
     else:
         n, x, djx, img, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = d_in
         m, sym = None, None

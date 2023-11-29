@@ -1,6 +1,6 @@
 import numpy as np
 from kgcnn.utils.tests import TestCase
-from keras_core import ops
+from keras import ops
 from kgcnn.layers.gather import GatherNodes
 
 

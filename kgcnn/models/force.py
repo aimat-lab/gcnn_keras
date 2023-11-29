@@ -1,9 +1,9 @@
-import keras_core as ks
-import keras_core.saving
+import keras as ks
+import keras.saving
 from typing import Union
 from kgcnn.models.utils import get_model_class
-from keras_core.saving import deserialize_keras_object, serialize_keras_object
-from keras_core.backend import backend
+from keras.saving import deserialize_keras_object, serialize_keras_object
+from keras.backend import backend
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='EnergyForceModel')

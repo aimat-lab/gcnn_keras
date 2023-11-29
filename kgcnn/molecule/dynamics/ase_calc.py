@@ -1,5 +1,5 @@
 import ase
-import tensorflow as tf
+import keras as ks
 import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import Calculator
@@ -7,8 +7,6 @@ from kgcnn.graph.base import GraphDict
 from kgcnn.data.base import MemoryGraphList
 from copy import deepcopy
 from typing import Union, List
-
-ks = tf.keras
 
 
 class AtomsToGraphConverter:

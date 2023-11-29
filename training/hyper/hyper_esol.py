@@ -305,7 +305,7 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam",
                               "config": {"learning_rate": {
-                                  "module": "keras_core.optimizers.schedules",
+                                  "module": "keras.optimizers.schedules",
                                   "class_name": "ExponentialDecay",
                                   "config": {"initial_learning_rate": 0.001,
                                              "decay_steps": 1600,
@@ -376,7 +376,7 @@ hyper = {
                     "class_name": "Adam",
                     "config": {
                         "learning_rate":
-                            {"module": "keras_core.optimizers.schedules",
+                            {"module": "keras.optimizers.schedules",
                              "class_name": "ExponentialDecay",
                              "config": {"initial_learning_rate": 0.001,
                                         "decay_steps": 1600,
@@ -561,7 +561,7 @@ hyper = {
                 "callbacks": []
             },
             "compile": {
-                "optimizer": {"class_name": "AdamW", "module_name": "keras_core.optimizers",
+                "optimizer": {"class_name": "AdamW", "module_name": "keras.optimizers",
                               "config": {"learning_rate": 0.0031622776601683794, "weight_decay": 1e-05}},
                 "loss": "mean_absolute_error"
             },

@@ -4,7 +4,7 @@ from kgcnn.models.utils import update_model_kwargs
 from kgcnn.layers.scale import get as get_scaler
 from kgcnn.layers.modules import Input
 from kgcnn.models.casting import template_cast_output, template_cast_list_input
-from keras_core.backend import backend as backend_to_use
+from keras.backend import backend as backend_to_use
 from kgcnn.ops.activ import *
 
 # Keep track of model version from commit date in literature.

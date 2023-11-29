@@ -1,4 +1,4 @@
-import keras_core as ks
+import keras as ks
 from kgcnn.ops.activ import *
 from kgcnn.layers.attention import AttentiveHeadFP
 from kgcnn.layers.mlp import MLP, GraphMLP

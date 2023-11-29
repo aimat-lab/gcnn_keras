@@ -1,11 +1,11 @@
-import keras_core as ks
+import keras as ks
 import numpy as np
 import argparse
 import os
 import time
 from sklearn.model_selection import KFold
 from kgcnn.training.history import save_history_score
-from keras_core import ops
+from keras import ops
 import kgcnn.training.scheduler
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true

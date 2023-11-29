@@ -1,8 +1,8 @@
-import keras_core as ks
-import keras_core.metrics
+import keras as ks
+import keras.metrics
 import numpy as np
-from keras_core import ops
-import keras_core.saving
+from keras import ops
+import keras.saving
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='ScaledMeanAbsoluteError')

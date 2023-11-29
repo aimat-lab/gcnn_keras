@@ -1,5 +1,5 @@
-import keras_core as ks
-from keras_core.layers import Concatenate, Dense, Add, Activation, Dropout
+import keras as ks
+from keras.layers import Concatenate, Dense, Add, Activation, Dropout
 from kgcnn.layers.aggr import AggregateLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherState
 from kgcnn.layers.mlp import MLP, GraphMLP

@@ -1,7 +1,7 @@
-import keras_core as ks
+import keras as ks
 from kgcnn.layers.message import MessagePassingBase
 from kgcnn.layers.norm import GraphBatchNormalization
-from keras_core.layers import Activation, Multiply, Concatenate, Add, Dense
+from keras.layers import Activation, Multiply, Concatenate, Add, Dense
 
 
 class CGCNNLayer(MessagePassingBase):
@@ -41,10 +41,11 @@ class CGCNNLayer(MessagePassingBase):
                  activity_regularizer=None,
                  kernel_constraint=None,
                  bias_constraint=None,
+                 pooling_method: str = "scatter_mean",
                  kernel_initializer='glorot_uniform',
                  bias_initializer='zeros',
                  **kwargs):
-        super(CGCNNLayer, self).__init__(use_id_tensors=4, **kwargs)
+        super(CGCNNLayer, self).__init__(use_id_tensors=4, pooling_method=pooling_method, **kwargs)
         self.units = units
         self.use_bias = use_bias
         self.padded_disjoint = padded_disjoint
@@ -64,7 +65,7 @@ class CGCNNLayer(MessagePassingBase):
         self.s = Dense(self.units, activation="linear", use_bias=use_bias, **kernel_args)
         self.lazy_mult = Multiply()
         self.lazy_add = Add()
-        self.lazy_concat = Concatenate(axis=2)
+        self.lazy_concat = Concatenate(axis=-1)
 
     def message_function(self, inputs, **kwargs):
         r"""Prepare messages.
@@ -83,7 +84,6 @@ class CGCNNLayer(MessagePassingBase):
         Returns:
             Tensor: Messages for updates of shape `([M], units)`.
         """
-
         nodes_in = inputs[0]  # shape: (batch_size, M, F)
         nodes_out = inputs[1]  # shape: (batch_size, M, F)
         edge_features = inputs[2]  # shape: (batch_size, M, E)

@@ -1,4 +1,4 @@
-from keras_core.layers import Add
+from keras.layers import Add
 from kgcnn.layers.geom import NodePosition, EdgeDirectionNormalized, NodeDistanceEuclidean, CosCutOffEnvelope, \
     BesselBasisLayer, ShiftPeriodicLattice
 from kgcnn.layers.mlp import MLP, GraphMLP

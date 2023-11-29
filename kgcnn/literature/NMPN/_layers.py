@@ -1,6 +1,6 @@
-import keras_core as ks
-from keras_core import ops
-from keras_core.layers import Dense
+import keras as ks
+from keras import ops
+from keras.layers import Dense
 
 
 class TrafoEdgeNetMessages(ks.layers.Layer):

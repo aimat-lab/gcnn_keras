@@ -1,13 +1,13 @@
 import os
 import logging
-import keras_core as ks
+import keras as ks
 from typing import Union
 from copy import deepcopy
 from kgcnn.metrics.utils import merge_metrics
 from kgcnn.data.utils import load_hyper_file, save_json_file
-from keras_core.saving import deserialize_keras_object
-import keras_core.metrics
-import keras_core.losses
+from keras.saving import deserialize_keras_object
+import keras.metrics
+import keras.losses
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)

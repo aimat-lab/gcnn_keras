@@ -1,7 +1,7 @@
-import keras_core as ks
-from keras_core.layers import Layer, Dense, Concatenate, GRUCell, Activation
+import keras as ks
+from keras.layers import Layer, Dense, Concatenate, GRUCell, Activation
 from kgcnn.layers.gather import GatherState
-from keras_core import ops
+from keras import ops
 from kgcnn.ops.scatter import scatter_reduce_softmax
 from kgcnn.layers.aggr import Aggregate
 

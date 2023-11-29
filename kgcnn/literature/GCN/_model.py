@@ -1,4 +1,4 @@
-from keras_core.layers import Dense
+from keras.layers import Dense
 from kgcnn.layers.conv import GCN
 from kgcnn.layers.mlp import MLP, GraphMLP
 from kgcnn.layers.modules import Embedding

@@ -1,8 +1,8 @@
-import keras_core as ks
-from keras_core import ops
-from keras_core.losses import Loss
-from keras_core.losses import mean_absolute_error
-import keras_core.saving
+import keras as ks
+from keras import ops
+from keras.losses import Loss
+from keras.losses import mean_absolute_error
+import keras.saving
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='MeanAbsoluteError')

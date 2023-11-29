@@ -231,6 +231,15 @@ def template_cast_list_input(model_inputs,
             disjoint_crystal_info.append(
                 CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(batched_crystal_info[1])
             )
+        if has_crystal_input > 2:
+            # multiplicity
+            disjoint_crystal_info.append(
+                CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_crystal_info[2], part_nodes])[0]
+            )
+            # symmetry operations
+            disjoint_crystal_info.append(
+                CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_crystal_info[3], part_edges])[0]
+            )
 
     elif input_tensor_type in ["ragged", "jagged"]:
 
@@ -263,6 +272,13 @@ def template_cast_list_input(model_inputs,
             disjoint_crystal_info.append(
                 batched_crystal_info[1]
             )
+        if has_crystal_input > 2:
+            disjoint_crystal_info.append(
+                CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_crystal_info[2])[0]
+            )
+            disjoint_crystal_info.append(
+                CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_crystal_info[3])[0]
+            )
 
         disjoint_state = batched_state
 
@@ -292,7 +308,7 @@ def template_cast_list_input(model_inputs,
     else:
         disjoint_id = batched_id
 
-    disjoint_model_inputs = disjoint_nodes + disjoint_edges + disjoint_angles + disjoint_indices + disjoint_angle_indices + disjoint_state + disjoint_crystal_info  + disjoint_id
+    disjoint_model_inputs = disjoint_nodes + disjoint_edges + disjoint_angles + disjoint_indices + disjoint_angle_indices + disjoint_state + disjoint_crystal_info + disjoint_id
 
     return disjoint_model_inputs
 

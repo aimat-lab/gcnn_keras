@@ -1,5 +1,5 @@
-import keras_core as ks
-from keras_core import ops
+import keras as ks
+from keras import ops
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.aggr import AggregateLocalEdges
 

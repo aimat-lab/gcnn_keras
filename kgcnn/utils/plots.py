@@ -1,8 +1,8 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-import keras_core as ks
-import keras_core.callbacks
+import keras as ks
+import keras.callbacks
 
 
 def plot_train_test_loss(histories: list, loss_name: str = None,

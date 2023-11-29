@@ -1,4 +1,4 @@
-from keras_core.layers import Concatenate
+from keras.layers import Concatenate
 from kgcnn.layers.aggr import AggregateLocalEdgesLSTM, AggregateLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.mlp import GraphMLP, MLP

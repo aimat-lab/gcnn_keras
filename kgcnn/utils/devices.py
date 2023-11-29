@@ -1,4 +1,4 @@
-from keras_core.backend import backend
+from keras.backend import backend
 from typing import Union
 
 

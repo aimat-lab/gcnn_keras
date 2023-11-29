@@ -1,5 +1,5 @@
-import keras_core as ks
-from keras_core.layers import Dense
+import keras as ks
+from keras.layers import Dense
 from kgcnn.layers.conv import GIN, GINE
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.modules import Embedding

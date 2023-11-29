@@ -142,4 +142,77 @@ hyper = {
             "kgcnn_version": "4.0.0"
         }
     },
+    "CGCNN.make_crystal_model": {
+        "model": {
+            "class_name": "make_crystal_model",
+            "module_name": "kgcnn.literature.CGCNN",
+            "config": {
+                'name': 'CGCNN',
+                'inputs': [
+                    {'shape': (None,), 'name': 'node_number', 'dtype': 'int64', 'ragged': True},
+                    {'shape': (None, 3), 'name': 'node_frac_coordinates', 'dtype': 'float64', 'ragged': True},
+                    {'shape': (None, 2), 'name': 'range_indices', 'dtype': 'int64', 'ragged': True},
+                    {'shape': (None, 3), 'name': 'range_image', 'dtype': 'float32', 'ragged': True},
+                    {'shape': (3, 3), 'name': 'graph_lattice', 'dtype': 'float64', 'ragged': False},
+                    # For `representation="asu"`:
+                    # {'shape': (None, 1), 'name': 'multiplicities', 'dtype': 'float32', 'ragged': True},
+                    # {'shape': (None, 4, 4), 'name': 'symmops', 'dtype': 'float64', 'ragged': True},
+                ],
+                "input_tensor_type": "ragged",
+                'input_node_embedding': {'input_dim': 95, 'output_dim': 64},
+                'representation': 'unit',  # None, 'asu' or 'unit'
+                'expand_distance': True,
+                'make_distances': True,
+                'gauss_args': {'bins': 60, 'distance': 6, 'offset': 0.0, 'sigma': 0.4},
+                'conv_layer_args': {
+                    'units': 128,
+                    'activation_s': 'kgcnn>shifted_softplus',
+                    'activation_out': 'kgcnn>shifted_softplus',
+                    'batch_normalization': True,
+                },
+                'node_pooling_args': {'pooling_method': 'scatter_mean'},
+                'depth': 4,
+                'output_mlp': {'use_bias': [True, True, False], 'units': [128, 64, 1],
+                               'activation': ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
+            }
+        },
+        "training": {
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "fit": {
+                "batch_size": 128, "epochs": 1000, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 500, "epo": 1000,
+                        "verbose": 0}
+                     }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {
+                "class_name": "StandardLabelScaler",
+                "module_name": "kgcnn.data.transform.scaler.standard",
+                "config": {"with_std": True, "with_mean": True, "copy": True}
+            },
+        },
+        "data": {
+            "dataset": {
+                "class_name": "MatProjectJdft2dDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
+                "config": {},
+                "methods": [
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 6.0}}
+                ]
+            },
+            "data_unit": "meV/atom"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "4.0.0"
+        }
+    },
 }

@@ -1,6 +1,6 @@
-import keras_core as ks
+import keras as ks
 import itertools
-from keras_core.layers import Concatenate
+from keras.layers import Concatenate
 from kgcnn.layers.mlp import MLP
 
 

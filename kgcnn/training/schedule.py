@@ -1,6 +1,6 @@
-import keras_core as ks
-import keras_core.saving
-import keras_core.optimizers.schedules
+import keras as ks
+import keras.saving
+import keras.optimizers.schedules
 # from keras_core import ops
 
 

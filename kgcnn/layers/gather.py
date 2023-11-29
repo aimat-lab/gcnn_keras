@@ -1,6 +1,6 @@
 from typing import Union
-from keras_core.layers import Layer, Concatenate
-from keras_core import ops
+from keras.layers import Layer, Concatenate
+from keras import ops
 from kgcnn import __indices_axis__ as global_axis_indices
 from kgcnn import __index_send__ as global_index_send
 from kgcnn import __index_receive__ as global_index_receive

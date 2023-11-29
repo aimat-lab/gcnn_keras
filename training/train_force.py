@@ -2,7 +2,7 @@ import numpy as np
 import time
 import os
 import argparse
-import keras_core as ks
+import keras as ks
 from datetime import timedelta
 import kgcnn.training.schedule
 import kgcnn.training.scheduler

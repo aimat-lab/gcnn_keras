@@ -1,4 +1,4 @@
-from keras_core.src.layers import Dense
+from keras.layers import Dense
 from kgcnn.layers.conv import SchNetInteraction
 from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, GaussBasisLayer, ShiftPeriodicLattice
 from kgcnn.layers.mlp import GraphMLP, MLP

@@ -1,10 +1,10 @@
-import keras_core as ks
+import keras as ks
 from kgcnn.layers.scale import get as get_scaler
 from ._model import model_disjoint, model_disjoint_weighted
 from kgcnn.layers.modules import Input
 from kgcnn.models.utils import update_model_kwargs
 from kgcnn.models.casting import template_cast_output, template_cast_list_input
-from keras_core.backend import backend as backend_to_use
+from keras.backend import backend as backend_to_use
 
 # from keras_core.layers import Activation
 # from kgcnn.layers.aggr import AggregateWeightedLocalEdges

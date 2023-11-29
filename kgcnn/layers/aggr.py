@@ -1,7 +1,7 @@
-import keras_core as ks
+import keras as ks
 # import keras_core.saving
-from keras_core.layers import Layer
-from keras_core import ops
+from keras.layers import Layer
+from keras import ops
 from kgcnn.ops.scatter import (
     scatter_reduce_min, scatter_reduce_mean, scatter_reduce_max, scatter_reduce_sum, scatter_reduce_softmax)
 from kgcnn import __indices_axis__ as global_axis_indices

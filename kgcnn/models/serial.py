@@ -1,5 +1,5 @@
 import logging
-import keras_core as ks
+import keras as ks
 from kgcnn.models.utils import get_model_class
 
 

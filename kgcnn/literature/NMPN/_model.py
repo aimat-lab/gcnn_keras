@@ -1,4 +1,4 @@
-import keras_core as ks
+import keras as ks
 from ._layers import TrafoEdgeNetMessages
 from kgcnn.layers.aggr import AggregateLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing

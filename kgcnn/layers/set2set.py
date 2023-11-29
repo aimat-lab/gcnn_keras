@@ -1,5 +1,5 @@
-import keras_core as ks
-from keras_core import ops
+import keras as ks
+from keras import ops
 from kgcnn.ops.scatter import scatter_reduce_sum, scatter_reduce_max
 from kgcnn.layers.aggr import Aggregate
 

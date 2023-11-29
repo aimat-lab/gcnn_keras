@@ -1,7 +1,7 @@
-from keras_core.layers import Layer, Dense, Activation, Add, Multiply
+from keras.layers import Layer, Dense, Activation, Add, Multiply
 from kgcnn.layers.aggr import AggregateWeightedLocalEdges, AggregateLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing
-from keras_core import ops
+from keras import ops
 from kgcnn.ops.activ import shifted_softplus
 
 

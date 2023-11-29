@@ -1,8 +1,8 @@
 # import keras_core as ks
 from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing
-from keras_core.layers import Dense, Concatenate, Activation, Average, Layer
+from keras.layers import Dense, Concatenate, Activation, Average, Layer
 from kgcnn.layers.aggr import AggregateLocalEdgesAttention
-from keras_core import ops
+from keras import ops
 
 
 class AttentionHeadGAT(Layer):  # noqa

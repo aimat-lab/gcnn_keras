@@ -1,9 +1,9 @@
 import math
 import numpy as np
 from typing import Union
-import keras_core as ks
-from keras_core import ops
-from keras_core.layers import Layer, Subtract, Multiply, Add, Subtract
+import keras as ks
+from keras import ops
+from keras.layers import Layer, Subtract, Multiply, Add, Subtract
 from kgcnn.layers.gather import GatherNodes, GatherState
 from kgcnn.ops.axis import get_positive_axis
 
@@ -991,7 +991,7 @@ class DisplacementVectorsUnitCell(Layer):
         Returns:
             Tensor: Displacement vector for edges of shape `([M], 3)`.
         """
-        frac_coords, edge_indices, cell_translations = inputs[0], inputs[1], inputs[2]
+        frac_coords, edge_indices, cell_translations = inputs
         # Gather sending and receiving coordinates.
         in_frac_coords, out_frac_coords = self.gather_node_positions([frac_coords, edge_indices], **kwargs)
         # Cell translation
@@ -1039,7 +1039,9 @@ class FracToRealCoordinates(Layer):
         """
         frac_coords, lattice_matrices, batch_id_edge = inputs
         # lattice_matrices_ = ops.repeat(lattice_matrices, row_lengths, axis=0)
-        lattice_matrices_ = self.gather_state()([lattice_matrices, batch_id_edge])
+        lattice_matrices_ = self.gather_state([lattice_matrices, batch_id_edge])
+        # frac_to_real = ops.sum(
+        # ops.cast(lattice_matrices_, dtype=frac_coords.dtype) * ops.expand_dims(frac_coords, axis=-1), axis=1)
         frac_to_real = ops.einsum('ij,ijk->ik', frac_coords, lattice_matrices_)
         # frac_to_real_coords = ks.backend.batch_dot(frac_coords, lattice_matrices_)
         return frac_to_real

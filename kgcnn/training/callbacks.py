@@ -1,5 +1,5 @@
-import keras_core as ks
-import keras_core.callbacks
+import keras as ks
+import keras.callbacks
 
 
 class LearningRateLoggingCallback(ks.callbacks.Callback):

@@ -1,7 +1,7 @@
-import keras_core as ks
+import keras as ks
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherEdgesPairs
 from kgcnn.layers.aggr import AggregateLocalEdges
-from keras_core.layers import Subtract
+from keras.layers import Subtract
 
 
 class DMPNNPPoolingEdgesDirected(ks.layers.Layer):  # noqa

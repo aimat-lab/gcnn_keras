@@ -1,6 +1,6 @@
-import keras_core as ks
-from keras_core import ops
-import keras_core.saving
+import keras as ks
+from keras import ops
+import keras.saving
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='shifted_softplus')

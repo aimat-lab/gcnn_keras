@@ -1,7 +1,7 @@
 from typing import Union
 import unittest
 import numpy as np
-from keras_core import ops
+from keras import ops
 
 
 def compare_static_shapes(found: Union[tuple, None], expected: Union[tuple, None]):

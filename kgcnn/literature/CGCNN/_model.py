@@ -1,4 +1,5 @@
-import keras_core as ks
+import keras as ks
+from kgcnn.ops.activ import *
 from kgcnn.layers.geom import (
     DisplacementVectorsUnitCell,
     DisplacementVectorsASU, NodePosition, FracToRealCoordinates,
@@ -39,7 +40,7 @@ def model_disjoint_crystal(
             x_in, x_out = NodePosition()([frac_coords, edge_indices])
             displacement_vectors = ks.layers.Subtract()([x_out, x_in])
 
-        displacement_vectors = FracToRealCoordinates()([displacement_vectors, lattice_matrix])
+        displacement_vectors = FracToRealCoordinates()([displacement_vectors, lattice_matrix, batch_id_edge])
 
         edge_distances = EuclideanNorm(axis=-1, keepdims=True)(displacement_vectors)
 
@@ -51,7 +52,7 @@ def model_disjoint_crystal(
 
     # embedding, if no feature dimension
     if use_node_embedding:
-        n = Embedding(**input_node_embedding['node'])(atom_attributes)
+        n = Embedding(**input_node_embedding)(atom_attributes)
     else:
         n = atom_attributes
 

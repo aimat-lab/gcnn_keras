@@ -1,6 +1,6 @@
-import keras_core as ks
-from keras_core.layers import Layer
-from keras_core import ops
+import keras as ks
+from keras.layers import Layer
+from keras import ops
 from kgcnn.ops.core import repeat_static_length, decompose_ragged_tensor
 from kgcnn.ops.scatter import scatter_reduce_sum
 from kgcnn import __indices_axis__ as global_axis_indices

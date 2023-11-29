@@ -1,5 +1,5 @@
-import keras_core as ks
-from keras_core.layers import Dense, Add, Layer
+import keras as ks
+from keras.layers import Dense, Add, Layer
 
 
 class GRUUpdate(Layer):

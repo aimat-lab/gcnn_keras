@@ -1,6 +1,6 @@
 import tree
-from keras_core import KerasTensor
-from keras_core.backend import backend
+from keras import KerasTensor
+from keras.backend import backend
 
 
 def any_symbolic_tensors(args=None, kwargs=None):

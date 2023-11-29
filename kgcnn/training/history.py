@@ -5,9 +5,9 @@ from typing import Union
 from kgcnn.data.utils import save_yaml_file, load_pickle_file
 from datetime import datetime
 from kgcnn import __kgcnn_version__
-import keras_core as ks
-import keras_core.callbacks
-from keras_core.backend import backend
+import keras as ks
+import keras.callbacks
+from keras.backend import backend
 from kgcnn.utils.devices import check_device
 
 

@@ -2,7 +2,7 @@ from ._model import model_disjoint
 from kgcnn.models.utils import update_model_kwargs
 from kgcnn.layers.scale import get as get_scaler
 from kgcnn.layers.modules import Input
-from keras_core.backend import backend as backend_to_use
+from keras.backend import backend as backend_to_use
 from kgcnn.models.casting import template_cast_list_input, template_cast_output
 from kgcnn.ops.activ import *
 

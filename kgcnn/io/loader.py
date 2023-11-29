@@ -1,4 +1,4 @@
-import keras_core as ks
+import keras as ks
 import numpy as np
 import tensorflow as tf
 

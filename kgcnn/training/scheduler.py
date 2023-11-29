@@ -1,9 +1,9 @@
 import numpy as np
 import math
 import logging
-import keras_core as ks
-import keras_core.callbacks
-import keras_core.saving
+import keras as ks
+import keras.callbacks
+import keras.saving
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)

@@ -1,12 +1,10 @@
 import time
-import tensorflow as tf
+import keras as ks
 import numpy as np
 from typing import Union, List, Callable, Dict
 from kgcnn.data.base import MemoryGraphList
 from kgcnn.graph.base import GraphDict
 from kgcnn.utils.serial import deserialize, serialize
-
-ks = tf.keras
 
 
 class MolDynamicsModelPredictor:
@@ -14,8 +12,6 @@ class MolDynamicsModelPredictor:
     steps to convert for example input and output representations to fit MD programs like :obj:`ase` .
     The :obj:`MolDynamicsModelPredictor` receives a :obj:`MemoryGraphList` in call and returns a
     :obj:`MemoryGraphList` .
-
-
     """
 
     def __init__(self,
@@ -80,7 +76,6 @@ class MolDynamicsModelPredictor:
     def save(self, file_path: str):
         raise NotImplementedError("Not yet supported.")
 
-    @tf.function
     def _call_model_(self, tensor_input):
         return self.model(tensor_input, training=False)
 
