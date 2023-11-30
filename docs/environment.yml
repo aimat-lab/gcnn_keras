@@ -13,6 +13,7 @@ dependencies:
   - pandoc
   - pip:
     - keras>=3.0.0
+    - tf-nightly-cpu==2.16.0.dev20231103  # Only need tensorflow for docs
     - jinja2==3.0.3
     - numpy
     - scipy
