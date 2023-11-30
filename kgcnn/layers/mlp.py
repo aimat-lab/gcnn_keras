@@ -351,7 +351,7 @@ MLP.__doc__ = _MLPBase.__doc__
 MLP.__init__.__doc__ = MLP.__init__.__doc__ % _MLPBase.__init__.__doc__
 
 
-# Normal MLP can pass additinal tensors for normalization.
+# Normal MLP can pass additional tensors for normalization.
 # Use as synonym here.
 GraphMLP = MLP
 
@@ -391,7 +391,19 @@ class RelationalMLP(MLP):
 
     def build(self, input_shape):
         """Build layer."""
-        super(RelationalMLP, self).build(input_shape)
+        x_shape, r_shape, x_graph = (
+            input_shape[0], input_shape[1], input_shape[2:]) if len(input_shape) > 2 else (
+            input_shape[0], input_shape[1], [])
+        for i in range(self._depth):
+            self.mlp_dense_layer_list[i].build([x_shape, r_shape])
+            x_shape = self.mlp_dense_layer_list[i].compute_output_shape(x_shape)
+            if self._conf_use_dropout[i]:
+                self.mlp_dropout_layer_list[i].build(x_shape)
+            if self._conf_use_normalization[i]:
+                norm_shape = x_shape if not self.is_graph_norm_layer[i] else [x_shape] + x_graph
+                self.mlp_norm_layer_list[i].build(norm_shape)
+            self.mlp_activation_layer_list[i].build(x_shape)
+        self.built = True
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
@@ -424,4 +436,4 @@ class RelationalMLP(MLP):
 
 
 RelationalMLP.__doc__ = _MLPBase.__doc__
-RelationalMLP.__init__.__doc__ = _MLPBase.__init__.__doc__
+RelationalMLP.__init__.__doc__ = RelationalMLP.__init__.__doc__ % _MLPBase.__init__.__doc__

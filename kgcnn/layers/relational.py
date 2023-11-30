@@ -172,6 +172,13 @@ class RelationalDense(Layer):
 
         self.built = True
 
+    def compute_output_shape(self, input_shape):
+        """Compute output shape."""
+        assert len(input_shape) == 2, "`RelationalDense` requires '[features, relations]'."
+        output_shape = list(input_shape[0])
+        output_shape[-1] = self.units
+        return tuple(output_shape)
+
     def _multi_kernel_initializer(self, shape, dtype=None, **kwargs):
         """Initialize multiple relational kernels.
 
@@ -181,7 +188,7 @@ class RelationalDense(Layer):
             kwargs: Additional keyword arguments.
 
         Returns:
-            tf.Tensor: Tensor for initialization.
+            Tensor: Tensor for initialization.
         """
         # For blocks the ks.initialize seems to have proper behaviour.
         # Each block is treated as a convolution field.
