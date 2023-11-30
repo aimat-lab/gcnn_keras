@@ -105,8 +105,8 @@ class GraphNormalization(Layer):
 
         \text{GraphNorm}(\hat{h}_{i,j}) = \gamma_j \cdot \frac{\hat{h}_{i,j} - \alpha_j \mu_j }{\hat{\sigma}_j}+\beta_j
 
-    where :math:`\mu_j = \frac{\sum^n_{i=1} hat{h}_{i,j}}{n}` ,
-    :math:`\hat{\sigma}^2_j = \frac{\sum^n_{i=1} (hat{h}_{i,j} - \alpha_j \mu_j)^2}{n}`  ,
+    where :math:`\mu_j = \frac{\sum^n_{i=1} \hat{h}_{i,j}}{n}` ,
+    :math:`\hat{\sigma}^2_j = \frac{\sum^n_{i=1} (\hat{h}_{i,j} - \alpha_j \mu_j)^2}{n}`  ,
     and :math:`\gamma_j` , :math:`beta_j` are the affine parameters as in other normalization methods.
 
     .. code-block:: python

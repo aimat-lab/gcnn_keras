@@ -1,9 +1,9 @@
-name: rtd38
+name: rtd39
 channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.8
+  - python=3.9
   - openbabel=3.1.1
   - mock
   - pillow
