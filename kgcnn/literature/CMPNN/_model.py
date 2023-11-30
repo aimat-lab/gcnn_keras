@@ -71,8 +71,8 @@ def model_disjoint(
         if use_final_gru:
             # Actually a simple GRU is not permutation invariant.
             # Better replace this by e.g. set2set or AttentivePooling.
-            n = CastDisjointToBatchedAttributes()([n, batch_id_node, node_id, count_nodes])
-            out = ks.layers.GRU(**pooling_gru)(n)
+            n, mask = CastDisjointToBatchedAttributes(return_mask=True)([n, batch_id_node, node_id, count_nodes])
+            out = ks.layers.GRU(**pooling_gru)(n, mask=mask)
         else:
             out = PoolingNodes(**pooling_kwargs)([count_nodes, n, batch_id_node])
         out = MLP(**output_mlp)(out)

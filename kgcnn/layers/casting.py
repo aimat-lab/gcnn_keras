@@ -375,9 +375,10 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
     Reconstructs batched tensor with the help of ID tensor information.
     """
 
-    def __init__(self, static_output_shape: tuple = None, **kwargs):
+    def __init__(self, static_output_shape: tuple = None, return_mask: bool = False, **kwargs):
         super(CastDisjointToBatchedAttributes, self).__init__(**kwargs)
         self.static_output_shape = static_output_shape
+        self.return_mask = return_mask
 
     def build(self, input_shape):
         self.built = True
@@ -408,6 +409,7 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
             target_shape = (ops.shape(attr_len)[0], self.static_output_shape[0])
         else:
             target_shape = (ops.shape(attr_len)[0], ops.cast(ops.amax(attr_len), dtype="int32"))
+        out_mask = None
 
         if not self.padded_disjoint:
             if attr_id is None:
@@ -419,6 +421,10 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
                 attr_id, dtype=graph_id_attr.dtype)
             out = scatter_reduce_sum(indices, attr, output_shape)
             out = ops.reshape(out, list(target_shape[:2]) + list(ops.shape(attr)[1:]))
+            if self.return_mask:
+                output_mask_shape = output_shape[:1]
+                out_mask = scatter_reduce_sum(indices, ops.ones(ops.shape(attr)[0], dtype="bool"), output_mask_shape)
+                out_mask = ops.reshape(out_mask, list(target_shape[:2]))
         else:
             if attr_id is None:
                 raise ValueError("Require sub-graph IDs in addition to batch IDs for padded disjoint graphs.")
@@ -428,12 +434,20 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
             out = scatter_reduce_sum(indices, attr, output_shape)
             out = out[target_shape[1]:]  # Because first actual graph is 1*size shifted.
             out = ops.reshape(out, list(target_shape[:2]) + list(ops.shape(attr)[1:]))
+            if self.return_mask:
+                output_mask_shape = output_shape[:1]
+                out_mask = scatter_reduce_sum(indices, ops.ones(ops.shape(attr)[0], dtype="bool"), output_mask_shape)
+                out_mask = out_mask[target_shape[1]:]
+                out_mask = ops.reshape(out_mask, list(target_shape[:2]))
+
+        if self.return_mask:
+            return out, out_mask
         return out
 
     def get_config(self):
         """Get config dictionary for this layer."""
         config = super(_CastBatchedDisjointBase, self).get_config()
-        config.update({"static_output_shape": self.static_output_shape})
+        config.update({"static_output_shape": self.static_output_shape, "return_mask": self.return_mask})
         return config
 
 
