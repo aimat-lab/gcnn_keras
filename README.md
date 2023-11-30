@@ -102,17 +102,17 @@ disjoint representation wrapping the PyG equivalent model.
 Here an example of a minimal message passing GNN:
 
 ```python
-import keras_core as ks
+import keras as ks
 from kgcnn.layers.casting import CastBatchedIndicesToDisjoint
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.aggr import AggregateLocalEdges
 
 # Example for padded input.
-ns = ks.layers.Input(shape=(None, 64), dtype="float32")
-e_idx = ks.layers.Input(shape=(None, 2), dtype="int64")
-total_n = ks.layers.Input(shape=(), dtype="int64")  # Or mask
-total_e = ks.layers.Input(shape=(), dtype="int64")  # Or mask
+ns = ks.layers.Input(shape=(None, 64), dtype="float32", name="node_attributes")
+e_idx = ks.layers.Input(shape=(None, 2), dtype="int64", name="edge_indices")
+total_n = ks.layers.Input(shape=(), dtype="int64", name="total_nodes")  # Or mask
+total_e = ks.layers.Input(shape=(), dtype="int64", name="total_edges")  # Or mask
 
 n, idx, batch_id, _, _, _, _, _ = CastBatchedIndicesToDisjoint()([ns, e_idx, total_n, total_e])
 n_in_out = GatherNodes()([n, idx])
@@ -128,7 +128,7 @@ message_passing = ks.models.Model(inputs=[ns, e_idx, total_n, total_e], outputs=
 The actual message passing model can further be structured by e.g. subclassing the message passing base layer:
 
 ```python
-import keras_core as ks
+import keras as ks
 from kgcnn.layers.message import MessagePassingBase
 
 class MyMessageNN(MessagePassingBase):

@@ -13,7 +13,7 @@ Input can be padded or (still) ragged input. Or direct disjoint representations 
 (See models chapter in docs).
 
 For jax we added a ``padded_disjoint`` parameter that can enable jit'able jax models but requires a dataloader,
-which is not yet implemented in ``kgcnn``. From padded samples it can already been tested,
+which is not yet implemented in ``kgcnn``. For padded samples it can already been tested,
 but the padding of each sample is a much larger overhead that padding the batch. 
 
 Some other changes:

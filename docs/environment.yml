@@ -15,7 +15,6 @@ dependencies:
     - keras>=3.0.0
     - jinja2==3.0.3
     - numpy
-    - tensorflow-cpu
     - scipy
     - matplotlib
     - pandas

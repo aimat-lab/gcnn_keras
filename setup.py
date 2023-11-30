@@ -16,9 +16,7 @@ setup(
     install_requires=[
         # "dm-tree",
         "keras>=3.0.0",
-        "tensorflow>=2.13",
-        "torch>=2.0.0",
-        "torchrec"
+        # "torchrec",
         "numpy>=1.23.0",
         "scikit-learn>=1.1.3",
         "pandas>=1.5.2",
