@@ -29,19 +29,6 @@ global_normalization_args.update(global_normalization_args_graph)
 
 
 class _MLPBase(Layer):  # noqa
-    r"""Class for multilayer perceptron that consist of multiple feed-forward networks.
-
-    The class contains arguments for :obj:`Dense` , :obj:`Dropout` and :obj:`BatchNormalization`
-    or :obj:`LayerNormalization` or :obj:`GraphNormalization`
-    since MLP is made up of stacked :obj:`Dense` layers with optional normalization and
-    dropout to improve stability or regularization.
-    Here, a list in place of arguments must be provided that applies
-    to each layer. If not a list is given, then the single argument is used for each layer.
-    The number of layers is determined by :obj:`units` argument, which should be list.
-
-    This class holds arguments for batch-normalization which should be applied between kernel
-    and activation. And dropout after the kernel output and before normalization.
-    """
 
     def __init__(self,
                  units,
@@ -256,6 +243,19 @@ class _MLPBase(Layer):  # noqa
 
 
 class MLP(_MLPBase):  # noqa
+    r"""Class for multilayer perceptron that consist of multiple feed-forward networks.
+
+    The class contains arguments for :obj:`Dense` , :obj:`Dropout` and :obj:`BatchNormalization`
+    or :obj:`LayerNormalization` or :obj:`GraphNormalization`
+    since MLP is made up of stacked :obj:`Dense` layers with optional normalization and
+    dropout to improve stability or regularization.
+    Here, a list in place of arguments must be provided that applies
+    to each layer. If not a list is given, then the single argument is used for each layer.
+    The number of layers is determined by :obj:`units` argument, which should be list.
+
+    This class holds arguments for batch-normalization which should be applied between kernel
+    and activation. And dropout after the kernel output and before normalization.
+    """
 
     # If child classes want to replace layers.
     _supress_dense = False
@@ -347,7 +347,6 @@ class MLP(_MLPBase):  # noqa
         return config
 
 
-MLP.__doc__ = _MLPBase.__doc__
 MLP.__init__.__doc__ = MLP.__init__.__doc__ % _MLPBase.__init__.__doc__
 
 
@@ -435,5 +434,4 @@ class RelationalMLP(MLP):
         return config
 
 
-RelationalMLP.__doc__ = _MLPBase.__doc__
 RelationalMLP.__init__.__doc__ = RelationalMLP.__init__.__doc__ % _MLPBase.__init__.__doc__
