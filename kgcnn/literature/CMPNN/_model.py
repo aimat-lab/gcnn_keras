@@ -1,11 +1,10 @@
-import keras as ks
 from keras.layers import Dense, Add, Multiply, Activation, Dropout, Subtract, Concatenate
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.aggr import AggregateLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherEdgesPairs
 from kgcnn.layers.modules import Embedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.casting import CastDisjointToBatchedAttributes
+from ._layers import PoolingNodesGRU
 
 
 def model_disjoint(
@@ -71,8 +70,7 @@ def model_disjoint(
         if use_final_gru:
             # Actually a simple GRU is not permutation invariant.
             # Better replace this by e.g. set2set or AttentivePooling.
-            n, mask = CastDisjointToBatchedAttributes(return_mask=True)([n, batch_id_node, node_id, count_nodes])
-            out = ks.layers.GRU(**pooling_gru)(n, mask=mask)
+            out = PoolingNodesGRU(**pooling_gru)([n, batch_id_node, node_id, count_nodes])
         else:
             out = PoolingNodes(**pooling_kwargs)([count_nodes, n, batch_id_node])
         out = MLP(**output_mlp)(out)

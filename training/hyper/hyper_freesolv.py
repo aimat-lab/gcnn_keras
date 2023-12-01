@@ -453,4 +453,78 @@ hyper = {
             "kgcnn_version": "4.0.0"
         }
     },
+    "CMPNN": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.CMPNN",
+            "config": {
+                "name": "CMPNN",
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": [None, 1], "name": "edge_indices_reverse", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"},
+                    {"shape": (), "name": "total_reverse", "dtype": "int64"}
+                ],
+                "input_tensor_type": "padded",
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
+                "node_initialize": {"units": 300, "activation": "relu"},
+                "edge_initialize": {"units": 300, "activation": "relu"},
+                "edge_dense": {"units": 300, "activation": "linear"},
+                "node_dense": {"units": 300, "activation": "linear"},
+                "edge_activation": {"activation": "relu"},
+                "verbose": 10,
+                "depth": 5,
+                "dropout": None,
+                "use_final_gru": True,
+                "pooling_gru": {"units": 300},
+                "pooling_kwargs": {"pooling_method": "sum"},
+                "output_embedding": "graph",
+                "output_mlp": {
+                    "use_bias": [True, False], "units": [300, 1],
+                    "activation": ["relu", "linear"]
+                }
+            }
+        },
+        "training": {
+            "fit": {"batch_size": 50, "epochs": 600, "validation_freq": 1, "verbose": 2, "callbacks": []},
+            "compile": {
+                "optimizer": {"class_name": "Adam",
+                              "config": {"learning_rate": {
+                                  "class_name": "ExponentialDecay",
+                                  "module": "keras.optimizers.schedules",
+                                  "config": {"initial_learning_rate": 0.001,
+                                             "decay_steps": 1600,
+                                             "decay_rate": 0.5, "staircase": False}}
+                              }},
+                "loss": "mean_squared_error",
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}}
+        },
+        "data": {
+            "dataset": {
+                "class_name": "FreeSolvDataset",
+                "module_name": "kgcnn.data.datasets.FreeSolvDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "set_edge_indices_reverse"}},
+                    {"map_list": {"method": "count_nodes_and_edges"}},
+                    {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_reverse"}}
+                ]
+            },
+            "data_unit": "mol/L"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "4.0.0"
+        }
+    },
 }

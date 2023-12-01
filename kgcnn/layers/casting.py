@@ -427,6 +427,7 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
                 out_mask = ops.reshape(out_mask, list(target_shape[:2]))
         else:
             if attr_id is None:
+                # Required because padded graphs in the general case can have padded nodes inbetween batches.
                 raise ValueError("Require sub-graph IDs in addition to batch IDs for padded disjoint graphs.")
             output_shape = [(target_shape[0]+1)*target_shape[1]] + list(ops.shape(attr)[1:])
             indices = graph_id_attr * ops.convert_to_tensor(target_shape[1], dtype=graph_id_attr.dtype) + ops.cast(
