@@ -6,9 +6,6 @@ from kgcnn.models.utils import update_model_kwargs
 from kgcnn.models.casting import template_cast_output, template_cast_list_input
 from keras.backend import backend as backend_to_use
 
-# from keras_core.layers import Activation
-# from kgcnn.layers.aggr import AggregateWeightedLocalEdges
-# from kgcnn.layers.gather import GatherNodesOutgoing
 
 # Keep track of model version from commit date in literature.
 __kgcnn_model_version__ = "2023-09-30"

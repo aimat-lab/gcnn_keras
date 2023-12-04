@@ -27,7 +27,7 @@ Also be sure to check ``StandardLabelScaler`` if you want to scale regression ta
 * Input embedding in literature models is now controlled with separate ``input_node_embedding`` or ``input_edge_embedding`` arguments which can be set to `None` for no embedding.
 Also embedding input tokens must be of dtype int now. No auto-casting from float anymore.
 * New module ``kgcnn.ops`` with ``kgcnn.backend`` to generalize aggregation functions for graph operations.
-* Reduced the models in literature. Will keep bringing all models of kgcnn<4.0.0 back in next versions.
+* Reduced the models in literature. Will keep bringing all models of kgcnn<4.0.0 back in next versions and run benchmark training again.
 
 
 

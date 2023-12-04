@@ -1,5 +1,6 @@
 import time
 import keras as ks
+from keras import ops
 import numpy as np
 from typing import Union, List, Callable, Dict
 from kgcnn.data.base import MemoryGraphList
@@ -146,7 +147,7 @@ class MolDynamicsModelPredictor:
         output_list = []
         for i in range(num_samples):
             temp_dict = {
-                key: np.array(value[i]) for key, value in tensor_dict.items()
+                key: ops.convert_to_numpy(value[i]) for key, value in tensor_dict.items()
             }
             temp_dict = GraphDict(temp_dict)
             for mp in self.graph_postprocessors:

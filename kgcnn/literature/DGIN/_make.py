@@ -14,18 +14,16 @@ __model_version__ = "2023-10-23"
 __kgcnn_model_backend_supported__ = ["tensorflow", "torch", "jax"]
 
 if backend_to_use() not in __kgcnn_model_backend_supported__:
-    raise NotImplementedError("Backend '%s' for model 'DMPNN' is not supported." % backend_to_use())
+    raise NotImplementedError("Backend '%s' for model 'DGIN' is not supported." % backend_to_use())
 
-# Implementation of DMPNN in `keras` from paper:
+# Implementation of DGIN in `keras` from paper:
 # Analyzing Learned Molecular Representations for Property Prediction
-# by Kevin Yang, Kyle Swanson, Wengong Jin, Connor Coley, Philipp Eiden, Hua Gao,
-# Angel Guzman-Perez, Timothy Hopper, Brian Kelley, Miriam Mathea, Andrew Palmer,
-# Volker Settels, Tommi Jaakkola, Klavs Jensen, and Regina Barzilay
-# https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237
-
+# by Oliver Wieder, Mélaine Kuenemann, Marcus Wieder, Thomas Seidel,
+# Christophe Meyer, Sharon D Bryant and Thierry Langer
+# https://pubmed.ncbi.nlm.nih.gov/34684766/
 
 model_default = {
-    "name": "DMPNN",
+    "name": "DGIN",
     "inputs": [
         {"shape": (None,), "name": "node_number", "dtype": "int64"},
         {"shape": (None,), "name": "edge_number", "dtype": "int64"},
@@ -41,18 +39,27 @@ model_default = {
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
     "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
     "input_graph_embedding": {"input_dim": 100, "output_dim": 64},
-    "pooling_args": {"pooling_method": "scatter_sum"},
+    "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
+                "use_normalization": True, "normalization_technique": "graph_batch"},
+    "gin_args": {},
+    "last_mlp": {"use_bias": [True, True], "units": [64, 64],
+                 "activation": ["relu", "relu"]},
+    "pooling_args": {"pooling_method": "sum"},
     "use_graph_state": False,
     "edge_initialize": {"units": 128, "use_bias": True, "activation": "relu"},
     "edge_dense": {"units": 128, "use_bias": True, "activation": "linear"},
     "edge_activation": {"activation": "relu"},
-    "node_dense": {"units": 128, "use_bias": True, "activation": "relu"},
-    "verbose": 10, "depth": 5, "dropout": {"rate": 0.1},
+    "verbose": 10,
+    "depthDMPNN": 4,
+    "depthGIN": 4,
+    "dropoutDMPNN": {"rate": 0.15},
+    "dropoutGIN": {"rate": 0.15},
     "output_embedding": "graph",
+    "node_pooling_kwargs": {},
     "output_to_tensor": None,  # deprecated
     "output_tensor_type": "padded",
-    "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
-                   "activation": ["relu", "relu", "linear"]},
+    "output_mlp": {"use_bias": True, "units": 1,
+                   "activation": "linear"},
     "output_scaling": None,
 }
 
@@ -70,10 +77,15 @@ def make_model(name: str = None,
                edge_initialize: dict = None,
                edge_dense: dict = None,
                edge_activation: dict = None,
-               node_dense: dict = None,
-               dropout: dict = None,
-               depth: int = None,
-               verbose: int = None,  # noqa
+               dropoutDMPNN: dict = None,  # noqa
+               dropoutGIN: dict = None,  # noqa
+               depthDMPNN: int = None,  # noqa
+               depthGIN: int = None,  # noqa
+               gin_args: dict = None,
+               gin_mlp: dict = None,
+               last_mlp: dict = None,
+               verbose: int = None,
+               node_pooling_kwargs: dict = None,
                use_graph_state: bool = False,
                output_embedding: str = None,
                output_to_tensor: bool = None,  # noqa
@@ -81,8 +93,8 @@ def make_model(name: str = None,
                output_mlp: dict = None,
                output_scaling: dict = None
                ):
-    r"""Make `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`__ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.DMPNN.model_default`.
+    r"""Make `DGIN <https://pubmed.ncbi.nlm.nih.gov/34684766/>`__ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.DGIN.model_default` .
 
     **Model inputs**:
     Model uses the list template of inputs and standard output template.
@@ -99,7 +111,7 @@ def make_model(name: str = None,
     %s
 
     Args:
-        name (str): Name of the model. Should be "DMPNN".
+        name (str): Name of the model. Should be "DGIN".
         inputs (list): List of dictionaries unpacked in :obj:`Input`. Order must match model definition.
         input_tensor_type (str): Input type of graph tensor. Default is "padded".
         cast_disjoint_kwargs (dict): Dictionary of arguments for casting layers if used.
@@ -107,16 +119,20 @@ def make_model(name: str = None,
         input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of arguments for edge unpacked in :obj:`Embedding` layers.
         input_graph_embedding (dict): Dictionary of arguments for edge unpacked in :obj:`Embedding` layers.
-        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes`,
-            :obj:`AggregateLocalEdges` layers.
+        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`AggregateLocalEdges` layers.
         edge_initialize (dict): Dictionary of layer arguments unpacked in :obj:`Dense` layer for first edge embedding.
         edge_dense (dict): Dictionary of layer arguments unpacked in :obj:`Dense` layer for edge embedding.
         edge_activation (dict): Edge Activation after skip connection.
-        node_dense (dict): Dense kwargs for node embedding layer.
-        depth (int): Number of graph embedding units or depth of the network.
-        dropout (dict): Dictionary of layer arguments unpacked in :obj:`Dropout`.
+        depthDMPNN (int): Number of graph embedding units or depth of the DMPNN subnetwork.
+        depthGIN (int): Number of graph embedding units or depth of the GIN subnetwork.
+        dropoutDMPNN (dict): Dictionary of layer arguments unpacked in :obj:`Dropout`.
+        dropoutGIN (float): dropout rate.
+        gin_args (dict): Kwargs unpacked in :obj:`GIN_D` convolutional unit.
+        gin_mlp (dict): Kwargs unpacked in :obj:`MLP` for GIN layer.
+        last_mlp (dict): Kwargs unpacked in last :obj:`MLP` .
         verbose (int): Level for print information.
         use_graph_state (bool): Whether to use graph state information. Default is False.
+        node_pooling_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layer.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         output_to_tensor (bool): WDeprecated in favour of `output_tensor_type` .
         output_tensor_type (str): Output type of graph tensors such as nodes or edges. Default is "padded".
@@ -131,8 +147,10 @@ def make_model(name: str = None,
     model_inputs = [Input(**x) for x in inputs]
 
     di = template_cast_list_input(
-        model_inputs, input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_nodes=True, has_edges=True, has_graph_state=use_graph_state,
+        model_inputs, input_tensor_type=input_tensor_type,
+        cast_disjoint_kwargs=cast_disjoint_kwargs,
+        has_nodes=True, has_edges=True,
+        has_graph_state=use_graph_state,
         has_angle_indices=True,  # Treat reverse indices as edge indices
         has_edge_indices=True
     )
@@ -140,7 +158,7 @@ def make_model(name: str = None,
     if use_graph_state:
         n, ed, edi, e_pairs, gs, batch_id_node, batch_id_edge, _, node_id, edge_id, _, count_nodes, count_edges, _ = di
     else:
-        n, ed, edi, e_pairs, batch_id_node, batch_id_edge, _,  node_id, edge_id, _, count_nodes, count_edges, _ = di
+        n, ed, edi, e_pairs, batch_id_node, batch_id_edge, _, node_id, edge_id, _, count_nodes, count_edges, _ = di
         gs = None
 
     # Wrapping disjoint model.
@@ -150,12 +168,24 @@ def make_model(name: str = None,
         use_edge_embedding=("int" in inputs[1]['dtype']) if input_edge_embedding is not None else False,
         use_graph_embedding=False if not use_graph_state else (
                 "int" in inputs[4]['dtype']) if input_graph_embedding is not None else False,
+        use_graph_state=use_graph_state,
         input_node_embedding=input_node_embedding,
         input_edge_embedding=input_edge_embedding,
         input_graph_embedding=input_graph_embedding,
-        pooling_args=pooling_args, edge_initialize=edge_initialize, edge_activation=edge_activation,
-        node_dense=node_dense, dropout=dropout, depth=depth, use_graph_state=use_graph_state,
-        output_embedding=output_embedding, output_mlp=output_mlp, edge_dense=edge_dense
+        edge_initialize=edge_initialize,
+        edge_activation=edge_activation,
+        edge_dense=edge_dense,
+        depthDMPNN=depthDMPNN,
+        dropoutDMPNN=dropoutDMPNN,
+        pooling_args=pooling_args,
+        gin_mlp=gin_mlp,
+        depthGIN=depthGIN,
+        gin_args=gin_args,
+        output_embedding=output_embedding,
+        node_pooling_kwargs=node_pooling_kwargs,
+        last_mlp=last_mlp,
+        dropoutGIN=dropoutGIN,
+        output_mlp=output_mlp
     )
 
     if output_scaling is not None:

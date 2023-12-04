@@ -4,6 +4,10 @@ from kgcnn.layers.mlp import MLP, GraphMLP
 from kgcnn.layers.modules import Embedding
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
 
+# from keras_core.layers import Activation
+# from kgcnn.layers.aggr import AggregateWeightedLocalEdges
+# from kgcnn.layers.gather import GatherNodesOutgoing
+
 
 def model_disjoint(inputs,
                    use_node_embedding: bool = None,

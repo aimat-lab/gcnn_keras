@@ -7,27 +7,27 @@ from kgcnn.models.utils import update_model_kwargs
 from keras.backend import backend as backend_to_use
 
 # To be updated if model is changed in a significant way.
-__model_version__ = "2023-09-07"
+__model_version__ = "2023-12-05"
 
 # Supported backends
 __kgcnn_model_backend_supported__ = ["tensorflow", "torch", "jax"]
 if backend_to_use() not in __kgcnn_model_backend_supported__:
-    raise NotImplementedError("Backend '%s' for model 'Schnet' is not supported." % backend_to_use())
+    raise NotImplementedError("Backend '%s' for model 'Megnet' is not supported." % backend_to_use())
 
-# Implementation of Schnet in `keras` from paper:
-# by Kristof T. Schütt, Pieter-Jan Kindermans, Huziel E. Sauceda, Stefan Chmiela,
-# Alexandre Tkatchenko, Klaus-Robert Müller (2018)
-# https://doi.org/10.1063/1.5019779
-# https://arxiv.org/abs/1706.08566
-# https://aip.scitation.org/doi/pdf/10.1063/1.5019779
+# Implementation of Megnet in `tf.keras` from paper:
+# Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals
+# by Chi Chen, Weike Ye, Yunxing Zuo, Chen Zheng, and Shyue Ping Ong*
+# https://github.com/materialsvirtuallab/megnet
+# https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294
 
 
 model_default = {
-    "name": "Schnet",
+    "name": "Megnet",
     "inputs": [
         {"shape": (None,), "name": "node_number", "dtype": "int64"},
         {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32"},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
+        {"shape": (), "name": "graph_number", "dtype": "int64"},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
@@ -35,23 +35,21 @@ model_default = {
     "input_embedding": None,  # deprecated
     "cast_disjoint_kwargs": {},
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
-    "make_distance": True,
-    "expand_distance": True,
-    "interaction_args": {"units": 128, "use_bias": True,
-                         "activation": "kgcnn>shifted_softplus", "cfconv_pool": "scatter_sum"},
-    "node_pooling_args": {"pooling_method": "sum"},
-    "depth": 4,
+    "input_graph_embedding": {"input_dim": 100, "output_dim": 64},
+    "make_distance": True, "expand_distance": True,
     "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
+    "meg_block_args": {"node_embed": [64, 32, 32], "edge_embed": [64, 32, 32],
+                       "env_embed": [64, 32, 32], "activation": "kgcnn>softplus2"},
+    "set2set_args": {"channels": 16, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
+    "node_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
+    "edge_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
+    "state_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
+    "nblocks": 3, "has_ff": True, "dropout": None, "use_set2set": True,
     "verbose": 10,
-    "last_mlp": {"use_bias": [True, True], "units": [128, 64],
-                 "activation": ["kgcnn>shifted_softplus", "kgcnn>shifted_softplus"]},
     "output_embedding": "graph",
-    "output_to_tensor": None,  # deprecated
-    "use_output_mlp": True,
-    "output_tensor_type": "padded",
-    "output_scaling": None,
-    "output_mlp": {"use_bias": [True, True], "units": [64, 1],
-                   "activation": ["kgcnn>shifted_softplus", "linear"]}
+    "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
+                   "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]},
+    "output_scaling": None
 }
 
 
@@ -61,31 +59,35 @@ def make_model(inputs: list = None,
                cast_disjoint_kwargs: dict = None,
                input_embedding: dict = None,  # noqa
                input_node_embedding: dict = None,
-               make_distance: bool = None,
+               input_graph_embedding: dict = None,
                expand_distance: bool = None,
+               make_distance: bool = None,
                gauss_args: dict = None,
-               interaction_args: dict = None,
-               node_pooling_args: dict = None,
-               depth: int = None,
+               meg_block_args: dict = None,
+               set2set_args: dict = None,
+               node_ff_args: dict = None,
+               edge_ff_args: dict = None,
+               state_ff_args: dict = None,
+               use_set2set: bool = None,
+               nblocks: int = None,
+               has_ff: bool = None,
+               dropout: float = None,
                name: str = None,
                verbose: int = None,  # noqa
-               last_mlp: dict = None,
                output_embedding: str = None,
-               use_output_mlp: bool = None,
-               output_to_tensor: bool = None,  # noqa
                output_mlp: dict = None,
                output_tensor_type: str = None,
                output_scaling: dict = None
                ):
-    r"""Make `SchNet <https://arxiv.org/abs/1706.08566>`__ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.Schnet.model_default` .
+    r"""Make `MegNet <https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294>`__ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.Megnet.model_default`.
 
     **Model inputs**:
     Model uses the list template of inputs and standard output template.
-    The supported inputs are  :obj:`[nodes, coordinates, edge_indices, ...]` with `make_distance` and
+    The supported inputs are  :obj:`[nodes, coordinates, edge_indices, graph_state, ...]` with `make_distance` and
     with '...' indicating mask or ID tensors following the template below.
     Note that you could also supply edge features with `make_distance` to False, which would make the input
-    :obj:`[nodes, edges, edge_indices, ...]` .
+    :obj:`[nodes, edges, edge_indices, graph_state...]` .
 
     %s
 
@@ -100,19 +102,23 @@ def make_model(inputs: list = None,
         cast_disjoint_kwargs (dict): Dictionary of arguments for casting layer.
         input_embedding (dict): Deprecated in favour of input_node_embedding etc.
         input_node_embedding (dict): Dictionary of embedding arguments for nodes unpacked in :obj:`Embedding` layers.
+        input_graph_embedding (dict): Dictionary of embedding arguments for graph unpacked in :obj:`Embedding` layers.
         make_distance (bool): Whether input is distance or coordinates at in place of edges.
         expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
             form edges with a gauss distance basis given edge indices. Expansion uses `gauss_args`.
         gauss_args (dict): Dictionary of layer arguments unpacked in :obj:`GaussBasisLayer` layer.
-        depth (int): Number of graph embedding units or depth of the network.
-        interaction_args (dict): Dictionary of layer arguments unpacked in final :obj:`SchNetInteraction` layers.
-        node_pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layers.
-        verbose (int): Level of verbosity.
+        meg_block_args (dict): Dictionary of layer arguments unpacked in :obj:`MEGnetBlock` layer.
+        set2set_args (dict): Dictionary of layer arguments unpacked in `:obj:PoolingSet2SetEncoder` layer.
+        node_ff_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` feed-forward layer.
+        edge_ff_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` feed-forward layer.
+        state_ff_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` feed-forward layer.
+        use_set2set (bool): Whether to use :obj:`PoolingSet2SetEncoder` layer.
+        nblocks (int): Number of graph embedding blocks or depth of the network.
+        has_ff (bool): Use feed-forward MLP in each block.
+        dropout (int): Dropout to use. Default is None.
         name (str): Name of the model.
-        last_mlp (dict): Dictionary of layer arguments unpacked in last :obj:`MLP` layer before output or pooling.
+        verbose (int): Verbosity level of print.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
-        use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
-        output_to_tensor (bool): Deprecated in favour of `output_tensor_type` .
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
         output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
@@ -124,20 +130,38 @@ def make_model(inputs: list = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    disjoint_inputs = template_cast_list_input(model_inputs, input_tensor_type=input_tensor_type,
-                                               cast_disjoint_kwargs=cast_disjoint_kwargs,
-                                               has_edges=(not make_distance), has_nodes=1 + int(make_distance))
+    dj = template_cast_list_input(
+        model_inputs,
+        input_tensor_type=input_tensor_type,
+        cast_disjoint_kwargs=cast_disjoint_kwargs,
+        has_edges=(not make_distance),
+        has_nodes=1 + int(make_distance),
+        has_graph_state=True
+    )
 
-    n, x, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
+    n, x, disjoint_indices, gs, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = dj
 
     out = model_disjoint(
-        [n, x, disjoint_indices, batch_id_node, count_nodes],
+        [n, x, disjoint_indices, gs, batch_id_node, batch_id_edge, count_nodes, count_edges],
         use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
+        use_graph_embedding=("int" in inputs[3]['dtype']) if input_graph_embedding is not None else False,
         input_node_embedding=input_node_embedding,
-        make_distance=make_distance, expand_distance=expand_distance, gauss_args=gauss_args,
-        interaction_args=interaction_args, node_pooling_args=node_pooling_args, depth=depth,
-        last_mlp=last_mlp, output_embedding=output_embedding, use_output_mlp=use_output_mlp,
-        output_mlp=output_mlp)
+        input_graph_embedding=input_graph_embedding,
+        expand_distance=expand_distance,
+        make_distance=make_distance,
+        gauss_args=gauss_args,
+        meg_block_args=meg_block_args,
+        set2set_args=set2set_args,
+        node_ff_args=node_ff_args,
+        edge_ff_args=edge_ff_args,
+        state_ff_args=state_ff_args,
+        use_set2set=use_set2set,
+        nblocks=nblocks,
+        has_ff=has_ff,
+        dropout=dropout,
+        output_embedding=output_embedding,
+        output_mlp=output_mlp
+    )
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
@@ -169,36 +193,35 @@ def make_model(inputs: list = None,
 
 make_model.__doc__ = make_model.__doc__ % (template_cast_list_input.__doc__, template_cast_output.__doc__)
 
-
 model_crystal_default = {
-    "name": "Schnet",
-    "inputs": [
-        {"shape": (None,), "name": "node_number", "dtype": "int64"},
-        {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32"},
-        {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
-        {"shape": (None, 3), "name": "edge_image", "dtype": "int64"},
-        {"shape": (3, 3), "name": "graph_lattice", "dtype": "float32"},
-        {"shape": (), "name": "total_nodes", "dtype": "int64"},
-        {"shape": (), "name": "total_edges", "dtype": "int64"}
+    'name': "Megnet",
+    'inputs': [
+        {'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+        {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
+        {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
+        {'shape': [1], 'name': "charge", 'dtype': 'float32', 'ragged': False},
+        {'shape': (None, 3), 'name': "edge_image", 'dtype': 'int64', 'ragged': True},
+        {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
     ],
-    "input_tensor_type": "padded",
+    "input_tensor_type": "ragged",
     "input_embedding": None,  # deprecated
     "cast_disjoint_kwargs": {},
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+    "input_graph_embedding": {"input_dim": 100, "output_dim": 64},
     "make_distance": True, "expand_distance": True,
-    "interaction_args": {"units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"},
-    "node_pooling_args": {"pooling_method": "sum"},
-    "depth": 4,
-    "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
-    "verbose": 10,
-    "last_mlp": {"use_bias": [True, True], "units": [128, 64],
-                 "activation": ["kgcnn>shifted_softplus", "kgcnn>shifted_softplus"]},
-    "output_embedding": "graph",
-    "output_to_tensor": None,  # deprecated
-    "use_output_mlp": True,
-    "output_tensor_type": "padded",
-    "output_mlp": {"use_bias": [True, True], "units": [64, 1],
-                   "activation": ["kgcnn>shifted_softplus", "linear"]}
+    'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
+    'meg_block_args': {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
+                       'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2'},
+    'set2set_args': {'channels': 16, 'T': 3, "pooling_method": "sum", "init_qstar": "0"},
+    'node_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
+    'edge_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
+    'state_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
+    'nblocks': 3, 'has_ff': True, 'dropout': None, 'use_set2set': True,
+    'verbose': 10,
+    'output_embedding': 'graph',
+    'output_mlp': {"use_bias": [True, True, True], "units": [32, 16, 1],
+                   "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']},
+    "output_scaling": None
 }
 
 
@@ -208,28 +231,32 @@ def make_crystal_model(inputs: list = None,
                        cast_disjoint_kwargs: dict = None,
                        input_embedding: dict = None,  # noqa
                        input_node_embedding: dict = None,
-                       make_distance: bool = None,
+                       input_graph_embedding: dict = None,
                        expand_distance: bool = None,
+                       make_distance: bool = None,
                        gauss_args: dict = None,
-                       interaction_args: dict = None,
-                       node_pooling_args: dict = None,
-                       depth: int = None,
+                       meg_block_args: dict = None,
+                       set2set_args: dict = None,
+                       node_ff_args: dict = None,
+                       edge_ff_args: dict = None,
+                       state_ff_args: dict = None,
+                       use_set2set: bool = None,
+                       nblocks: int = None,
+                       has_ff: bool = None,
+                       dropout: float = None,
                        name: str = None,
                        verbose: int = None,  # noqa
-                       last_mlp: dict = None,
                        output_embedding: str = None,
-                       use_output_mlp: bool = None,
-                       output_to_tensor: bool = None,  # noqa
                        output_mlp: dict = None,
-                       output_scaling: dict = None,
                        output_tensor_type: str = None,
+                       output_scaling: dict = None
                        ):
-    r"""Make `SchNet <https://arxiv.org/abs/1706.08566>`__ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.Schnet.model_crystal_default`.
+    r"""Make `MegNet <https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294>`__ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.Megnet.model_crystal_default`.
 
     **Model inputs**:
     Model uses the list template of inputs and standard output template.
-    The supported inputs are  :obj:`[nodes, coordinates, edge_indices, image_translation, lattice, ...]`
+    The supported inputs are  :obj:`[nodes, coordinates, edge_indices, graph_state, image_translation, lattice, ...]`
     with '...' indicating mask or ID tensors following the template below.
 
     %s
@@ -245,19 +272,23 @@ def make_crystal_model(inputs: list = None,
         cast_disjoint_kwargs (dict): Dictionary of arguments for casting layer.
         input_embedding (dict): Deprecated in favour of input_node_embedding etc.
         input_node_embedding (dict): Dictionary of embedding arguments for nodes unpacked in :obj:`Embedding` layers.
+        input_graph_embedding (dict): Dictionary of embedding arguments for graph unpacked in :obj:`Embedding` layers.
         make_distance (bool): Whether input is distance or coordinates at in place of edges.
         expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
             form edges with a gauss distance basis given edge indices. Expansion uses `gauss_args`.
         gauss_args (dict): Dictionary of layer arguments unpacked in :obj:`GaussBasisLayer` layer.
-        depth (int): Number of graph embedding units or depth of the network.
-        interaction_args (dict): Dictionary of layer arguments unpacked in final :obj:`SchNetInteraction` layers.
-        node_pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layers.
-        verbose (int): Level of verbosity.
+        meg_block_args (dict): Dictionary of layer arguments unpacked in :obj:`MEGnetBlock` layer.
+        set2set_args (dict): Dictionary of layer arguments unpacked in `:obj:PoolingSet2SetEncoder` layer.
+        node_ff_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` feed-forward layer.
+        edge_ff_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` feed-forward layer.
+        state_ff_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` feed-forward layer.
+        use_set2set (bool): Whether to use :obj:`PoolingSet2SetEncoder` layer.
+        nblocks (int): Number of graph embedding blocks or depth of the network.
+        has_ff (bool): Use feed-forward MLP in each block.
+        dropout (int): Dropout to use. Default is None.
         name (str): Name of the model.
-        last_mlp (dict): Dictionary of layer arguments unpacked in last :obj:`MLP` layer before output or pooling.
+        verbose (int): Verbosity level of print.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
-        use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
-        output_to_tensor (bool): Deprecated in favour of `output_tensor_type` .
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
         output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
@@ -269,21 +300,38 @@ def make_crystal_model(inputs: list = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    disjoint_inputs = template_cast_list_input(model_inputs, input_tensor_type=input_tensor_type,
-                                               cast_disjoint_kwargs=cast_disjoint_kwargs,
-                                               has_edges=(not make_distance), has_nodes=1 + int(make_distance),
-                                               has_crystal_input=2)
+    dj = template_cast_list_input(
+        model_inputs, input_tensor_type=input_tensor_type,
+        cast_disjoint_kwargs=cast_disjoint_kwargs,
+        has_edges=(not make_distance),
+        has_nodes=1 + int(make_distance),
+        has_graph_state=True,
+        has_crystal_input=2
+    )
 
-    n, x, djx, img, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
+    n, x, djx, gs, img, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = dj
 
     # Wrapp disjoint model
     out = model_disjoint_crystal(
-        [n, x, djx, img, lattice, batch_id_node, batch_id_edge, count_nodes],
+        [n, x, djx, gs, img, lattice, batch_id_node, batch_id_edge, count_nodes, count_edges],
         use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
+        use_graph_embedding=("int" in inputs[3]['dtype']) if input_graph_embedding is not None else False,
         input_node_embedding=input_node_embedding,
-        make_distance=make_distance, expand_distance=expand_distance, gauss_args=gauss_args,
-        interaction_args=interaction_args, node_pooling_args=node_pooling_args, depth=depth, last_mlp=last_mlp,
-        output_embedding=output_embedding, use_output_mlp=use_output_mlp, output_mlp=output_mlp
+        input_graph_embedding=input_graph_embedding,
+        expand_distance=expand_distance,
+        make_distance=make_distance,
+        gauss_args=gauss_args,
+        meg_block_args=meg_block_args,
+        set2set_args=set2set_args,
+        node_ff_args=node_ff_args,
+        edge_ff_args=edge_ff_args,
+        state_ff_args=state_ff_args,
+        use_set2set=use_set2set,
+        nblocks=nblocks,
+        has_ff=has_ff,
+        dropout=dropout,
+        output_embedding=output_embedding,
+        output_mlp=output_mlp
     )
 
     if output_scaling is not None:
