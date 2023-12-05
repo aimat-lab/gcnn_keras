@@ -61,14 +61,15 @@ def model_disjoint(
     for i in range(num_blocks):
         x = DimNetInteractionPPBlock(emb_size, int_emb_size, basis_emb_size, num_before_skip, num_after_skip)(
             [x, rbf, sbf, adi])
+
         p_update = DimNetOutputBlock(emb_size, out_emb_size, num_dense_output, num_targets=num_targets,
                                      output_kernel_initializer=output_init)([n, x, rbf, edi])
         ps = add_xp([ps, p_update])
 
     if extensive:
-        out = PoolingNodes(pooling_method="sum")(ps)
+        out = PoolingNodes(pooling_method="sum")([count_nodes, ps, batch_id_node])
     else:
-        out = PoolingNodes(pooling_method="mean")(ps)
+        out = PoolingNodes(pooling_method="mean")([count_nodes, ps, batch_id_node])
 
     if use_output_mlp:
         out = MLP(**output_mlp)(out)
@@ -141,9 +142,9 @@ def model_disjoint_crystal(
         ps = add_xp([ps, p_update])
 
     if extensive:
-        out = PoolingNodes(pooling_method="sum")(ps)
+        out = PoolingNodes(pooling_method="sum")([count_nodes, ps, batch_id_node])
     else:
-        out = PoolingNodes(pooling_method="mean")(ps)
+        out = PoolingNodes(pooling_method="mean")([count_nodes, ps, batch_id_node])
 
     if use_output_mlp:
         out = MLP(**output_mlp)(out)

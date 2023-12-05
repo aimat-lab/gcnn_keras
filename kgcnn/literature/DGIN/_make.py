@@ -48,6 +48,7 @@ model_default = {
     "use_graph_state": False,
     "edge_initialize": {"units": 128, "use_bias": True, "activation": "relu"},
     "edge_dense": {"units": 128, "use_bias": True, "activation": "linear"},
+    "node_dense": {"units": 128, "use_bias": True, "activation": "linear"},
     "edge_activation": {"activation": "relu"},
     "verbose": 10,
     "depthDMPNN": 4,
@@ -55,7 +56,7 @@ model_default = {
     "dropoutDMPNN": {"rate": 0.15},
     "dropoutGIN": {"rate": 0.15},
     "output_embedding": "graph",
-    "node_pooling_kwargs": {},
+    "node_pooling_kwargs": {"pooling_method": "mean"},
     "output_to_tensor": None,  # deprecated
     "output_tensor_type": "padded",
     "output_mlp": {"use_bias": True, "units": 1,
@@ -76,6 +77,7 @@ def make_model(name: str = None,
                pooling_args: dict = None,
                edge_initialize: dict = None,
                edge_dense: dict = None,
+               node_dense: dict = None,  # noqa
                edge_activation: dict = None,
                dropoutDMPNN: dict = None,  # noqa
                dropoutGIN: dict = None,  # noqa
@@ -84,7 +86,7 @@ def make_model(name: str = None,
                gin_args: dict = None,
                gin_mlp: dict = None,
                last_mlp: dict = None,
-               verbose: int = None,
+               verbose: int = None,  # noqa
                node_pooling_kwargs: dict = None,
                use_graph_state: bool = False,
                output_embedding: str = None,

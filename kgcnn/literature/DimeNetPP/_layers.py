@@ -5,6 +5,10 @@ from kgcnn.layers.aggr import AggregateLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.mlp import GraphMLP
 from kgcnn.layers.update import ResidualLayer
+from kgcnn.layers.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_normalization_prefactor, \
+    tf_spherical_bessel_jn, tf_spherical_harmonics_yl
+from kgcnn.initializers.initializers import GlorotOrthogonal, HeOrthogonal
+from kgcnn.ops.activ import swish
 
 
 class DimNetInteractionPPBlock(Layer):
@@ -92,6 +96,10 @@ class DimNetInteractionPPBlock(Layer):
         self.lay_gather = GatherNodesOutgoing()  # Are edges here
         self.lay_pool = AggregateLocalEdges(pooling_method=pooling_method)
 
+    def build(self, input_shape):
+        """Build layer."""
+        super(DimNetInteractionPPBlock, self).build(input_shape)
+
     def call(self, inputs, **kwargs):
         """Forward pass.
 
@@ -101,10 +109,10 @@ class DimNetInteractionPPBlock(Layer):
                 - edges (Tensor): Edge embeddings of shape ([M], F)
                 - rbf (Tensor): Radial basis features of shape ([M], F)
                 - sbf (Tensor): Spherical basis features of shape ([K], F)
-                - angle_index (tf.RaggedTensor): Angle indices referring to two edges of shape (2, [K])
+                - angle_index (Tensor): Angle indices referring to two edges of shape (2, [K])
 
         Returns:
-            tf.RaggedTensor: Updated edge embeddings.
+            Tensor: Updated edge embeddings.
         """
         x, rbf, sbf, id_expand = inputs
 
@@ -359,8 +367,6 @@ class SphericalBasisLayer(Layer):
             Tensor: Expanded angle/distance basis. Shape is ([K], #Radial * #Spherical)
         """
         edge, angles, angle_index = inputs
-        edge, edge_part = inputs[0].values, inputs[0].row_splits
-        angles, angle_part = inputs[1].values, inputs[1].row_splits
 
         d = edge
         d_scaled = d[:, 0] * self.inv_cutoff
@@ -372,7 +378,7 @@ class SphericalBasisLayer(Layer):
 
         d_cutoff = self.envelope(d_scaled)
         rbf_env = d_cutoff[:, None] * rbf
-        rbf_env = self.layer_gather_out([rbf_env, angle_index], **kwargs).values
+        rbf_env = self.layer_gather_out([rbf_env, angle_index], **kwargs)
         # rbf_env = tf.gather(rbf_env, id_expand_kj[:, 1])
 
         cbf = [tf_spherical_harmonics_yl(angles[:, 0], n) for n in range(self.num_spherical)]

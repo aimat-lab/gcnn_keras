@@ -196,7 +196,8 @@ class CastBatchedIndicesToDisjoint(_CastBatchedDisjointBase):
             node_splits = ops.pad(ops.cumsum(node_len), [[1, 0]])
             graph_id_node = ops.repeat(ops.arange(ops.shape(node_len)[0], dtype=dtype_batch), node_len)
             graph_id_edge = ops.repeat(ops.arange(ops.shape(edge_len)[0], dtype=dtype_batch), edge_len)
-            offset_edge_indices = ops.expand_dims(ops.repeat(node_splits[:-1], edge_len), axis=-1)
+            # offset_edge_indices = ops.expand_dims(ops.repeat(node_splits[:-1], edge_len), axis=-1)
+            offset_edge_indices = ops.expand_dims(ops.take(node_splits, graph_id_edge, axis=0), axis=-1)
             offset_edge_indices = ops.broadcast_to(offset_edge_indices, ops.shape(edge_indices_flatten))
             disjoint_indices = edge_indices_flatten + ops.cast(offset_edge_indices, edge_indices_flatten.dtype)
         else:
@@ -232,8 +233,8 @@ class CastBatchedIndicesToDisjoint(_CastBatchedDisjointBase):
             edge_id = ops.where(edge_mask_flatten, edge_id, 0)
 
             node_splits = ops.pad(ops.cumsum(node_len_flat), [[1, 0]])
-            offset_edge_indices = repeat_static_length(
-                node_splits[:-1], edge_len_flat, total_repeat_length=ops.shape(edge_indices_flatten)[0])
+            # offset_edge_indices = repeat_static_length(node_splits[:-1], edge_len_flat, total_repeat_length=ops.shape(edge_indices_flatten)[0])
+            offset_edge_indices = ops.take(node_splits, graph_id_edge, axis=0)
             offset_edge_indices = ops.expand_dims(offset_edge_indices, axis=-1)
             offset_edge_indices = ops.broadcast_to(offset_edge_indices, ops.shape(edge_indices_flatten))
             disjoint_indices = edge_indices_flatten + ops.cast(offset_edge_indices, edge_indices_flatten.dtype)

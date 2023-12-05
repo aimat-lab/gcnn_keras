@@ -6,6 +6,7 @@ from keras import ops
 from keras.layers import Layer, Subtract, Multiply, Add, Subtract
 from kgcnn.layers.gather import GatherNodes, GatherState
 from kgcnn.ops.axis import get_positive_axis
+from kgcnn.ops.core import cross as kgcnn_cross
 
 
 class NodePosition(Layer):
@@ -405,29 +406,11 @@ class VectorAngle(Layer):
     def __init__(self, **kwargs):
         """Initialize layer."""
         super(VectorAngle, self).__init__(**kwargs)
+        self.axis = -1
 
     def build(self, input_shape):
         """Build layer."""
         super(VectorAngle, self).build(input_shape)
-
-    @staticmethod
-    def _compute_vector_angle(inputs: list):
-        """Function to compute angles between two vectors v1 and v2.
-
-        Args:
-            inputs (list): List or tuple of two tensor v1, v2.
-
-        Returns:
-            Tensor: Angle between inputs.
-        """
-        v1, v2 = inputs[0], inputs[1]
-        x = ops.sum(v1 * v2, axis=-1)
-        y = ops.cross(v1, v2)
-        # y = ops.norm(y, axis=-1)
-        y = ops.sqrt(ops.sum(ops.square(y), axis=-1))
-        angle = ops.arctan2(y, x)
-        out = ops.expand_dims(angle, axis=-1)
-        return out
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
@@ -441,7 +424,15 @@ class VectorAngle(Layer):
         Returns:
             Tensor: Calculated Angle between vector 1 and 2 of shape `([M], 1)`.
         """
-        return self._compute_vector_angle(inputs)
+        v1, v2 = inputs
+        x = ops.sum(v1 * v2, axis=-1)
+        # y = ops.cross(v1, v2, axis=-1)
+        y = kgcnn_cross(v1, v2)
+        # Somehow ops.cross loses the symbolic call of keras.
+        y = ops.sqrt(ops.sum(ops.square(y), axis=-1))  # or with y = ops.norm(y, axis=-1)
+        angle = ops.arctan2(y, x)
+        out = ops.expand_dims(angle, axis=-1)
+        return out
 
     def get_config(self):
         """Update config."""
@@ -484,11 +475,10 @@ class EdgeAngle(Layer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(EdgeAngle, self).build(input_shape)
-
-    @staticmethod
-    def _scale_vector(x, scale):
-        return x * ops.cast(scale, dtype=x.dtype)
+        self.layer_gather_vectors.build(input_shape)
+        v12_shape = self.layer_gather_vectors.compute_output_shape(input_shape)
+        self.layer_angle.build(v12_shape)
+        self.built = True
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
@@ -497,15 +487,16 @@ class EdgeAngle(Layer):
             inputs (list): [vector, angle_index]
 
                 - vector (Tensor): Node or Edge directions of shape `([N], 3)` .
-                - angle_index (Tensor): Angle indices of vector pairs of shape `([K], 2)` .
+                - angle_index (Tensor): Angle indices of vector pairs of shape `(2, [K])` .
 
         Returns:
             Tensor: Edge angles between edges that match the indices. Shape is `([K], 1)` .
         """
         v1, v2 = self.layer_gather_vectors(inputs)
         if self.vector_scale:
-            v1, v2 = [self._scale_vector(x, scale=self._const_vec_scale[i]) for i, x
-                      in enumerate([v1, v2])]
+            v1, v2 = [
+                x * ops.cast(self._const_vec_scale[i], dtype=x.dtype) for i, x in enumerate([v1, v2])
+            ]
         return self.layer_angle([v1, v2])
 
     def get_config(self):
@@ -764,10 +755,15 @@ class BesselBasisLayer(Layer):
 
         # Initialize frequencies at canonical positions.
         def freq_init(shape, dtype):
-            return ops.convert_to_tensor(np.pi * np.arange(1, shape + 1, dtype=np.float64), dtype=dtype)
+            return ops.convert_to_tensor(np.pi * np.arange(1, shape[0] + 1, dtype=np.float64), dtype=dtype)
 
-        self.frequencies = self.add_weight(name="frequencies", shape=self.num_radial,
-                                           dtype=self.dtype, initializer=freq_init, trainable=True)
+        self.frequencies = self.add_weight(
+            name="frequencies",
+            shape=(self.num_radial, ),
+            dtype=self.dtype,
+            initializer=freq_init,
+            trainable=True
+        )
 
     def envelope(self, inputs):
         p = self.envelope_exponent + 1

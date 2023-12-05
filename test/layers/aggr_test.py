@@ -13,9 +13,15 @@ class TestAggregateLocalEdges(TestCase):
     batch = np.array([0, 0, 1, 1])
 
     def test_correctness(self):
-        layer = AggregateLocalEdges()
+        layer = AggregateLocalEdges(pooling_index=1)
         nodes_aggr = layer([self.node_attr, self.edge_attr, ops.cast(self.edge_index, dtype="int64")])
         expected_output = np.array([[0., 1., 0.], [1., 1., 2.], [2., 1., 0.], [2., 1., 2.]])
+        self.assertAllClose(nodes_aggr, expected_output)
+
+    def test_correctness_mean(self):
+        layer = AggregateLocalEdges(pooling_method="mean", pooling_index=0)
+        nodes_aggr = layer([self.node_attr, self.edge_attr, ops.cast(self.edge_index, dtype="int64")])
+        expected_output = np.array([[0., 0., 0.5], [0.5, 1., 0.5], [1., 0., 0.5], [1., 1., 0.5]])
         self.assertAllClose(nodes_aggr, expected_output)
 
 
@@ -28,7 +34,7 @@ class TestAggregateLocalEdgesAttention(TestCase):
     batch = np.array([0, 0, 1, 1])
 
     def test_correctness(self):
-        layer = AggregateLocalEdgesAttention()
+        layer = AggregateLocalEdgesAttention(pooling_index=1)
         nodes_aggr = layer([self.node_attr, self.edge_attr, self.edge_att, ops.cast(self.edge_index, dtype="int64")])
 
         expected_output = [[0.0000000e+00, 0.0000000e+00, 8.1757444e-01],
@@ -41,5 +47,6 @@ class TestAggregateLocalEdgesAttention(TestCase):
 
 if __name__ == "__main__":
     TestAggregateLocalEdges().test_correctness()
+    TestAggregateLocalEdges().test_correctness_mean()
     TestAggregateLocalEdgesAttention().test_correctness()
     print("Tests passed.")

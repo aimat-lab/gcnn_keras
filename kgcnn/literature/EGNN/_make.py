@@ -23,10 +23,12 @@ if backend_to_use() not in __kgcnn_model_backend_supported__:
 model_default = {
     "name": "EGNN",
     "inputs": [
-        {"shape": (None,), "name": "node_number", "dtype": "int64", "ragged": True},
-        {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
-        {"shape": (None, 10), "name": "edge_attributes", "dtype": "float32", "ragged": True},
-        {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
+        {"shape": (None,), "name": "node_number", "dtype": "int64"},
+        {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32"},
+        {"shape": (None, 10), "name": "edge_attributes", "dtype": "float32"},
+        {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
+        {"shape": (), "name": "total_nodes", "dtype": "int64"},
+        {"shape": (), "name": "total_edges", "dtype": "int64"},
     ],
     "input_tensor_type": "padded",
     "cast_disjoint_kwargs": {},
@@ -35,7 +37,7 @@ model_default = {
     "input_edge_embedding": {"input_dim": 95, "output_dim": 64},
     "depth": 4,
     "node_mlp_initialize": None,
-    "euclidean_norm_kwargs": {"keepdims": True, "axis": 2},
+    "euclidean_norm_kwargs": {"keepdims": True, "axis": -1},
     "use_edge_attributes": True,
     "edge_mlp_kwargs": {"units": [64, 64], "activation": ["swish", "linear"]},
     "edge_attention_kwargs": None,  # {"units: 1", "activation": "sigmoid"}

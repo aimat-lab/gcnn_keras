@@ -48,3 +48,7 @@ def decompose_ragged_tensor(x):
 
 def norm(x, ord='fro', axis=None, keepdims=False):
     return jnp.norm(x, ord=ord, axis=axis, keepdims=keepdims)
+
+
+def cross(x1, x2):
+    return jnp.cross(x1, x2, axis=-1)

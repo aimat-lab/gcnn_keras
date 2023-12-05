@@ -1,8 +1,10 @@
 import numpy as np
 from keras import KerasTensor
 from keras import Operation
+from keras.backend import result_type
 from kgcnn.backend import any_symbolic_tensors
 import kgcnn.backend as kgcnn_backend
+from kgcnn.ops.axis import broadcast_shapes
 
 
 class _RepeatStaticLength(Operation):
@@ -127,3 +129,59 @@ def norm(x, ord='fro', axis=None, keepdims=False):
     if any_symbolic_tensors((x,)):
         return _Norm(ord=ord, axis=axis, keepdims=keepdims).symbolic_call(x)
     return kgcnn_backend.norm(x, ord=ord, axis=axis, keepdims=keepdims)
+
+
+class _Cross(Operation):
+    def __init__(self):
+        super().__init__()
+        self.axis = -1
+
+    def call(self, x1, x2):
+        return kgcnn_backend.cross(x1, x2)
+
+    def compute_output_spec(self, x1, x2):
+        x1_shape = list(x1.shape)
+        x2_shape = list(x2.shape)
+
+        x1_value_size = x1_shape[self.axis]
+        x2_value_size = x2_shape[self.axis]
+        del x1_shape[self.axis]
+        del x2_shape[self.axis]
+        output_shape = broadcast_shapes(x1_shape, x2_shape)
+
+        if x1_value_size is not None and x1_value_size not in (2, 3):
+            raise ValueError(
+                "`x1`'s dim on `axis={axisa}` must be either 2 or 3, but "
+                f"received: {x1_value_size}"
+            )
+        if x2_value_size is not None and x2_value_size not in (2, 3):
+            raise ValueError(
+                "`x2`'s dim on `axis={axisb}` must be either 2 or 3, but "
+                f"received: {x2_value_size}"
+            )
+
+        if x1_value_size == 3 or x2_value_size == 3:
+            value_size = [3]
+        else:
+            value_size = []
+
+        output_shape = (
+            output_shape[: self.axis] + value_size + output_shape[self.axis :]
+        )
+        dtype = result_type(x1.dtype, x2.dtype)
+        return KerasTensor(output_shape, dtype=dtype)
+
+
+def cross(x1, x2):
+    """Returns the cross product of two (arrays of) vectors.
+
+    Args:
+        x1: Components of the first vector(s).
+        x2: Components of the second vector(s).
+
+    Returns:
+        Vector cross product(s).
+    """
+    if any_symbolic_tensors((x1, x2)):
+        return _Cross().symbolic_call(x1, x2)
+    return kgcnn_backend.cross(x1, x2)

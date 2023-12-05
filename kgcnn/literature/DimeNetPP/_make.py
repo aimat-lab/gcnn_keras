@@ -27,7 +27,9 @@ model_default = {
         {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32"},
         {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
         {"shape": [None, 2], "name": "angle_indices", "dtype": "int64"},
-
+        {"shape": (), "name": "total_nodes", "dtype": "int64"},
+        {"shape": (), "name": "total_edges", "dtype": "int64"},
+        {"shape": (), "name": "total_angles", "dtype": "int64"}
     ],
     "input_tensor_type": "padded",
     "input_embedding": None,  # deprecated
@@ -144,13 +146,13 @@ def make_model(inputs: list = None,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
         has_edges=False,
         has_nodes=2,
-        has_angles=True,
+        has_angle_indices=True,
     )
 
-    n, x, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = dj
+    n, x, edi, adi, batch_id_node, batch_id_edge, batch_id_angles, node_id, edge_id, angle_id, count_nodes, count_edges, count_angles = dj
 
     out = model_disjoint(
-        [n, x, disjoint_indices, batch_id_node, count_nodes],
+        [n, x, edi, adi, batch_id_node, count_nodes],
         use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
         input_node_embedding=input_node_embedding,
         emb_size=emb_size,
@@ -333,15 +335,14 @@ def make_crystal_model(inputs: list = None,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
         has_edges=False,
         has_nodes=2,
-        has_angles=True,
+        has_angle_indices=True,
         has_crystal_input=2
     )
-
-    n, x, djx, img, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
+    n, x, edi, angi, img, lattice, batch_id_node, batch_id_edge, batch_id_angles, node_id, edge_id, angle_id, count_nodes, count_edges, count_angles = disjoint_inputs
 
     # Wrapp disjoint model
     out = model_disjoint_crystal(
-        [n, x, djx, img, lattice, batch_id_node, batch_id_edge, count_nodes],
+        [n, x, edi, angi, img, lattice, batch_id_node, batch_id_edge, count_nodes],
         use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
         input_node_embedding=input_node_embedding,
         emb_size=emb_size,

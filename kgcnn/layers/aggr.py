@@ -144,9 +144,9 @@ class AggregateLocalEdges(Layer):
         Args:
             inputs (list): [reference, values, indices]
 
+                - reference (Tensor): Target reference tensor of shape `(N, ...)`.
                 - values (Tensor): Values to aggregate of shape `(M, ...)`.
                 - indices (Tensor): Indices of edges of shape `(2, M, )`.
-                - reference (Tensor): Target reference tensor of shape `(N, ...)`.
 
         Returns:
             Tensor: Aggregated values of shape `(N, ...)`.
@@ -215,9 +215,9 @@ class AggregateWeightedLocalEdges(AggregateLocalEdges):
         Args:
             inputs (list): [reference, values, indices, weights]
 
+                - reference (Tensor): Target reference tensor of shape `(N, ...)`.
                 - values (Tensor): Values to aggregate of shape `(M, ...)`.
                 - indices (Tensor): Indices of edges of shape `(2, M, )`.
-                - reference (Tensor): Target reference tensor of shape `(N, ...)`.
                 - weights (Tensor): Weight tensor for values of shape `(M, ...)`.
 
         Returns:

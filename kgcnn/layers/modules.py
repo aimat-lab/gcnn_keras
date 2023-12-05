@@ -83,3 +83,26 @@ def Input(
         input_tensor=tensor,
     )
     return layer.output
+
+
+class ZerosLike(ks.layers.Layer):
+    r"""Layer to make a zero tensor"""
+
+    def __init__(self, **kwargs):
+        """Initialize layer."""
+        super(ZerosLike, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(ZerosLike, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (Tensor): Tensor of node or edge embeddings of shape ([N], F, ...)
+
+        Returns:
+            Tensor: Zero-like tensor of input.
+        """
+        return ops.zeros_like(inputs)

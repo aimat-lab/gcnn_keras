@@ -65,3 +65,7 @@ def decompose_ragged_tensor(x):
 
 def norm(x, ord='fro', axis=None, keepdims=False):
     return torch.linalg.norm(x, ord=ord, dim=axis, keepdims=keepdims)
+
+
+def cross(x1, x2):
+    return torch.cross(x1, x2, dim=-1)
