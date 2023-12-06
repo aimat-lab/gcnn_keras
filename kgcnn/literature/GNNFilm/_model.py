@@ -27,7 +27,7 @@ def model_disjoint(
 
     # Model
     for i in range(0, depth):
-        n_i, n_j = GatherNodes(selection_index=[0, 1], concat_axis=None)([n, edi])
+        n_i, n_j = GatherNodes(split_indices=[0, 1], concat_axis=None)([n, edi])
         # Note: This maybe could be done more efficiently.
         gamma = RelationalDense(**dense_modulation_kwargs)([n_i, edge_relations])
         beta = RelationalDense(**dense_modulation_kwargs)([n_i, edge_relations])

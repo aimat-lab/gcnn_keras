@@ -3,6 +3,8 @@ v4.0.0
 Completely reworked version of kgcnn for Keras 3.0 and multi-backend support. A lot of fundamental changes have been made.
 However, we tried to keep as much of the API from kgcnn 3.0 so that models in literature can be used with minimal changes.
 Mainly, the ``"input_tensor_type"="ragged"`` model parameter has to be added if ragged tensors are used as input in tensorflow.
+For very few models also the order of inputs had to be changed.
+
 The scope of models has been reduced for initial release but will be extended in upcoming versions.
 Note that some changes are also stem for keras API changes, like for example *learning_rate* rate parameter or serialization.
 Moreover, tensorflow addons had to be dropped for keras 3.0 .
@@ -14,7 +16,7 @@ Input can be padded or (still) ragged input. Or direct disjoint representations 
 
 For jax we added a ``padded_disjoint`` parameter that can enable jit'able jax models but requires a dataloader,
 which is not yet implemented in ``kgcnn``. For padded samples it can already been tested,
-but the padding of each sample is a much larger overhead that padding the batch. 
+but the padding of each sample is a much larger overhead than padding the batch. 
 
 Some other changes:
 

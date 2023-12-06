@@ -2,6 +2,7 @@ from keras.layers import Layer, Dense, Concatenate
 from kgcnn.layers.gather import GatherNodes, GatherState
 from kgcnn.layers.aggr import AggregateLocalEdges
 from kgcnn.layers.pooling import PoolingNodes
+from kgcnn.ops.activ import softplus2
 
 
 PoolingGlobalEdges = PoolingNodes

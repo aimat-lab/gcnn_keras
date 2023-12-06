@@ -135,11 +135,11 @@ def make_model(name: str = None,
         has_edge_indices=True
     )
 
-    n, ed, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = di_inputs
+    n, x, ed, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = di_inputs
 
     # Wrapping disjoint model.
     out = model_disjoint(
-        [n, ed, disjoint_indices, batch_id_node, count_nodes],
+        [n, x, ed, disjoint_indices, batch_id_node, count_nodes],
         use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
         use_edge_embedding=("int" in inputs[2]['dtype']) if input_edge_embedding is not None else False,
         input_node_embedding=input_node_embedding,

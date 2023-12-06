@@ -3,6 +3,7 @@ from kgcnn.layers.gather import GatherState, GatherNodes
 from kgcnn.layers.aggr import AggregateLocalEdgesAttention
 from kgcnn.layers.pooling import PoolingNodes, PoolingNodesAttention
 from kgcnn.layers.update import GRUUpdate
+from kgcnn.ops.activ import leaky_relu
 
 # Gated recurrent unit update. See kgcnn.layers.conv.mpnn_conv for details.
 HamNetGRUUnion = GRUUpdate
@@ -460,9 +461,9 @@ class HamNaiveDynMessage(Layer):
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
-        self.gather_v = GatherNodes(selection_index=[0, 1], concat_axis=None)
-        self.gather_p = GatherNodes(selection_index=[0, 1], concat_axis=None)
-        self.gather_q = GatherNodes(selection_index=[0, 1], concat_axis=None)
+        self.gather_v = GatherNodes(split_indices=[0, 1], concat_axis=None)
+        self.gather_p = GatherNodes(split_indices=[0, 1], concat_axis=None)
+        self.gather_q = GatherNodes(split_indices=[0, 1], concat_axis=None)
         self.lazy_sub_p = Subtract()
         self.lazy_sub_q = Subtract()
         # self.lay_concat = LazyConcatenate(axis=-1)
