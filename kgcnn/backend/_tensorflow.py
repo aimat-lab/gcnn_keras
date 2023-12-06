@@ -2,30 +2,30 @@ import tensorflow as tf
 
 
 def scatter_reduce_sum(indices, values, shape):
-    indices = tf.expand_dims(indices, axis=-1)
+    indices = tf.expand_dims(indices, axis=1)
     return tf.scatter_nd(indices, values, tf.cast(shape, dtype="int64"))
 
 
 def scatter_reduce_min(indices, values, shape):
-    indices = tf.expand_dims(indices, axis=-1)
+    indices = tf.expand_dims(indices, axis=1)
     target = tf.cast(tf.fill(shape, values.dtype.max), dtype=values.dtype)
     return tf.tensor_scatter_nd_min(target, indices, values)
 
 
 def scatter_reduce_max(indices, values, shape):
-    indices = tf.expand_dims(indices, axis=-1)
+    indices = tf.expand_dims(indices, axis=1)
     target = tf.cast(tf.fill(shape, values.dtype.min), dtype=values.dtype)
     return tf.tensor_scatter_nd_max(target, indices, values)
 
 
 def scatter_reduce_mean(indices, values, shape):
-    indices = tf.expand_dims(indices, axis=-1)
+    indices = tf.expand_dims(indices, axis=1)
     counts = tf.scatter_nd(indices, tf.ones_like(values), shape)
     return tf.math.divide_no_nan(tf.scatter_nd(indices, values, shape), counts)
 
 
 def scatter_reduce_softmax(indices, values, shape, normalize: bool = False):
-    indices_scatter = tf.expand_dims(indices, axis=-1)
+    indices_scatter = tf.expand_dims(indices, axis=1)
 
     if normalize:
         zeros_min = tf.zeros(shape, dtype=values.dtype)  # Zero is okay here

@@ -53,12 +53,13 @@ class Aggregate(Layer):  # noqa
         }
         self._pool_method = pooling_by_name[pooling_method]
         self._use_scatter = "scatter" in pooling_method
-        
+        self._use_reference_for_aggregation = "update" in pooling_method
+
     def build(self, input_shape):
         """Build layer."""
         # Nothing to build here. No sub-layers.
         self.built = True
-        
+
     def compute_output_shape(self, input_shape):
         """Compute output shape."""
         assert len(input_shape) == 3
@@ -105,7 +106,8 @@ class AggregateLocalEdges(Layer):
     i.e. `index_tensor[pooling_index]` to get the indices to aggregate the edges with.
     This layers uses the :obj:`Aggregate` layer and its functionality.
     """
-    def __init__(self, pooling_method="scatter_sum",
+    def __init__(self,
+                 pooling_method="scatter_sum",
                  pooling_index: int = global_index_receive,
                  axis_indices: int = global_axis_indices,
                  **kwargs):
@@ -500,4 +502,86 @@ class AggregateLocalEdgesLSTM(Layer):
                 config.update({x: conf_lstm[x]})
         config.update({"pooling_method": self.pooling_method, "axis_indices": self.axis_indices,
                        "pooling_index": self.pooling_index, "max_edges_per_node": self.max_edges_per_node})
+        return config
+
+
+@ks.saving.register_keras_serializable(package='kgcnn', name='RelationalAggregateLocalEdges')
+class RelationalAggregateLocalEdges(Layer):
+    r"""Layer :obj:`RelationalAggregateLocalEdges` for aggregating relational edges.
+
+    Please check the documentation of :obj:`AggregateLocalEdges` for more information.
+
+    The main aggregation or pooling layer to collect all edges or edge-like embeddings per node, per relation,
+    corresponding to the receiving node, which is defined by edge indices.
+
+    .. note::
+
+        An edge relation tensor must be provided which specifies the relation for each edge.
+    """
+
+    def __init__(self,
+                 num_relations: int,
+                 pooling_method="scatter_sum",
+                 pooling_index: int = global_index_receive,
+                 axis_indices: int = global_axis_indices,
+                 **kwargs):
+        """Initialize layer.
+
+        Args:
+            num_relations (int): Number of possible relations.
+            pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
+            pooling_index (int): Index from edge_indices to pick ID's for pooling edge-like embeddings. Default is 0.
+            axis_indices (bool): The axis of the index tensor to pick IDs from. Default is 0.
+        """
+        super(RelationalAggregateLocalEdges, self).__init__(**kwargs)
+        self.num_relations = num_relations
+        self.pooling_index = pooling_index
+        self.pooling_method = pooling_method
+        self.axis_indices = axis_indices
+        self.to_aggregate = Aggregate(pooling_method=pooling_method)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(RelationalAggregateLocalEdges, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs (list): of [node, edges, tensor_index, edge_relation]
+
+                - node (Tensor): Node reference of shape ([N], R, F)
+                - edges (Tensor): Edge or message features of shape ([M], F)
+                - tensor_index (Tensor): Edge indices referring to nodes of shape (2, [M])
+                - edge_relation (Tensor): Edge relation for each edge of shape ([M], )
+
+        Returns:
+            Tensor: Aggregated feature tensor of edge features for each node of shape ([N], R, F) .
+        """
+        nodes, edges, disjoint_indices, edge_relations = inputs
+        node_shape = list(ops.shape(nodes))
+
+        receive_indices = ops.take(disjoint_indices, self.pooling_index, axis=self.axis_indices)
+        relations = ops.cast(edge_relations, receive_indices.dtype)
+
+        if self.to_aggregate._use_reference_for_aggregation:
+            out_tensor = ops.reshape(nodes, [node_shape[0]*node_shape[1]] + node_shape[2:])
+            shifts = node_shape[1]
+        else:
+            out_tensor = ops.repeat(nodes, self.num_relations, axis=0)
+            shifts = self.num_relations
+
+        scatter_indices = receive_indices*shifts + relations
+
+        out = self.to_aggregate([edges, scatter_indices, out_tensor])
+        out_shape = list(ops.shape(out))
+
+        return ops.reshape(out, [node_shape[0], shifts] + out_shape[1:])
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(RelationalAggregateLocalEdges, self).get_config()
+        config.update({"num_relations": self.num_relations})
+        config.update({"pooling_index": self.pooling_index, "pooling_method": self.pooling_method,
+                       "axis_indices": self.axis_indices})
         return config
