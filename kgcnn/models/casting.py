@@ -8,7 +8,10 @@ from kgcnn.layers.casting import (
 
 
 def template_cast_output(model_outputs,
-                         output_embedding, output_tensor_type, input_tensor_type, cast_disjoint_kwargs):
+                         output_embedding,
+                         output_tensor_type,
+                         input_tensor_type,
+                         cast_disjoint_kwargs):
     r"""The standard model output template returns a single tensor of either "graph", "node", or "edge"
     embeddings specified by :obj:`output_embedding` within the model.
     The return tensor type is determined by :obj:`output_tensor_type` . Options are:
@@ -69,13 +72,8 @@ def template_cast_output(model_outputs,
 def template_cast_list_input(model_inputs,
                              input_tensor_type,
                              cast_disjoint_kwargs,
-                             has_nodes: Union[int, bool] = True,
-                             has_edges: Union[int, bool] = True,
-                             has_angles: Union[int, bool] = False,
-                             has_edge_indices: Union[int, bool] = True,
-                             has_angle_indices: Union[int, bool] = False,
-                             has_graph_state: Union[int, bool] = False,
-                             has_crystal_input: Union[int, bool] = False,
+                             mask_assignment: list = None,
+                             index_assignment: list = None,
                              return_sub_id: bool = True):
     r"""Template of listed graph input tensors, which should be compatible to previous kgcnn versions and
     defines the order as follows: :obj:`[nodes, edges, angles, edge_indices, angle_indices, graph_state, ...]` .
@@ -154,161 +152,133 @@ def template_cast_list_input(model_inputs,
             - edges_count (Tensor): Tensor of number of edges for each graph of shape `(batch, )` .
             - angles_count (Tensor): Tensor of number of angles for each graph of shape `(batch, )` .
     """
-    standard_inputs = [x for x in model_inputs]
-
-    batched_nodes = []
-    batched_edges = []
-    batched_angles = []
-    batched_state = []
-    batched_indices = []
-    batched_angle_indices = []
-    batched_crystal_info = []
-
-    for i in range(int(has_nodes)):
-        batched_nodes.append(standard_inputs.pop(0))
-    for i in range(int(has_edges)):
-        batched_edges.append(standard_inputs.pop(0))
-    for i in range(int(has_angles)):
-        batched_angles.append(standard_inputs.pop(0))
-    for i in range(int(has_edge_indices)):
-        batched_indices.append(standard_inputs.pop(0))
-    for i in range(int(has_angle_indices)):
-        batched_angle_indices.append(standard_inputs.pop(0))
-    for i in range(int(has_graph_state)):
-        batched_state.append(standard_inputs.pop(0))
-    for i in range(int(has_crystal_input)):
-        batched_crystal_info.append(standard_inputs.pop(0))
-
-    batched_id = standard_inputs
-
-    disjoint_nodes = []
-    disjoint_edges = []
-    disjoint_state = []
-    disjoint_angles = []
-    disjoint_indices = []
-    disjoint_angle_indices = []
-    disjoint_crystal_info = []
-    disjoint_id = []
+    out_tensor = []
+    out_batch_id = []
+    out_graph_id = []
+    out_totals = []
+    is_already_disjoint = False
 
     if input_tensor_type in ["padded", "masked"]:
+        if mask_assignment is None or not isinstance(mask_assignment, (list, tuple)):
+            raise ValueError()
 
-        if int(has_angle_indices) > 0:
-            part_nodes, part_edges, part_angle = batched_id
+        reduced_mask = [x for x in mask_assignment if x is not None]
+        if len(reduced_mask) == 0:
+            num_mask = 0
         else:
-            part_nodes, part_edges = batched_id
-            part_angle = None
+            num_mask = max(reduced_mask) + 1
+        if len(mask_assignment) + num_mask != len(model_inputs):
+            raise ValueError()
 
-        for x in batched_indices:
-            _, idx, batch_id_node, batch_id_edge, node_id, edge_id, len_nodes, len_edges = CastBatchedIndicesToDisjoint(
-                **cast_disjoint_kwargs)([batched_nodes[0], x, part_nodes, part_edges])
-            disjoint_indices.append(idx)
+        values_input = model_inputs[:-num_mask]
+        mask_input = model_inputs[-num_mask:]
 
-        for x in batched_angle_indices:
-            _, idx, _, batch_id_ang, _, ang_id, _, len_ang = CastBatchedIndicesToDisjoint(
-                **cast_disjoint_kwargs)([batched_indices[0], x, part_edges, part_angle])
-            disjoint_angle_indices.append(idx)
+        if index_assignment is None:
+            index_assignment = [None for _ in range(len(values_input))]
+        if len(index_assignment) != len(mask_assignment):
+            raise ValueError()
 
-        for x in batched_nodes:
-            disjoint_nodes.append(
-                CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([x, part_nodes])[0])
+        out_tensor = [None for _ in range(len(values_input))]
+        out_batch_id = [None for _ in range(num_mask)]
+        out_graph_id = [None for _ in range(num_mask)]
+        out_totals = [None for _ in range(num_mask)]
 
-        for x in batched_edges:
-            disjoint_edges.append(
-                CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([x, part_edges])[0])
+        for i, i_ref in enumerate(index_assignment):
+            if i_ref is None:
+                continue
+            assert isinstance(i_ref, int), "Must provide positional index of for reference of indices."
+            ref = values_input[i_ref]
+            x = values_input[i]
+            m, m_ref = mask_assignment[i], mask_assignment[i_ref]
+            ref_mask = mask_input[m_ref]
+            x_mask = mask_input[m]
+            o_ref, o_x, b_r, b_x, g_r, g_x, t_r, t_x = CastBatchedIndicesToDisjoint(
+                **cast_disjoint_kwargs)([ref, x, ref_mask, x_mask])
+            out_tensor[i] = o_x
+            # Important to no overwrite indices with simple values here.
+            if out_tensor[i_ref] is None:
+                out_tensor[i_ref] = o_ref
+            out_batch_id[m] = b_x
+            out_batch_id[m_ref] = b_r
+            out_graph_id[m] = g_x
+            out_graph_id[m_ref] = g_r
+            out_totals[m] = t_x
+            out_totals[m_ref] = t_r
 
-        for x in batched_angles:
-            disjoint_angles.append(
-                CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([x, part_angle])[0])
+        for i, x in enumerate(values_input):
+            if out_tensor[i] is not None:
+                continue
+            m = mask_assignment[i]
+            if m is None:
+                out_tensor[i] = CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(x)
+                continue
 
-        for x in batched_state:
-            disjoint_state.append(
-                CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(x))
-
-        if has_crystal_input > 0:
-            disjoint_crystal_info.append(
-                CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_crystal_info[0], part_edges])[0]
-            )
-            disjoint_crystal_info.append(
-                CastBatchedGraphStateToDisjoint(**cast_disjoint_kwargs)(batched_crystal_info[1])
-            )
-        if has_crystal_input > 2:
-            # multiplicity
-            disjoint_crystal_info.append(
-                CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_crystal_info[2], part_nodes])[0]
-            )
-            # symmetry operations
-            disjoint_crystal_info.append(
-                CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_crystal_info[3], part_edges])[0]
-            )
+            x_mask = mask_input[m]
+            o_x, bi, gi, tot = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([x, x_mask])
+            out_tensor[i] = o_x
+            out_batch_id[m] = bi
+            out_graph_id[m] = gi
+            out_totals[m] = tot
 
     elif input_tensor_type in ["ragged", "jagged"]:
+        if index_assignment is None:
+            index_assignment = [None for _ in range(len(model_inputs))]
+        if len(index_assignment) != len(model_inputs):
+            raise ValueError()
 
-        for x in batched_indices:
-            _, idx, batch_id_node, batch_id_edge, node_id, edge_id, len_nodes, len_edges = CastRaggedIndicesToDisjoint(
-                **cast_disjoint_kwargs)([batched_nodes[0], x])
-            disjoint_indices.append(idx)
+        reduced_mask = [x for x in mask_assignment if x is not None]
+        if len(reduced_mask) == 0:
+            num_mask = 0
+        else:
+            num_mask = max(reduced_mask) + 1
 
-        for x in batched_angle_indices:
-            _, idx, _, batch_id_ang, _, ang_id, _, len_ang = CastRaggedIndicesToDisjoint(
-                **cast_disjoint_kwargs)([batched_indices[0], x])
-            disjoint_angle_indices.append(idx)
+        out_tensor = [None for _ in range(len(model_inputs))]
+        out_batch_id = [None for _ in range(num_mask)]
+        out_graph_id = [None for _ in range(num_mask)]
+        out_totals = [None for _ in range(num_mask)]
 
-        for x in batched_nodes:
-            disjoint_nodes.append(
-                CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(x)[0])
+        for i, i_ref in enumerate(index_assignment):
+            if i_ref is None:
+                continue
+            assert isinstance(i_ref, int), "Must provide positional index of for reference of indices."
+            ref = model_inputs[i_ref]
+            x = model_inputs[i]
+            m, m_ref = mask_assignment[i], mask_assignment[i_ref]
+            o_ref, o_x, b_r, b_x, g_r, g_x, t_r, t_x = CastRaggedIndicesToDisjoint(
+                **cast_disjoint_kwargs)([ref, x])
+            out_tensor[i] = o_x
+            # Important to no overwrite indices with simple values here.
+            if out_tensor[i_ref] is None:
+                out_tensor[i_ref] = o_ref
+            out_batch_id[m] = b_x
+            out_batch_id[m_ref] = b_r
+            out_graph_id[m] = g_x
+            out_graph_id[m_ref] = g_r
+            out_totals[m] = t_x
+            out_totals[m_ref] = t_r
 
-        for x in batched_edges:
-            disjoint_edges.append(
-                CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(x)[0])
-
-        for x in batched_angles:
-            disjoint_angles.append(
-                CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(x)[0])
-
-        if has_crystal_input > 0:
-            disjoint_crystal_info.append(
-                CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_crystal_info[0])[0]
-            )
-            disjoint_crystal_info.append(
-                batched_crystal_info[1]
-            )
-        if has_crystal_input > 2:
-            disjoint_crystal_info.append(
-                CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_crystal_info[2])[0]
-            )
-            disjoint_crystal_info.append(
-                CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(batched_crystal_info[3])[0]
-            )
-
-        disjoint_state = batched_state
+        for i, x in enumerate(model_inputs):
+            if out_tensor[i] is not None:
+                continue
+            m = mask_assignment[i]
+            if m is not None:
+                o_x, bi, gi, tot = CastRaggedAttributesToDisjoint(**cast_disjoint_kwargs)(x)
+                out_tensor[i] = o_x
+                out_batch_id[m] = bi
+                out_graph_id[m] = gi
+                out_totals[m] = tot
+            else:
+                out_tensor[i] = x
 
     else:
-        disjoint_nodes = batched_nodes
-        disjoint_edges = batched_edges
-        disjoint_indices = batched_indices
-        disjoint_state = batched_state
-        disjoint_angle_indices = batched_angle_indices
-        disjoint_angles = batched_angles
-        disjoint_crystal_info = batched_crystal_info
+        is_already_disjoint = True
 
-    if input_tensor_type in ["ragged", "jagged", "padded", "masked"]:
-        disjoint_id.append(batch_id_node)  # noqa
-        disjoint_id.append(batch_id_edge)  # noqa
-        if int(has_angle_indices) > 0:
-            disjoint_id.append(batch_id_ang)  # noqa
+    if is_already_disjoint:
+        out = model_inputs
+    else:
+        out = out_tensor + out_batch_id
         if return_sub_id:
-            disjoint_id.append(node_id)  # noqa
-            disjoint_id.append(edge_id)  # noqa
-            if int(has_angle_indices) > 0:
-                disjoint_id.append(ang_id)  # noqa
-        disjoint_id.append(len_nodes)  # noqa
-        disjoint_id.append(len_edges)  # noqa
-        if int(has_angle_indices) > 0:
-            disjoint_id.append(len_ang)  # noqa
-    else:
-        disjoint_id = batched_id
+            out = out + out_graph_id
+        out = out + out_totals
 
-    disjoint_model_inputs = disjoint_nodes + disjoint_edges + disjoint_angles + disjoint_indices + disjoint_angle_indices + disjoint_state + disjoint_crystal_info + disjoint_id
-
-    return disjoint_model_inputs
-
+    return out

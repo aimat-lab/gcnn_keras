@@ -110,7 +110,8 @@ def make_model(inputs: list = None,
 
     disjoint_inputs = template_cast_list_input(
         model_inputs, input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_edges=False
+        mask_assignment=[0, 1],
+        index_assignment=[None, 0]
     )
 
     n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs

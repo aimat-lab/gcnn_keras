@@ -27,6 +27,7 @@ model_default = {
         {"shape": (None,), "name": "node_number", "dtype": "int64"},
         {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32"},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
+        {'shape': [1], 'name': "charge", 'dtype': 'float32'},
         {"shape": (), "name": "graph_number", "dtype": "int64"},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
@@ -134,9 +135,8 @@ def make_model(inputs: list = None,
         model_inputs,
         input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_edges=(not make_distance),
-        has_nodes=1 + int(make_distance),
-        has_graph_state=True
+        mask_assignment=[0, 0 if make_distance else 1, 1, None],
+        index_assignment=[None, None, 0, None]
     )
 
     n, x, disjoint_indices, gs, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = dj
@@ -303,10 +303,8 @@ def make_crystal_model(inputs: list = None,
     dj = template_cast_list_input(
         model_inputs, input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_edges=(not make_distance),
-        has_nodes=1 + int(make_distance),
-        has_graph_state=True,
-        has_crystal_input=2
+        mask_assignment=[0, 0 if make_distance else 1, 1, None, 1, None],
+        index_assignment=[None, None, 0, None, None, None]
     )
 
     n, x, djx, gs, img, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = dj

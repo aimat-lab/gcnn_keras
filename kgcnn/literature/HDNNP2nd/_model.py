@@ -3,7 +3,7 @@ from keras.layers import Concatenate
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.norm import GraphBatchNormalization
 from ._wacsf import wACSFRad, wACSFAng
-from ._acsf import ACSFG2, ACSFG4
+from ._acsf import ACSFG2, ACSFG4, ACSFConstNormalization
 
 
 def model_disjoint_weighted(
@@ -19,7 +19,7 @@ def model_disjoint_weighted(
         output_mlp: dict = None
 ):
     # Make input
-    node_input, xyz_input, edge_index_input, angle_index_input = inputs
+    node_input, xyz_input, edge_index_input, angle_index_input, batch_id_node, count_nodes = inputs
 
     # ACSF representation.
     rep_rad = wACSFRad(**w_acsf_rad_kwargs)([node_input, xyz_input, edge_index_input])
@@ -28,22 +28,22 @@ def model_disjoint_weighted(
 
     # Normalization
     if normalize_kwargs:
-        rep = GraphBatchNormalization(**normalize_kwargs)(rep)
+        rep = GraphBatchNormalization(**normalize_kwargs)([rep, batch_id_node, count_nodes])
     if const_normalize_kwargs:
         rep = ACSFConstNormalization(**const_normalize_kwargs)(rep)
 
     # learnable NN.
-    n = RelationalMLP(**mlp_kwargs)([rep, node_input])
+    n = RelationalMLP(**mlp_kwargs)([rep, node_input, batch_id_node, count_nodes])
 
     # Output embedding choice
     if output_embedding == 'graph':
-        out = PoolingNodes(**node_pooling_args)(n)
+        out = PoolingNodes(**node_pooling_args)([count_nodes, n, batch_id_node])
         if use_output_mlp:
             out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = n
         if use_output_mlp:
-            out = GraphMLP(**output_mlp)(out)
+            out = GraphMLP(**output_mlp)([out, batch_id_node, count_nodes])
     else:
         raise ValueError("Unsupported output embedding for mode `HDNNP2nd` .")
 
@@ -63,7 +63,7 @@ def model_disjoint_behler(
         output_mlp: dict = None
 ):
     # Make input
-    node_input, xyz_input, edge_index_input, angle_index_input = inputs
+    node_input, xyz_input, edge_index_input, angle_index_input, batch_id_node, count_nodes = inputs
 
     # ACSF representation.
     rep_g2 = ACSFG2(**ACSFG2.make_param_table(**g2_kwargs))([node_input, xyz_input, edge_index_input])
@@ -72,22 +72,22 @@ def model_disjoint_behler(
 
     # Normalization
     if normalize_kwargs:
-        rep = GraphBatchNormalization(**normalize_kwargs)(rep)
+        rep = GraphBatchNormalization(**normalize_kwargs)([rep, batch_id_node, count_nodes])
     if const_normalize_kwargs:
         rep = ACSFConstNormalization(**const_normalize_kwargs)(rep)
 
     # learnable NN.
-    n = RelationalMLP(**mlp_kwargs)([rep, node_input])
+    n = RelationalMLP(**mlp_kwargs)([rep, node_input, batch_id_node, count_nodes])
 
     # Output embedding choice
     if output_embedding == 'graph':
-        out = PoolingNodes(**node_pooling_args)(n)
+        out = PoolingNodes(**node_pooling_args)([count_nodes, n, batch_id_node])
         if use_output_mlp:
             out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = n
         if use_output_mlp:
-            out = GraphMLP(**output_mlp)(out)
+            out = GraphMLP(**output_mlp)([out, batch_id_node, count_nodes])
     else:
         raise ValueError("Unsupported output embedding for mode `HDNNP2nd`")
 
@@ -103,20 +103,20 @@ def model_disjoint_atom_wise(
         output_mlp: dict = None
 ):
     # Make input
-    node_input, rep_input = inputs
+    node_input, rep_input, batch_id_node, count_nodes = inputs
 
     # learnable NN.
-    n = RelationalMLP(**mlp_kwargs)([rep_input, node_input])
+    n = RelationalMLP(**mlp_kwargs)([rep_input, node_input, batch_id_node, count_nodes])
 
     # Output embedding choice
     if output_embedding == 'graph':
-        out = PoolingNodes(**node_pooling_args)(n)
+        out = PoolingNodes(**node_pooling_args)([count_nodes, n, batch_id_node])
         if use_output_mlp:
             out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = n
         if use_output_mlp:
-            out = GraphMLP(**output_mlp)(out)
+            out = GraphMLP(**output_mlp)([out, batch_id_node, count_nodes])
     else:
         raise ValueError("Unsupported output embedding for mode `HDNNP2nd`")
 

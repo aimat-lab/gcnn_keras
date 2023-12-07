@@ -120,10 +120,12 @@ def make_model(inputs: list = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    disjoint_inputs = template_cast_list_input(model_inputs, input_tensor_type=input_tensor_type,
-                                               cast_disjoint_kwargs=cast_disjoint_kwargs,
-                                               has_nodes=2 + int(has_equivariant_input),
-                                               has_edges=False)
+    disjoint_inputs = template_cast_list_input(
+        model_inputs, input_tensor_type=input_tensor_type,
+        cast_disjoint_kwargs=cast_disjoint_kwargs,
+        mask_assignment=([0] if has_equivariant_input else []) + [0, 0, 1],
+        index_assignment=([None] if has_equivariant_input else []) + [None, None, 0 + int(has_equivariant_input)]
+    )
 
     if not has_equivariant_input:
         z, x, edi, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
@@ -278,8 +280,11 @@ def make_crystal_model(inputs: list = None,
     dj_inputs = template_cast_list_input(
         model_inputs, input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_nodes=2 + int(has_equivariant_input), has_crystal_input=2,
-        has_edges=False)
+        mask_assignment=([0] if has_equivariant_input else []) + [
+            0, 0, 1, 1, None],
+        index_assignment=([0] if has_equivariant_input else []) + [
+            None, None, 0 + int(has_equivariant_input), None, None]
+    )
 
     if not has_equivariant_input:
         z, x, edi, img, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = dj_inputs

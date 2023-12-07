@@ -395,7 +395,7 @@ class RelationalMLP(MLP):
             input_shape[0], input_shape[1], [])
         for i in range(self._depth):
             self.mlp_dense_layer_list[i].build([x_shape, r_shape])
-            x_shape = self.mlp_dense_layer_list[i].compute_output_shape(x_shape)
+            x_shape = self.mlp_dense_layer_list[i].compute_output_shape([x_shape, r_shape])
             if self._conf_use_dropout[i]:
                 self.mlp_dropout_layer_list[i].build(x_shape)
             if self._conf_use_normalization[i]:
@@ -416,13 +416,16 @@ class RelationalMLP(MLP):
         Returns:
             Tensor: MLP forward pass.
         """
-        x, relations = inputs
+        x, relations, batch = (inputs[0], inputs[1], inputs[2:]) if len(inputs) > 2 else (inputs[0], inputs[1], [])
         for i in range(self._depth):
             x = self.mlp_dense_layer_list[i]([x, relations], **kwargs)
             if self._conf_use_dropout[i]:
                 x = self.mlp_dropout_layer_list[i](x, **kwargs)
             if self._conf_use_normalization[i]:
-                x = self.mlp_norm_layer_list[i](x, **kwargs)
+                if self.is_graph_norm_layer[i]:
+                    x = self.mlp_norm_layer_list[i]([x]+batch, **kwargs)
+                else:
+                    x = self.mlp_norm_layer_list[i](x, **kwargs)
             x = self.mlp_activation_layer_list[i](x, **kwargs)
         out = x
         return out

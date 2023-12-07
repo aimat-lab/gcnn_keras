@@ -28,7 +28,7 @@ model_default = {
     "inputs": [
         {'shape': (None,), 'name': "node_number", 'dtype': 'int64'},
         {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32'},
-        {'shape': (None, 32), 'name': "edge_attributes", 'dtype': 'float32'},
+        {'shape': (None, 64), 'name': "edge_attributes", 'dtype': 'float32'},
         {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64'},
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
@@ -130,9 +130,8 @@ def make_model(name: str = None,
         model_inputs,
         input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_nodes=2,
-        has_edges=True,
-        has_edge_indices=True
+        mask_assignment=[0, 0, 1, 1],
+        index_assignment=[None, None, None, 0]
     )
 
     n, x, ed, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = di_inputs

@@ -152,8 +152,8 @@ def make_model(name: str = None,
         model_inputs,
         input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_edges=True,
-        has_nodes=2
+        index_assignment=[None, None, None, 0],
+        mask_assignment=[0, 0, 1, 1]
     )
 
     n, x, ed, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = dj

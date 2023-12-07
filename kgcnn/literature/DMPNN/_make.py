@@ -132,9 +132,8 @@ def make_model(name: str = None,
 
     di = template_cast_list_input(
         model_inputs, input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_nodes=True, has_edges=True, has_graph_state=use_graph_state,
-        has_angle_indices=True,  # Treat reverse indices as edge indices
-        has_edge_indices=True
+        mask_assignment=[0,1,1,2] + ([None] if use_graph_state else []),
+        index_assignment=[None, None, 0, 2] + ([None] if use_graph_state else [])
     )
 
     if use_graph_state:

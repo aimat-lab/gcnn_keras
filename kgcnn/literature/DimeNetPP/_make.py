@@ -144,9 +144,8 @@ def make_model(inputs: list = None,
         model_inputs,
         input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_edges=False,
-        has_nodes=2,
-        has_angle_indices=True,
+        mask_assignment=[0, 0, 1, 2],
+        index_assignment=[None, None, 0, 2]
     )
 
     n, x, edi, adi, batch_id_node, batch_id_edge, batch_id_angles, node_id, edge_id, angle_id, count_nodes, count_edges, count_angles = dj
@@ -333,10 +332,8 @@ def make_crystal_model(inputs: list = None,
     disjoint_inputs = template_cast_list_input(
         model_inputs, input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_edges=False,
-        has_nodes=2,
-        has_angle_indices=True,
-        has_crystal_input=2
+        index_assignment=[None, None, 0, 2, None, None],
+        mask_assignment=[0, 0, 1, 2, 1, None]
     )
     n, x, edi, angi, img, lattice, batch_id_node, batch_id_edge, batch_id_angles, node_id, edge_id, angle_id, count_nodes, count_edges, count_angles = disjoint_inputs
 

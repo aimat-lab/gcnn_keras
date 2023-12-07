@@ -124,9 +124,12 @@ def make_model(inputs: list = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    disjoint_inputs = template_cast_list_input(model_inputs, input_tensor_type=input_tensor_type,
-                                               cast_disjoint_kwargs=cast_disjoint_kwargs,
-                                               has_edges=(not make_distance), has_nodes=1 + int(make_distance))
+    disjoint_inputs = template_cast_list_input(
+        model_inputs, input_tensor_type=input_tensor_type,
+        cast_disjoint_kwargs=cast_disjoint_kwargs,
+        mask_assignment=[0, 0 if make_distance else 1, 1],
+        index_assignment=[None, None, 0]
+    )
 
     n, x, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
 
@@ -269,10 +272,12 @@ def make_crystal_model(inputs: list = None,
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 
-    disjoint_inputs = template_cast_list_input(model_inputs, input_tensor_type=input_tensor_type,
-                                               cast_disjoint_kwargs=cast_disjoint_kwargs,
-                                               has_edges=(not make_distance), has_nodes=1 + int(make_distance),
-                                               has_crystal_input=2)
+    disjoint_inputs = template_cast_list_input(
+        model_inputs, input_tensor_type=input_tensor_type,
+        cast_disjoint_kwargs=cast_disjoint_kwargs,
+        mask_assignment=[0, 0 if make_distance else 1, 1, 1, None],
+        index_assignment=[None, None, 0, None, None]
+    )
 
     n, x, djx, img, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
 

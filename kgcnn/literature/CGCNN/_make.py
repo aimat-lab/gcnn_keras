@@ -138,9 +138,8 @@ def make_crystal_model(inputs: list = None,
         model_inputs,
         input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_edges=int(not make_distances),
-        has_nodes=1 + int(make_distances),
-        has_crystal_input=2+2*int(representation == "asu")
+        mask_assignment=[0, 0 if make_distances else 1, 1, 1, None] + ([0, 1] if representation == "asu" else []),
+        index_assignment=[None, None, 0, None, None] + ([None, None] if representation == "asu" else [])
     )
 
     if representation == "asu":

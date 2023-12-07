@@ -118,12 +118,11 @@ def make_model_weighted(inputs: list = None,
         model_inputs,
         input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_edges=False,
-        has_nodes=2,
-        has_angle_indices=True
+        mask_assignment=[0, 0, 1, 2],
+        index_assignment=[None, None, 0, 0]
     )
 
-    n, x, disjoint_indices, ang_ind, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = dj
+    n, x, disjoint_indices, ang_ind, batch_id_node, batch_id_edge, batch_id_angles, node_id, edge_id, angle_id, count_nodes, count_edges, count_angle = dj
 
     out = model_disjoint_weighted(
         [n, x, disjoint_indices, ang_ind, batch_id_node, count_nodes],
@@ -267,12 +266,11 @@ def make_model_behler(inputs: list = None,
         model_inputs,
         input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_edges=False,
-        has_nodes=2,
-        has_angle_indices=True
+        mask_assignment=[0, 0, 1, 2],
+        index_assignment=[None, None, 0, 0]
     )
 
-    n, x, disjoint_indices, ang_index, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = dj
+    n, x, disjoint_indices, ang_index, batch_id_node, batch_id_edge, batch_id_angles, node_id, edge_id, angle_id, count_nodes, count_edges, count_angle = dj
 
     out = model_disjoint_behler(
         [n, x, disjoint_indices, ang_index, batch_id_node, count_nodes],
@@ -400,13 +398,12 @@ def make_model_atom_wise(inputs: list = None,
         model_inputs,
         input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        has_edges=False,
-        has_nodes=2,
-        has_angle_indices=False,
-        has_edge_indices=False
+        mask_assignment=[0, 0],
+        index_assignment=[None, None]
     )
 
-    n, x, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = dj
+    n, x, batch_id_node, node_id, count_nodes = dj
+    batch_id_edge, edge_id, count_edges = None, None, None
 
     out = model_disjoint_atom_wise(
         [n, x, batch_id_node, count_nodes],
