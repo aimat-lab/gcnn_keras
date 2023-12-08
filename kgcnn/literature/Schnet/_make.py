@@ -199,6 +199,7 @@ model_crystal_default = {
     "output_embedding": "graph",
     "output_to_tensor": None,  # deprecated
     "use_output_mlp": True,
+    "output_scaling": None,
     "output_tensor_type": "padded",
     "output_mlp": {"use_bias": [True, True], "units": [64, 1],
                    "activation": ["kgcnn>shifted_softplus", "linear"]}

@@ -45,6 +45,7 @@ model_default = {
     "dropout": 0.1,
     "verbose": 10,
     "output_embedding": "graph",
+    "output_scaling": None,
     "output_to_tensor": True,  # deprecated
     "output_tensor_type": "padded",
     "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],

@@ -172,7 +172,9 @@ model_default_edge = {
     "depth": 3, "dropout": 0.0, "verbose": 10,
     "last_mlp": {"use_bias": [True, True, True], "units": [64, 64, 64],
                  "activation": ["relu", "relu", "linear"]},
-    "output_embedding": 'graph', "output_to_tensor": True,
+    "output_embedding": 'graph',
+    "output_to_tensor": None,
+    "output_scaling": None,
     "output_tensor_type": "padded",
     "output_mlp": {"use_bias": True, "units": 1,
                    "activation": "softmax"}
