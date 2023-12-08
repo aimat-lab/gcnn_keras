@@ -51,6 +51,7 @@ model_default = {
     'output_embedding': 'graph',
     "output_to_tensor": None,  # deprecated
     "output_tensor_type": "padded",
+    "output_scaling": None,
     'output_mlp': {
         "use_bias": [True, True, False], "units": [25, 10, 1],
         "activation": ['relu', 'relu', 'sigmoid']}
@@ -130,8 +131,8 @@ def make_model(inputs: list = None,
         model_inputs,
         input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        mask_assignment=[0, 1, 1],
-        index_assignment=[None, None, 0]
+        mask_assignment=[0, 1, 1, None],
+        index_assignment=[None, None, 0, None]
     )
 
     n, ed, disjoint_indices, gs, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = di_inputs

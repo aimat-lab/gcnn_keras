@@ -44,7 +44,8 @@ model_default = {
     "output_to_tensor": None,  # deprecated
     "output_tensor_type": "padded",
     "output_mlp": {"use_bias": True, "units": 1,
-                   "activation": "softmax"}
+                   "activation": "softmax"},
+    "output_scaling": None,
 }
 
 
