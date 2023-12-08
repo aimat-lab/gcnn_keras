@@ -27,8 +27,7 @@ model_default = {
         {"shape": (None,), "name": "node_number", "dtype": "int64"},
         {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32"},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
-        {'shape': [1], 'name': "charge", 'dtype': 'float32'},
-        {"shape": (), "name": "graph_number", "dtype": "int64"},
+        {'shape': [1], 'name': "charge", 'dtype': 'float32'}, # graph state
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
@@ -225,7 +224,7 @@ model_crystal_default = {
 }
 
 
-@update_model_kwargs(model_default, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
+@update_model_kwargs(model_crystal_default, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
 def make_crystal_model(inputs: list = None,
                        input_tensor_type: str = None,
                        cast_disjoint_kwargs: dict = None,

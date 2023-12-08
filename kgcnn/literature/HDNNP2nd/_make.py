@@ -51,7 +51,7 @@ model_default_weighted = {
 }
 
 
-@update_model_kwargs(model_default_weighted)
+@update_model_kwargs(model_default_weighted, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
 def make_model_weighted(inputs: list = None,
                         input_tensor_type: str = None,
                         cast_disjoint_kwargs: dict = None,
@@ -200,7 +200,7 @@ model_default_behler = {
 }
 
 
-@update_model_kwargs(model_default_behler)
+@update_model_kwargs(model_default_behler, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
 def make_model_behler(inputs: list = None,
                       input_tensor_type: str = None,
                       cast_disjoint_kwargs: dict = None,
@@ -339,7 +339,7 @@ model_default_atom_wise = {
 }
 
 
-@update_model_kwargs(model_default_atom_wise)
+@update_model_kwargs(model_default_atom_wise, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
 def make_model_atom_wise(inputs: list = None,
                          input_tensor_type: str = None,
                          cast_disjoint_kwargs: dict = None,

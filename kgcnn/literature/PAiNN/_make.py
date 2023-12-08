@@ -207,7 +207,7 @@ model_crystal_default = {
 }
 
 
-@update_model_kwargs(model_default, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
+@update_model_kwargs(model_crystal_default, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
 def make_crystal_model(inputs: list = None,
                        input_tensor_type: str = None,
                        input_embedding: dict = None,  # noqa
