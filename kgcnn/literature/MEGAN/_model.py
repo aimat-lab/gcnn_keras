@@ -193,6 +193,9 @@ class MEGAN(ks.models.Model):
         if self.regression_limits is not None:
             self.regression_width = np.abs(self.regression_limits[1] - self.regression_limits[0])
 
+    def build(self, input_shape):
+        super(MEGAN, self).build(input_shape)
+
     def get_config(self):
         config = super(MEGAN, self).get_config()
         config.update({
@@ -218,7 +221,6 @@ class MEGAN(ks.models.Model):
             "return_importances": self.return_importances,
             "input_node_embedding": self.input_node_embedding
         })
-
         return config
 
     @property

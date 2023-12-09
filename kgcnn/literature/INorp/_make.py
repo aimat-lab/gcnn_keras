@@ -97,7 +97,7 @@ def make_model(inputs: list = None,
     %s
 
     Args:
-        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        inputs (list): List of dictionaries unpacked in :obj:`keras.layers.Input`. Order must match model definition.
         input_tensor_type (str): Input type of graph tensor. Default is "padded".
         cast_disjoint_kwargs (dict): Dictionary of arguments for casting layer.
         input_embedding (dict): Deprecated in favour of input_node_embedding etc.

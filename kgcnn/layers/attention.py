@@ -198,9 +198,9 @@ class AttentionHeadGATV2(Layer):  # noqa
         Args:
             inputs (list): of [node, edges, edge_indices]
 
-                - nodes (Tensor): Node embeddings of shape (batch, [N], F)
-                - edges (Tensor): Edge or message embeddings of shape (batch, [M], F)
-                - edge_indices (Tensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (Tensor): Node embeddings of shape ([N], F)
+                - edges (Tensor): Edge or message embeddings of shape ([M], F)
+                - edge_indices (Tensor): Edge indices referring to nodes of shape (2, [M])
 
         Returns:
             Tensor: Embedding tensor of pooled edge attentions for each node.
