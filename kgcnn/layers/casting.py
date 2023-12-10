@@ -515,6 +515,9 @@ class CastBatchedGraphStateToDisjoint(_CastBatchedDisjointBase):
                 return tuple([input_shape[0] + 1] + list(input_shape[1:]))
         return input_shape
 
+    def compute_output_spec(self, input_spec):
+        return ks.KerasTensor(self.compute_output_shape(input_spec.shape), input_spec.dtype)
+
     def call(self, inputs: list, **kwargs):
         r"""Changes graph tensor from disjoint representation.
 

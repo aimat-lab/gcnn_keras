@@ -35,7 +35,7 @@ def model_disjoint(
         uenv = Embedding(**input_graph_embedding)(uenv)
 
     # Model
-    ev = GatherState(**gather_args)([uenv, n])
+    ev = GatherState(**gather_args)([uenv, batch_id_node])
     # n-Layer Step
     for i in range(0, depth):
         # upd = GatherNodes()([n,edi])

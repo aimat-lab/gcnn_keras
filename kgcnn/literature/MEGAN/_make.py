@@ -24,6 +24,7 @@ if backend_to_use() not in __kgcnn_model_backend_supported__:
 
 
 model_default = {
+    "name": "MEGAN",
     "inputs": [
         {'shape': (None, 128), 'name': "node_attributes", 'dtype': 'float32'},
         {'shape': (None, 64), 'name': "edge_attributes", 'dtype': 'float32'},
@@ -32,6 +33,7 @@ model_default = {
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
+    "input_tensor_type": "padded",
     'input_embedding': None,
     "cast_disjoint_kwargs": {},
     "units": [128],
@@ -72,6 +74,7 @@ def make_model(inputs: list = None,
                use_bias: bool = None,
                dropout_rate: float = None,
                use_edge_features: bool = None,
+               input_embedding: dict = None,  # deprecated
                input_node_embedding: dict = None,
                # node/edge importance related arguments
                importance_units: list = None,

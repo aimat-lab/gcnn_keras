@@ -33,6 +33,7 @@ model_default = {
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
+    'input_tensor_type': "padded",
     'input_embedding': None,
     "cast_disjoint_kwargs": {},
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
@@ -139,7 +140,7 @@ def make_model(inputs: list = None,
 
     # Wrapping disjoint model.
     out = model_disjoint(
-        [n, ed, disjoint_indices, gs, batch_id_node, count_nodes],
+        [n, ed, disjoint_indices, gs, batch_id_node, batch_id_edge, count_nodes, count_edges],
         use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
         use_edge_embedding=("int" in inputs[1]['dtype']) if input_edge_embedding is not None else False,
         use_graph_embedding=("int" in inputs[3]['dtype']) if input_graph_embedding is not None else False,

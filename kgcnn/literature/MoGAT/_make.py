@@ -15,7 +15,6 @@ __kgcnn_model_backend_supported__ = ["tensorflow", "torch", "jax"]
 if backend_to_use() not in __kgcnn_model_backend_supported__:
     raise NotImplementedError("Backend '%s' for model 'MoGAT' is not supported." % backend_to_use())
 
-
 # Implementation of MoGAT in `keras` from paper:
 # Multi‑order graph attention network for water solubility prediction and interpretation
 # Sangho Lee, Hyunwoo Park, Chihyeon Choi, Wonjoon Kim, Ki Kang Kim, Young‑Kyu Han,
@@ -132,6 +131,15 @@ def make_model(inputs: list = None,
         [n, ed, disjoint_indices, batch_id_node, count_nodes],
         use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
         use_edge_embedding=("int" in inputs[1]['dtype']) if input_edge_embedding is not None else False,
+        input_node_embedding=input_node_embedding,
+        input_edge_embedding=input_edge_embedding,
+        attention_args=attention_args,
+        dropout=dropout,
+        depthato=depthato,
+        depthmol=depthmol,
+        output_embedding=output_embedding,
+        output_mlp=output_mlp,
+        pooling_gat_nodes_args=pooling_gat_nodes_args
     )
 
     if output_scaling is not None:

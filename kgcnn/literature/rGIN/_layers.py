@@ -71,8 +71,8 @@ class rGIN(Layer):
         node, edge_index = inputs
         node_shape = ops.shape(node)
         random_values = ops.cast(
-            ks.random.uniform([node_shape[0], 1], maxval=self.random_range, dtype="int32"),
-        self.dtype) / self.random_range,
+            ks.random.uniform([node_shape[0], 1], maxval=self.random_range, dtype="float32"),
+        self.dtype) / self.random_range
 
         node = self.lay_concat([node, random_values])
 

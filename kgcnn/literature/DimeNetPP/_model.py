@@ -1,9 +1,10 @@
 from keras.layers import Add, Subtract, Concatenate, Dense
-from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, BesselBasisLayer, EdgeAngle, ShiftPeriodicLattice
+from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, BesselBasisLayer, EdgeAngle, ShiftPeriodicLattice, \
+    SphericalBasisLayer
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.mlp import MLP
-from ._layers import DimNetInteractionPPBlock, EmbeddingDimeBlock, SphericalBasisLayer, DimNetOutputBlock
+from ._layers import DimNetInteractionPPBlock, EmbeddingDimeBlock, DimNetOutputBlock
 
 
 def model_disjoint(

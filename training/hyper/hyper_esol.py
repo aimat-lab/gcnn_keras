@@ -1236,4 +1236,354 @@ hyper = {
             "kgcnn_version": "4.0.0"
         }
     },
+    "MoGAT": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.MoGAT",
+            "config": {
+                "name": "MoGAT",
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"},
+                ],
+                "input_embedding": None,
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
+                "attention_args": {"units": 100},
+                "depthato": 2, "depthmol": 2,
+                "pooling_gat_nodes_args":  {'pooling_method': 'mean'},
+                "dropout": 0.2,
+                "verbose": 10,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True], "units": [1],
+                               "activation": ["linear"]}
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 200, "epochs": 200, "validation_freq": 1, "verbose": 2,
+                "callbacks": []
+            },
+            "compile": {
+                "optimizer": {"class_name": "AdamW",
+                              "config": {"learning_rate": 0.001, "weight_decay": 1e-05}},
+                "loss": "mean_squared_error"
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}}
+        },
+        "data": {
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "module_name": "kgcnn.data.datasets.ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "count_nodes_and_edges"}}
+                ]
+            },
+            "data_unit": "mol/L"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "4.0.0"
+        }
+    },
+    "INorp": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.INorp",
+            "config": {
+                "name": "INorp",
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": [], "name": "graph_size", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"},
+                ],
+                'input_tensor_type': "padded",
+                "input_embedding": None,
+                "input_node_embedding": {"input_dim": 95, "output_dim": 32},
+                "input_edge_embedding": {"input_dim": 15, "output_dim": 32},
+                "input_graph_embedding": {"input_dim": 100, "output_dim": 32},
+                "set2set_args": {"channels": 32, "T": 3, "pooling_method": "mean", "init_qstar": "mean"},
+                "node_mlp_args": {"units": [32, 32], "use_bias": True, "activation": ["relu", "linear"]},
+                "edge_mlp_args": {"units": [32, 32], "activation": ["relu", "linear"]},
+                "pooling_args": {"pooling_method": "sum"},
+                "depth": 3, "use_set2set": False, "verbose": 10,
+                "gather_args": {},
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True, False], "units": [32, 32, 1],
+                               "activation": ["relu", "relu", "linear"]},
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 32, "epochs": 500, "validation_freq": 2, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 300, "epo": 500,
+                        "verbose": 0
+                    }
+                     }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 5e-03}},
+                "loss": "mean_absolute_error"
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}}
+        },
+        "data": {
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "module_name": "kgcnn.data.datasets.ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "count_nodes_and_edges"}}
+                ]
+            },
+            "data_unit": "mol/L"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "4.0.0"
+        }
+    },
+    "MEGAN": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.MEGAN",
+            "config": {
+                'name': "MEGAN",
+                'inputs': [
+                    {'shape': (None, 41), 'name': "node_attributes", 'dtype': 'float32'},
+                    {'shape': (None, ), 'name': "edge_number", 'dtype': 'float32'},
+                    {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64'},
+                    {"shape": [2], "name": "graph_attributes", "dtype": "float32"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"},
+                ],
+                "input_tensor_type": "padded",
+                'units': [60, 50, 40, 30],
+                'importance_units': [],
+                'final_units': [50, 30, 10, 1],
+                'dropout_rate': 0.3,
+                'final_dropout_rate': 0.00,
+                'importance_channels': 3,
+                'return_importances': False,
+                'use_edge_features': False,
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 64,
+                "epochs": 400,
+                "validation_freq": 10,
+                "verbose": 2,
+                "callbacks": [
+                    {
+                        "class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 200, "epo": 400,
+                        "verbose": 0
+                    }
+                    }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
+                "loss": "mean_squared_error"
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}}
+        },
+        "data": {
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "module_name": "kgcnn.data.datasets.ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "set_range", "max_distance": 3, "max_neighbours": 100}},
+                    {"map_list": {"method": "count_nodes_and_edges"}}
+                ]
+            },
+            "data_unit": "mol/L"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "4.0.0"
+        }
+    },
+    "rGIN": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.rGIN",
+            "config": {
+                "name": "rGIN",
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
+                ],
+                "input_tensor_type": "padded",
+                "input_embedding": None,
+                "input_node_embedding": {"input_dim": 96, "output_dim": 95},
+                "depth": 5,
+                "dropout": 0.05,
+                "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
+                            "use_normalization": True, "normalization_technique": "graph"},
+                "rgin_args": {"random_range": 100},
+                "last_mlp": {"use_bias": True, "units": [64, 32, 1], "activation": ["relu", "relu", "linear"]},
+                "output_embedding": "graph",
+                "output_mlp": {"activation": "linear", "units": 1}
+            }
+        },
+        "training": {
+            "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []
+                    },
+            "compile": {
+                "optimizer": {"class_name": "Adam",
+                              "config": {"learning_rate": {
+                                  "module": "keras.optimizers.schedules",
+                                  "class_name": "ExponentialDecay",
+                                  "config": {"initial_learning_rate": 0.001,
+                                             "decay_steps": 1600,
+                                             "decay_rate": 0.5, "staircase": False}}}
+                              },
+                "loss": "mean_absolute_error"
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}}
+        },
+        "data": {
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "module_name": "kgcnn.data.datasets.ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "count_nodes_and_edges"}}
+                ]
+            },
+            "data_unit": "mol/L"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "4.0.0"
+        }
+    },
+    "MXMNet": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.MXMNet",
+            "config": {
+                "name": "MXMNet",
+                "inputs": [
+                    {"shape": (None,), "name": "node_number", "dtype": "int64"},
+                    {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32"},
+                    {"shape": (None, 1), "name": "edge_weights", "dtype": "float32"},
+                    {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (None, 2), "name": "range_indices", "dtype": "int64"},
+                    {"shape": [None, 2], "name": "angle_indices_1", "dtype": "int64"},
+                    {"shape": [None, 2], "name": "angle_indices_2", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"},
+                    {"shape": (), "name": "total_ranges", "dtype": "int64"},
+                    {"shape": (), "name": "total_angles_1", "dtype": "int64"},
+                    {"shape": (), "name": "total_angles_2", "dtype": "int64"}
+                ],
+                "input_tensor_type": "padded",
+                "input_embedding": None,
+                "input_node_embedding": {"input_dim": 95, "output_dim": 32},
+                "input_edge_embedding": {"input_dim": 5, "output_dim": 32},
+                "bessel_basis_local": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
+                "bessel_basis_global": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
+                "spherical_basis_local": {"num_spherical": 7, "num_radial": 6, "cutoff": 5.0, "envelope_exponent": 5},
+                "mlp_rbf_kwargs": {"units": 32, "activation": "swish"},
+                "mlp_sbf_kwargs": {"units": 32, "activation": "swish"},
+                "global_mp_kwargs": {"units": 32, "pooling_method": "mean"},
+                "local_mp_kwargs": {"units": 32, "output_units": 1,
+                                    "output_kernel_initializer": "glorot_uniform"},
+                "use_edge_attributes": False,
+                "depth": 4,
+                "verbose": 10,
+                "node_pooling_args": {"pooling_method": "sum"},
+                "output_embedding": "graph", "output_to_tensor": True,
+                "use_output_mlp": False,
+                "output_mlp": {"use_bias": [True], "units": [1],
+                               "activation": ["linear"]}
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 128, "epochs": 900, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearWarmupExponentialLRScheduler", "config": {
+                        "lr_start": 1e-03, "gamma": 0.9961697, "epo_warmup": 1, "verbose": 1, "steps_per_epoch": 45}}
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03, "global_clipnorm": 1000}},
+                "loss": "mean_absolute_error",
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}}
+        },
+        "data": {
+            "dataset": {
+                "class_name": "QM7Dataset",
+                "module_name": "kgcnn.data.datasets.QM7Dataset",
+                "config": {},
+                "methods": [
+                    {"map_list": {"method": "set_edge_weights_uniform"}},
+                    {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000}},
+                    {"map_list": {"method": "set_angle", "range_indices": "edge_indices", "edge_pairing": "jk",
+                                  "angle_indices": "angle_indices_1",
+                                  "angle_indices_nodes": "angle_indices_nodes_1",
+                                  "angle_attributes": "angle_attributes_1"}},
+                    {"map_list": {"method": "set_angle", "range_indices": "edge_indices", "edge_pairing": "ik",
+                                  "allow_self_edges": True,
+                                  "angle_indices": "angle_indices_2",
+                                  "angle_indices_nodes": "angle_indices_nodes_2",
+                                  "angle_attributes": "angle_attributes_2"}},
+                    {"map_list": {"method": "count_nodes_and_edges"}},
+                    {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
+                                   "count_edges": "range_indices"}},
+                    {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_angles_1",
+                                  "count_edges": "angle_indices_1"}},
+                    {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_angles_2",
+                                  "count_edges": "angle_indices_2"}}
+                ]
+            },
+            "data_unit": "kcal/mol"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "4.0.0"
+        }
+    },
 }

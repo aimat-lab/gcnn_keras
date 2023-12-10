@@ -1,9 +1,10 @@
-from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, BesselBasisLayer, EdgeAngle
+from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, BesselBasisLayer, EdgeAngle, SphericalBasisLayer
 from keras.layers import Concatenate, Subtract, Add
 from kgcnn.layers.mlp import MLP, GraphMLP
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.literature.DimeNetPP._layers import EmbeddingDimeBlock, SphericalBasisLayer
+from kgcnn.literature.DimeNetPP._layers import EmbeddingDimeBlock
 from ._layers import MXMGlobalMP, MXMLocalMP
+from kgcnn.ops.activ import swish
 
 
 def model_disjoint(
@@ -36,7 +37,7 @@ def model_disjoint(
     if use_node_embedding:
         n = EmbeddingDimeBlock(**input_node_embedding)(n)
     if use_edge_embedding:
-        n = EmbeddingDimeBlock(**input_edge_embedding)(ed)
+        ed = EmbeddingDimeBlock(**input_edge_embedding)(ed)
 
     # Calculate distances and spherical and bessel basis for local edges including angles.
     # For the first version, we restrict ourselves to 2-hop angles.

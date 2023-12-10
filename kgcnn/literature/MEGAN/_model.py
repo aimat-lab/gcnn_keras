@@ -99,7 +99,7 @@ class MEGAN(ks.models.Model):
                 of the model. If this is True, the output of the model will be a 3-tuple:
                 (output, node importances, edge importances), otherwise it is just the output itself
         """
-        super(MEGAN, self).__init__(self, **kwargs)
+        super().__init__()
         self.units = units
         self.activation = activation
         self.use_bias = use_bias
@@ -234,7 +234,7 @@ class MEGAN(ks.models.Model):
 
         node_input, edge_input, edge_index_input, out_true, batch_id_node, count_nodes = inputs
 
-        if self.input_embedding:
+        if self.input_node_embedding:
             node_input = self.embedding_nodes(node_input, training=training)
         # First of all we apply all the graph convolutional / attention layers. Each of those layers outputs
         # the attention logits alpha additional to the node embeddings. We collect all the attention logits
@@ -278,8 +278,8 @@ class MEGAN(ks.models.Model):
         # the weights! We concatenate all the individual results in the end.
         outs = []
         for k in range(self.importance_channels):
-            node_importance_slice = ops.expand_dims(node_importances[:, :, k], axis=-1)
-            out = self.lay_pool_out(x * node_importance_slice)
+            node_importance_slice = ops.expand_dims(node_importances[:, k], axis=-1)
+            out = self.lay_pool_out([count_nodes, x * node_importance_slice, batch_id_node])
 
             outs.append(out)
 
@@ -308,8 +308,8 @@ class MEGAN(ks.models.Model):
             # concatenate into an output vector with K dimensions.
             outs = []
             for k in range(self.importance_channels):
-                node_importances_slice = ops.expand_dims(ni_pred[:, :, k], axis=-1)
-                out = self.lay_pool_out(node_importances_slice)
+                node_importances_slice = ops.expand_dims(ni_pred[:, k], axis=-1)
+                out = self.lay_pool_out([count_nodes, node_importances_slice, batch_id_node])
 
                 outs.append(out)
 

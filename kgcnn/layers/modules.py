@@ -62,6 +62,24 @@ class ExpandDims(ks.layers.Layer):
         return config
 
 
+class SqueezeDims(ks.layers.Layer):
+
+    def __init__(self, axis, **kwargs):
+        super(SqueezeDims, self).__init__(**kwargs)
+        self.axis = axis
+
+    def build(self, input_shape):
+        self.built = True
+
+    def call(self, inputs):
+        return ops.squeeze(inputs, axis=self.axis)
+
+    def get_config(self):
+        config = super(SqueezeDims, self).get_config()
+        config.update({"axis": self.axis})
+        return config
+
+
 def Input(
         shape=None,
         batch_size=None,

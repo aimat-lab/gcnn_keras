@@ -5,8 +5,6 @@ from kgcnn.layers.aggr import AggregateLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.mlp import GraphMLP
 from kgcnn.layers.update import ResidualLayer
-from kgcnn.layers.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_normalization_prefactor, \
-    tf_spherical_bessel_jn, tf_spherical_harmonics_yl
 from kgcnn.initializers.initializers import GlorotOrthogonal, HeOrthogonal
 from kgcnn.ops.activ import swish
 
@@ -310,87 +308,4 @@ class EmbeddingDimeBlock(Layer):
                        "embeddings_regularizer": ks.regularizers.serialize(self.embeddings_regularizer),
                        "embeddings_constraint": ks.constraints.serialize(self.embeddings_constraint)
                        })
-        return config
-
-
-class SphericalBasisLayer(Layer):
-    r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to
-    `Klicpera et al. 2020 <https://arxiv.org/abs/2011.14115>`__ .
-
-    Args:
-        num_spherical (int): Number of spherical basis functions
-        num_radial (int): Number of radial basis functions
-        cutoff (float): Cutoff distance c
-        envelope_exponent (int): Degree of the envelope to smoothen at cutoff. Default is 5.
-
-    """
-
-    def __init__(self, num_spherical,
-                 num_radial,
-                 cutoff,
-                 envelope_exponent=5,
-                 **kwargs):
-        super(SphericalBasisLayer, self).__init__(**kwargs)
-
-        assert num_radial <= 64
-        self.num_radial = int(num_radial)
-        self.num_spherical = num_spherical
-        self.cutoff = cutoff
-        self.inv_cutoff = ops.convert_to_tensor(1.0 / cutoff, dtype=self.dtype)
-        self.envelope_exponent = envelope_exponent
-
-        # retrieve formulas
-        self.bessel_n_zeros = spherical_bessel_jn_zeros(num_spherical, num_radial)
-        self.bessel_norm = spherical_bessel_jn_normalization_prefactor(num_spherical, num_radial)
-
-        self.layer_gather_out = GatherNodesOutgoing()
-
-    def envelope(self, inputs):
-        p = self.envelope_exponent + 1
-        a = -(p + 1) * (p + 2) / 2
-        b = p * (p + 2)
-        c = -p * (p + 1) / 2
-        env_val = 1 / inputs + a * inputs ** (p - 1) + b * inputs ** p + c * inputs ** (p + 1)
-        return ops.where(inputs < 1, env_val, ops.zeros_like(inputs))
-
-    def call(self, inputs, **kwargs):
-        """Forward pass.
-
-        Args:
-            inputs: [distance, angles, angle_index]
-
-                - distance (Tensor): Edge distance of shape ([M], 1)
-                - angles (Tensor): Angle list of shape ([K], 1)
-                - angle_index (Tensor): Angle indices referring to edges of shape (2, [K])
-
-        Returns:
-            Tensor: Expanded angle/distance basis. Shape is ([K], #Radial * #Spherical)
-        """
-        edge, angles, angle_index = inputs
-
-        d = edge
-        d_scaled = d[:, 0] * self.inv_cutoff
-        rbf = []
-        for n in range(self.num_spherical):
-            for k in range(self.num_radial):
-                rbf += [self.bessel_norm[n, k] * tf_spherical_bessel_jn(d_scaled * self.bessel_n_zeros[n][k], n)]
-        rbf = ops.stack(rbf, axis=1)
-
-        d_cutoff = self.envelope(d_scaled)
-        rbf_env = d_cutoff[:, None] * rbf
-        rbf_env = self.layer_gather_out([rbf_env, angle_index], **kwargs)
-        # rbf_env = tf.gather(rbf_env, id_expand_kj[:, 1])
-
-        cbf = [tf_spherical_harmonics_yl(angles[:, 0], n) for n in range(self.num_spherical)]
-        cbf = ops.stack(cbf, axis=1)
-        cbf = ops.repeat(cbf, self.num_radial, axis=1)
-        out = rbf_env * cbf
-
-        return out
-
-    def get_config(self):
-        """Update config."""
-        config = super(SphericalBasisLayer, self).get_config()
-        config.update({"num_radial": self.num_radial, "cutoff": self.cutoff,
-                       "envelope_exponent": self.envelope_exponent, "num_spherical": self.num_spherical})
         return config

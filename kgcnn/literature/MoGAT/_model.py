@@ -1,5 +1,6 @@
 from kgcnn.layers.update import GRUUpdate
-from kgcnn.layers.modules import Embedding
+from keras.layers import Flatten, Add
+from kgcnn.layers.modules import Embedding, ExpandDims, SqueezeDims
 from kgcnn.layers.pooling import PoolingNodesAttentive
 from keras.layers import Dense, Dropout, Concatenate, Attention
 from kgcnn.layers.mlp import MLP, GraphMLP
@@ -17,7 +18,8 @@ def model_disjoint(
         depthato=None,
         depthmol=None,
         output_embedding=None,
-        output_mlp=None
+        output_mlp=None,
+        pooling_gat_nodes_args=None
 ):
     # Model implementation with disjoint representation.
     n, ed, edi, batch_id_node, count_nodes = inputs
@@ -44,18 +46,23 @@ def model_disjoint(
 
     if output_embedding == 'graph':
         # we apply a super node to each atomic node representation and concate them
-        out = Concatenate()([
+        out = [
             # Tensor output.
             PoolingNodesAttentive(units=attention_args['units'], depth=depthmol)([count_nodes, ni, batch_id_node]) for
-            ni in list_emb])
+            ni in list_emb
+        ]
+        out = [ExpandDims(axis=1)(x) for x in out]
+        out = Concatenate(axis=1)(out)
         # we compute the weigthed scaled self-attention of the super nodes
         at = Attention(dropout=dropout, use_scale=True, score_mode="dot")([out, out])
         # we apply the dot product
         out = at * out
+        out = Flatten()(out)
         # in the paper this is only one dense layer to the target ... very simple
         out = MLP(**output_mlp)(out)
 
     elif output_embedding == 'node':
+        n = Add()(list_emb)
         out = GraphMLP(**output_mlp)([n, batch_id_node, count_nodes])
     else:
         raise ValueError("Unsupported graph embedding for mode `MoGAT` .")

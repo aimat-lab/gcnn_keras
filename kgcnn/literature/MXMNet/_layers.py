@@ -1,6 +1,6 @@
 import keras as ks
 from keras.layers import Layer, Add, Multiply, Concatenate, Dense
-from kgcnn.literature.DimeNetPP._layers import ResidualLayer
+from kgcnn.layers.update import ResidualLayer
 from kgcnn.layers.mlp import GraphMLP
 from kgcnn.layers.gather import GatherNodes, GatherNodesOutgoing
 from kgcnn.layers.aggr import AggregateLocalEdges as PoolingLocalMessages
@@ -8,10 +8,11 @@ from kgcnn.layers.aggr import AggregateLocalEdges as PoolingLocalMessages
 
 class MXMGlobalMP(Layer):
 
-    def __init__(self, units: int = 64, **kwargs):
+    def __init__(self, units: int = 64, pooling_method="mean", **kwargs):
         """Initialize layer."""
         super(MXMGlobalMP, self).__init__(**kwargs)
         self.dim = units
+        self.pooling_method = pooling_method
         self.h_mlp = GraphMLP(self.dim, activation="swish")
         self.res1 = ResidualLayer(self.dim)
         self.res2 = ResidualLayer(self.dim)
@@ -23,8 +24,8 @@ class MXMGlobalMP(Layer):
         self.linear = Dense(self.dim, use_bias=False, activation="linear")
 
         self.gather = GatherNodes(split_indices=[0, 1], concat_axis=None)
-        self.pool = PoolingLocalMessages()
-        self.cat = Concatenate()
+        self.pool = PoolingLocalMessages(pooling_method=pooling_method)
+        self.cat = Concatenate(axis=-1)
         self.multiply_edge = Multiply()
         self.add = Add()
 
@@ -36,7 +37,7 @@ class MXMGlobalMP(Layer):
         x_i, x_j = self.gather([x, edge_index])
 
         # Prepare message.
-        x_edge = self.cat([x_i, x_j, edge_attr], axis=-1)
+        x_edge = self.cat([x_i, x_j, edge_attr], **kwargs)
         x_edge = self.x_edge_mlp(x_edge, **kwargs)
         edge_attr_lin = self.linear(edge_attr, **kwargs)
         x_edge = self.multiply_edge([edge_attr_lin, x_edge])
@@ -87,7 +88,7 @@ class MXMGlobalMP(Layer):
 
     def get_config(self):
         config = super(MXMGlobalMP, self).get_config()
-        config.update({"units": self.dim})
+        config.update({"units": self.dim, "pooling_method": self.pooling_method})
         return config
 
 
@@ -135,6 +136,9 @@ class MXMLocalMP(Layer):
         self.pool_h = PoolingLocalMessages(pooling_method=pooling_method)
         self.add_mji_1 = Add()
         self.add_mji_2 = Add()
+        
+    def build(self, input_shape):
+        super(MXMLocalMP, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
