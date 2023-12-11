@@ -299,6 +299,7 @@ You can find a [table](training/results/README.md) of common benchmark datasets 
 
 Some known issues to be aware of, if using and making new models or layers with `kgcnn`.
 * Jagged or nested Tensors loading into models for PyTorch backend is not working.  
+* Dataloader for Jax is not yet implemented.
 
 <a name="citing"></a>
 # Citing

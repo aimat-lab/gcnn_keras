@@ -29,7 +29,9 @@ def get_preprocessor(name: Union[str, dict], **kwargs):
         "expand_distance_gaussian_basis": "ExpandDistanceGaussianBasis",
         "atomic_charge_representation": "AtomicChargesRepresentation",
         "principal_moments_of_inertia": "PrincipalMomentsOfInertia",
-        "count_nodes_and_edges": "CountNodesAndEdges"
+        "count_nodes_and_edges": "CountNodesAndEdges",
+        "make_dense_adjacency_matrix": "MakeDenseAdjacencyMatrix",
+        "make_mask": "MakeMask"
     }
     if isinstance(name, dict):
         return deserialize(name)

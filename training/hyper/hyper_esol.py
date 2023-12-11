@@ -1586,4 +1586,85 @@ hyper = {
             "kgcnn_version": "4.0.0"
         }
     },
+    "MAT": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.MAT",
+            "config": {
+                "name": "MAT",
+                "inputs": [
+                    {"shape": (None,), "name": "node_number", "dtype": "int64"},
+                    {"shape": (None, 3), "name": "node_coordinates", "dtype": "float64"},
+                    {"shape": (None, None, 11), "name": "adjacency_matrix", "dtype": "float64"},
+                    {"shape": (None,), "name": "node_mask", "dtype": "bool"},
+                    {"shape": (None, None), "name": "adjacency_mask", "dtype": "bool"},
+                ],
+                "input_embedding": None,
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": None,
+                "distance_matrix_kwargs": {"trafo": "exp"},
+                "attention_kwargs": {"units": 8, "lambda_attention": 0.3, "lambda_distance": 0.3,
+                                     "lambda_adjacency": None, "add_identity": False,
+                                     "dropout": 0.1},
+                "feed_forward_kwargs": {"units": [32, 32, 32], "activation": ["relu", "relu", "linear"]},
+                "embedding_units": 32,
+                "depth": 5,
+                "heads": 8,
+                "merge_heads": "concat",
+                "verbose": 10,
+                "pooling_kwargs": {"pooling_method": "sum"},
+                "output_embedding": "graph",
+                "output_to_tensor": True,
+                "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
+                               "activation": ["relu", "relu", "linear"]}
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 32,
+                "epochs": 400,
+                "validation_freq": 10,
+                "verbose": 2,
+                "callbacks": [
+                    {
+                        "class_name": "kgcnn>LinearLearningRateScheduler",
+                        "config": {
+                            "learning_rate_start": 5e-04, "learning_rate_stop": 1e-05, "epo_min": 0, "epo": 400,
+                            "verbose": 0
+                        }
+                    }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 5e-04}},
+                "loss": "mean_absolute_error"
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "scaler": {"class_name": "StandardLabelScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}}
+        },
+        "data": {
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "module_name": "kgcnn.data.datasets.ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "set_edge_weights_uniform"}},
+                    {"map_list": {"method": "make_dense_adjacency_matrix"}},
+                    {"map_list": {"method": "make_mask", "target_property": "node_number",
+                                  "mask_name": "node_mask", "rank": 1}},
+                    {"map_list": {"method": "make_mask", "target_property": "adjacency_matrix",
+                                  "mask_name": "adjacency_mask", "rank": 2}}
+                ]
+            },
+            "data_unit": "mol/L"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "4.0.0"
+        }
+    },
 }

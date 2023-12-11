@@ -61,6 +61,7 @@ class MATDistanceMatrix(ks.layers.Layer):
         diff = ops.expand_dims(inputs, axis=1) - ops.expand_dims(inputs, axis=2)
         dist = ops.sum(ops.square(diff), axis=-1, keepdims=True)
         # shape of dist (batch, N, N, 1)
+        mask = ops.cast(mask, dtype="float32")
         diff_mask = ops.expand_dims(mask, axis=1) * ops.expand_dims(mask, axis=2)
         dist_mask = ops.prod(diff_mask, axis=-1, keepdims=True)
 
@@ -101,7 +102,8 @@ class MATReduceMask(ks.layers.Layer):
         Returns:
             Tensor: Product of inputs along axis.
         """
-        return ops.prod(inputs, keepdims=self.keepdims, axis=self.axis)
+        out = ops.prod(inputs, keepdims=self.keepdims, axis=self.axis)
+        return out
 
     def get_config(self):
         config = super(MATReduceMask, self).get_config()
@@ -127,7 +129,8 @@ class MATExpandMask(ks.layers.Layer):
         Returns:
             Tensor: Input tensor with expanded axis.
         """
-        return ops.expand_dims(inputs, axis=self.axis)
+        out = ops.expand_dims(inputs, axis=self.axis)
+        return out
 
     def get_config(self):
         config = super(MATExpandMask, self).get_config()
@@ -166,7 +169,7 @@ class MATAttentionHead(ks.layers.Layer):
         r"""Forward pass.
 
         Args:
-            inputs (list): List of [h_n, A_d, A_g] represented by padded :obj:`tf.Tensor` .
+            inputs (list): List of [h_n, A_d, A_g] represented by padded :obj:`Tensor` .
                 These are node features and adjacency matrix from distances and bonds or bond order.
             mask (list): Mask tensors matching inputs, i.e. a mask tensor for each padded input.
 
@@ -175,6 +178,7 @@ class MATAttentionHead(ks.layers.Layer):
         """
         h, a_d, a_g = inputs
         h_mask, a_d_mask, a_g_mask = mask
+        h_mask = ops.cast(h_mask, dtype=h.dtype)
         q = ops.expand_dims(self.dense_q(h), axis=2)
         k = ops.expand_dims(self.dense_k(h), axis=1)
         v = self.dense_v(h) * h_mask

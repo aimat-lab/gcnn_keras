@@ -556,13 +556,13 @@ class ShiftToUnitCell(GraphPreProcessorBase):
 
 
 class CountNodesAndEdges(GraphPreProcessorBase):
-    r""".
+    r"""Count the number of nodes and edges.
 
     Args:
-        node_attributes (str):
-        edge_indices (str):
-        count_node (str):
-        count_edge (str):
+        node_attributes (str): Name for nodes attributes to count nodes.
+        edge_indices (str): Name for edge_indices to count edges.
+        count_node (str): Name to assign node count to.
+        count_edge (str): Name to assign edge count to.
     """
 
     def __init__(self, *, total_nodes: str = "total_nodes", total_edges: str = "total_edges",
@@ -578,3 +578,59 @@ class CountNodesAndEdges(GraphPreProcessorBase):
         total_nodes = len(count_nodes) if count_nodes is not None else None
         total_edges = len(count_edges) if count_edges is not None else None
         return total_nodes, total_edges
+
+
+class MakeDenseAdjacencyMatrix(GraphPreProcessorBase):
+    r"""Make adjacency matrix based on edge indices.
+
+    Args:
+        edge_indices (str): Name of adjacency matrix.
+        edge_attributes (str): Name of edge attributes.
+        adjacency_matrix (str): Name of adjacency matrix to assign output.
+    """
+
+    def __init__(self, *, edge_indices: str = "edge_indices", edge_attributes: str = "edge_attributes",
+                 adjacency_matrix: str = "adjacency_matrix",
+                 name="make_dense_adjacency_matrix", **kwargs):
+        super().__init__(name=name, **kwargs)
+        self._to_obtain.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
+        self._to_assign = adjacency_matrix
+        self._config_kwargs.update({"adjacency_matrix": adjacency_matrix, "edge_indices": edge_indices,
+                                    "edge_attributes": edge_attributes})
+
+    def call(self, *, edge_indices: np.ndarray, edge_attributes: np.ndarray):
+        if edge_indices is None or edge_attributes is None:
+            return None
+        if len(edge_indices) == 0:
+            return None
+        max_index = np.amax(edge_indices)+1
+        adj = np.zeros([max_index, max_index] + list(edge_attributes.shape[1:]))
+        adj[edge_indices[:, 0], edge_indices[:, 1]] = edge_attributes
+        return adj
+
+
+class MakeMask(GraphPreProcessorBase):
+    r"""Make simple equally sized (dummy) mask for a graph property.
+
+    Args:
+        target_property (str): Name of the property to make mask for.
+        mask_name (str): Name of mask to assign output.
+        rank (int): Rank of mask.
+    """
+
+    def __init__(self, *, target_property: str = "node_attributes", mask_name: str = None,
+                 rank=1,
+                 name="make_mask", **kwargs):
+        super().__init__(name=name, **kwargs)
+        if mask_name is None:
+            mask_name = target_property+"_mask"
+        self._to_obtain.update({"target_property": target_property})
+        self._to_assign = mask_name
+        self._call_kwargs = {"rank": rank}
+        self._config_kwargs.update({"mask_name": mask_name, "target_property": target_property, "rank": rank})
+
+    def call(self, *, target_property: np.ndarray, rank: int):
+        if target_property is None:
+            return None
+        mask = np.ones(target_property.shape[:rank], dtype="bool")
+        return mask

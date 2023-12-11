@@ -26,11 +26,15 @@ model_default = {
     "name": "MAT",
     "inputs": [
         {"shape": (None,), "name": "node_number", "dtype": "int64"},
-
+        {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32"},
+        {"shape": (None, None, 1), "name": "adjacency_matrix", "dtype": "float32"},
+        {"shape": (None,), "name": "node_mask", "dtype": "bool"},
+        {"shape": (None, None), "name": "adjacency_mask", "dtype": "bool"},
     ],
-    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                        "edge": {"input_dim": 95, "output_dim": 64}},
-    "use_edge_embedding": False,
+    "input_tensor_type": "padded",
+    "input_embedding": None,
+    "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+    "input_edge_embedding": {"input_dim": 95, "output_dim": 64},
     "max_atoms": None,
     "distance_matrix_kwargs": {"trafo": "exp"},
     "attention_kwargs": {"units": 8, "lambda_attention": 0.3, "lambda_distance": 0.3, "lambda_adjacency": None,
@@ -43,30 +47,34 @@ model_default = {
     "verbose": 10,
     "pooling_kwargs": {"pooling_method": "sum"},
     "output_embedding": "graph",
-    "output_to_tensor": True,
+    "output_to_tensor": None,
     "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
-                   "activation": ["relu", "relu", "linear"]}
+                   "activation": ["relu", "relu", "linear"]},
+    "output_tensor_type": "padded"
 }
 
 
 @update_model_kwargs(model_default, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
 def make_model(name: str = None,
                inputs: list = None,
+               input_embedding: dict = None,  # noqa
                input_node_embedding: dict = None,
                input_tensor_type: str = None,
                input_edge_embedding: dict = None,
                distance_matrix_kwargs: dict = None,
                attention_kwargs: dict = None,
+               max_atoms: int = None,
                feed_forward_kwargs:dict = None,
                embedding_units: int = None,
                depth: int = None,
                heads: int = None,
                merge_heads: str = None,
-               verbose: int = None,
+               verbose: int = None,  # noqa
                pooling_kwargs: dict = None,
                output_embedding: str = None,
-               output_to_tensor: bool = None,
-               output_mlp: dict = None
+               output_to_tensor: bool = None,  # noqa
+               output_mlp: dict = None,
+               output_tensor_type: str = None
                ):
     r"""Make `MAT <https://arxiv.org/pdf/2002.08264.pdf>`__ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.MAT.model_default` .
@@ -84,7 +92,7 @@ def make_model(name: str = None,
             - adjacency_matrix (Tensor): Edge attributes of shape `(batch, N, N, F)` or `(batch, N, N)`
               using an embedding layer.
             - node_mask (Tensor): Node mask of shape `(batch, N)`
-            - adjacency_mask (Tensor): Adjacency mask of shape `(batch, N)`
+            - adjacency_mask (Tensor): Adjacency mask of shape `(batch, N, N)`
 
     Outputs:
         Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
@@ -114,6 +122,7 @@ def make_model(name: str = None,
         :obj:`keras.models.Model`
     """
     assert input_tensor_type in ["padded", "mask", "masked"], "Only padded tensors are valid for this implementation."
+    assert output_tensor_type in ["padded", "mask", "masked"], "Only padded tensors are valid for this implementation."
     # Make input
     node_input = ks.layers.Input(**inputs[0])
     xyz_input = ks.layers.Input(**inputs[1])
@@ -135,6 +144,8 @@ def make_model(name: str = None,
     n_mask = node_mask
     adj_mask = adjacency_mask
     xyz = xyz_input
+    n_mask = MATExpandMask(axis=-1)(n_mask)
+    adj_mask = MATExpandMask(axis=-1)(adj_mask)
 
     # Cast to dense Tensor with padding for MAT.
     # Nodes must have feature dimension.
@@ -152,11 +163,9 @@ def make_model(name: str = None,
     if has_edge_dim:
         # Assume that feature-wise attention is not desired for adjacency, reduce to single value.
         adj = ks.layers.Dense(1, use_bias=False)(adj)
-        adj_mask = MATReduceMask(axis=-1, keepdims=True)(adj_mask)
     else:
         # Make sure that shape is (batch, max_atoms, max_atoms, 1).
         adj = MATExpandMask(axis=-1)(adj)
-        adj_mask = MATExpandMask(axis=-1)(adj_mask)
 
     # Repeat for depth.
     h_mask = n_mask
@@ -202,7 +211,7 @@ def make_model(name: str = None,
         raise ValueError("Unsupported graph embedding for mode `MAT` .")
 
     model = ks.models.Model(
-        inputs=[node_input, xyz_input, adjacency_matrix],
+        inputs=[node_input, xyz_input, adjacency_matrix, node_mask, adjacency_mask],
         outputs=out,
         name=name
     )
