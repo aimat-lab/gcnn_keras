@@ -159,7 +159,8 @@ class DimNetInteractionPPBlock(Layer):
         conf_dense = self.dense_ji.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
-            config.update({x: conf_dense[x]})
+            if x in conf_dense:
+                config.update({x: conf_dense[x]})
         return config
 
 
@@ -250,7 +251,8 @@ class DimNetOutputBlock(Layer):
         conf_mlp = self.dense_mlp.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
-            config.update({x: conf_mlp[x][0]})
+            if x in conf_mlp:
+                config.update({x: conf_mlp[x][0]})
         conf_dense_output = self.dense_final.get_config()
         config.update({"output_kernel_initializer": conf_dense_output["kernel_initializer"]})
         config.update({"pooling_method": self.pooling_method, "use_bias": self.use_bias})

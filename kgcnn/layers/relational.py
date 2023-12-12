@@ -257,8 +257,7 @@ class RelationalDense(Layer):
             "bias_constraint": ks.constraints.serialize(self.bias_constraint),
         })
         config_act = self._layer_activation.get_config()
-        config.update({
-            "activation": config_act["activation"],
-            "activity_regularizer": config_act["activity_regularizer"]
-        })
+        for x in ["activation", "activity_regularizer"]:
+            if x in config_act:
+                config.update({x: config_act[x]})
         return config

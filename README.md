@@ -114,7 +114,7 @@ e_idx = ks.layers.Input(shape=(None, 2), dtype="int64", name="edge_indices")
 total_n = ks.layers.Input(shape=(), dtype="int64", name="total_nodes")  # Or mask
 total_e = ks.layers.Input(shape=(), dtype="int64", name="total_edges")  # Or mask
 
-n, idx, batch_id, _, _, _, _, _ = CastBatchedIndicesToDisjoint()([ns, e_idx, total_n, total_e])
+n, idx, batch_id, _, _, _, _, _ = CastBatchedIndicesToDisjoint(uses_mask=False)([ns, e_idx, total_n, total_e])
 n_in_out = GatherNodes()([n, idx])
 node_messages = ks.layers.Dense(64, activation='relu')(n_in_out)
 node_updates = AggregateLocalEdges()([n, node_messages, idx])
@@ -177,6 +177,7 @@ original implementations (with proper licencing).
 * **[MAT](kgcnn/literature/MAT)**: [Molecule Attention Transformer](https://arxiv.org/abs/2002.08264) by Maziarka et al. (2020)
 * **[MEGAN](kgcnn/literature/MEGAN)**: [MEGAN: Multi-explanation Graph Attention Network](https://link.springer.com/chapter/10.1007/978-3-031-44067-0_18) by Teufel et al. (2023)
 * **[Megnet](kgcnn/literature/Megnet)**: [Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals](https://doi.org/10.1021/acs.chemmater.9b01294) by Chen et al. (2019)
+* **[MoGAT](kgcnn/literature/MoGAT)**: [Multi-order graph attention network for water solubility prediction and interpretation](https://www.nature.com/articles/s41598-022-25701-5) by Lee et al. (2023)
 * **[MXMNet](kgcnn/literature/MXMNet)**: [Molecular Mechanics-Driven Graph Neural Network with Multiplex Graph for Molecular Structures](https://arxiv.org/abs/2011.07457) by Zhang et al. (2020)
 * **[NMPN](kgcnn/literature/NMPN)**: [Neural Message Passing for Quantum Chemistry](http://arxiv.org/abs/1704.01212) by Gilmer et al. (2017)
 * **[Unet](kgcnn/literature/Unet)**: [Graph U-Nets](http://proceedings.mlr.press/v97/gao19a/gao19a.pdf) by H. Gao and S. Ji (2019)

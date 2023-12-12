@@ -4,6 +4,14 @@ kgcnn.models package
 Submodules
 ----------
 
+kgcnn.models.casting module
+---------------------------
+
+.. automodule:: kgcnn.models.casting
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.models.force module
 -------------------------
 

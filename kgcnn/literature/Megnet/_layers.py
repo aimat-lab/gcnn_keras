@@ -131,5 +131,6 @@ class MEGnetBlock(Layer):
         config_dense = self.lay_phi_n.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
-            config.update({x: config_dense[x]})
+            if x in config_dense:
+                config.update({x: config_dense[x]})
         return config

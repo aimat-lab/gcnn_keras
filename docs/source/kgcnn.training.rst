@@ -28,14 +28,6 @@ kgcnn.training.hyper module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.training.optimizer module
--------------------------------
-
-.. automodule:: kgcnn.training.optimizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kgcnn.training.schedule module
 ------------------------------
 

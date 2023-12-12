@@ -60,6 +60,14 @@ kgcnn.layers.geom module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.layers.message module
+---------------------------
+
+.. automodule:: kgcnn.layers.message
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.layers.mlp module
 -----------------------
 
@@ -84,6 +92,14 @@ kgcnn.layers.norm module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.layers.polynom module
+---------------------------
+
+.. automodule:: kgcnn.layers.polynom
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.layers.pooling module
 ---------------------------
 
@@ -92,10 +108,34 @@ kgcnn.layers.pooling module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.layers.relational module
+------------------------------
+
+.. automodule:: kgcnn.layers.relational
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.layers.scale module
 -------------------------
 
 .. automodule:: kgcnn.layers.scale
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.set2set module
+---------------------------
+
+.. automodule:: kgcnn.layers.set2set
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.update module
+--------------------------
+
+.. automodule:: kgcnn.layers.update
    :members:
    :undoc-members:
    :show-inheritance:
