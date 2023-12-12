@@ -242,6 +242,7 @@ class RelationalDense(Layer):
         return ops.sum(ops.expand_dims(x, axis=-1) * k, axis=-2, keepdims=False)
 
     def get_config(self):
+        """Update layer config."""
         config = super().get_config()
         config.update({
             "units": self.units,
