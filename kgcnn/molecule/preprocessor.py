@@ -11,15 +11,15 @@ _mol_graph_interface = MolecularGraphRDKit
 
 
 class SetMolBondIndices(GraphPreProcessorBase):
-    """
+    r"""Preprocessor to compute chemical bonds from coordinates via a :obj:`MolGraphInterface` .
 
     Args:
-        node_coordinates:
-        node_symbol:
-        node_number:
-        edge_indices:
-        edge_number:
-        name:
+        node_coordinates (str): Name of atomic coordinates array of shape `(N, 3)` .
+        node_symbol (str): Name of atomic symbol as numpy array of shape `(N, )` .
+        node_number (str): Name of atomic numbers array of shape `(N, )` .
+        edge_indices (str): Name to assign edge indices to.
+        edge_number (str): Name to assign the edge number/order to.
+        name (str): Name of this preprocessor.
     """
 
     def __init__(self, *, node_coordinates: str = "node_coordinates", node_symbol: str = "node_symbol",
@@ -48,7 +48,9 @@ class SetMolBondIndices(GraphPreProcessorBase):
 
 
 class SetMolAttributes(GraphPreProcessorBase):
-    """
+    """Preprocessor to compute molecular attributes from graph arrays that make a valid molecule
+    via a :obj:`MolGraphInterface` .
+    See :obj:`MoleculeNetDataset` which uses a callbacks but has identical nomenclature.
 
     .. code-block:: python
 
@@ -58,6 +60,22 @@ class SetMolAttributes(GraphPreProcessorBase):
         pp = SetMolAttributes()
         print(pp(ds[0]))
 
+    Args:
+        nodes (list): List of atomic properties for attributes.
+        edges (list): List of bond properties for attributes.
+        graph (list): List of molecular properties for attributes.
+        encoder_nodes (dict): Dictionary of node attribute encoders.
+        encoder_edges (dict): Dictionary of edge attribute encoders.
+        encoder_graph (dict): Dictionary of graph attribute encoders.
+        node_coordinates (str): Name of numpy array storing atomic coordinates.
+        node_symbol (str): Name of numpy array storing atomic symbol.
+        node_number (str): Name of numpy array storing atomic number.
+        edge_indices (str): Name of numpy array storing atomic bond indices.
+        edge_number (str): Name of numpy array storing atomic bond order.
+        node_attributes (str): Name to assign node attributes to.
+        edge_attributes (str): Name to assign edge attributes to.
+        graph_attributes (str):  Name to assign graph attributes to.
+        name (str): Name of the preprocessor.
     """
 
     _default_node_attributes = [
