@@ -90,7 +90,7 @@ class HamNetNaiveUnion(Layer):
         conf_dense = self.lay_dense.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "use_bias", "activation"]:
-            if x in conf_dense:
+            if x in conf_dense.keys():
                 config.update({x: conf_dense[x]})
         return config
 
@@ -214,7 +214,7 @@ class HamNetGlobalReadoutAttend(Layer):
         if self.use_dropout:
             conf_drop = self.dropout_layer.get_config()
             for x in ["rate", "noise_shape", "seed"]:
-                if x in conf_drop:
+                if x in conf_drop.keys():
                     config.update({x: conf_drop[x]})
         conf_last = self.final_activ.get_config()
         config.update({"activation_last": conf_last["activation"]})
@@ -374,18 +374,18 @@ class HamNetFingerprintGenerator(Layer):
         conf_sub = self.vertex2mol.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
-            if x in conf_sub:
+            if x in conf_sub.keys():
                 config.update({x: conf_sub[x]})
         if len(self.unions) > 0:
             conf_gru = self.unions[0].get_config()
             for x in ["recurrent_activation", "recurrent_initializer", "recurrent_regularizer", "recurrent_constraint",
                       "dropout", "recurrent_dropout", "reset_after"]:
-                if x in conf_gru:
+                if x in conf_gru.keys():
                     config.update({x: conf_gru[x]})
         if len(self.readouts) > 0:
             conf_read = self.readouts[0].get_config()
             for x in ["use_dropout", "seed", "rate", "noise_shape"]:
-                if x in conf_read:
+                if x in conf_read.keys():
                     config.update({x: conf_read[x]})
         return config
 
@@ -535,12 +535,12 @@ class HamNaiveDynMessage(Layer):
         conf_sub = self.dense_attend.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
-            if x in conf_sub:
+            if x in conf_sub.keys():
                 config.update({x: conf_sub[x]})
         if self.use_dropout:
             conf_drop = self.dropout_layer.get_config()
             for x in ["rate", "noise_shape", "seed"]:
-                if x in conf_drop:
+                if x in conf_drop.keys():
                     config.update({x: conf_drop[x]})
         conf_last = self.final_activ.get_config()
         config.update({"activation_last": conf_last["activation"]})

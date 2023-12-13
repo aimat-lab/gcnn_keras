@@ -1170,7 +1170,7 @@ hyper = {
     "HDNNP2nd": {
         "model": {
             "class_name": "make_model",
-            "module_name": "kgcnn.literature.Schnet",
+            "module_name": "kgcnn.literature.HDNNP2nd",
             "config": {
                 "name": "HDNNP2nd",
                 "inputs": [
@@ -1555,8 +1555,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "QM7Dataset",
-                "module_name": "kgcnn.data.datasets.QM7Dataset",
+                "class_name": "ESOLDataset",
+                "module_name": "kgcnn.data.datasets.ESOLDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_edge_weights_uniform"}},

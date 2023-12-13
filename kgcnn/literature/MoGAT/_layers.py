@@ -111,7 +111,8 @@ class AttentiveHeadFP_(Layer):
         conf_sub = self.lay_alpha_activation.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
-            config.update({x: conf_sub[x]})
+            if x in conf_sub.keys():
+                config.update({x: conf_sub[x]})
         conf_context = self.lay_final_activ.get_config()
         config.update({"activation_context": conf_context["activation"]})
         return config
