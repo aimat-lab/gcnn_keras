@@ -127,18 +127,21 @@ class SphericalBesselJnExplicit(Layer):
     \sum_{k=0}^{\left\lfloor(n-1)/2\right\rfloor}(-1)^{k}\frac{a_{2k+1}(n+\tfrac{1}{2})}{z^{2k+2}}.`
     """
 
-    def __init__(self, n=0, **kwargs):
+    def __init__(self, n=0, fused: bool = False, **kwargs):
         r"""Initialize layer with constant n.
 
         Args:
             n (int): Positive integer for the bessel order :math:`n`.
+            fused (bool): Whether to compute polynomial in a fused tensor representation.
         """
         super(SphericalBesselJnExplicit, self).__init__(**kwargs)
         self.n = n
+        self.fused = fused
         self._pre_factor_sin = []
         self._pre_factor_cos = []
         self._powers_sin = []
         self._powers_cos = []
+
         for k in range(int(np.floor(n / 2)) + 1):
             if 2 * k < n + 1:
                 fac_sin = float(sp.special.factorial(n + 2 * k) / np.power(2, 2 * k) / sp.special.factorial(
@@ -146,6 +149,7 @@ class SphericalBesselJnExplicit(Layer):
                 pow_sin = - (2 * k + 1)
                 self._pre_factor_sin.append(fac_sin)
                 self._powers_sin.append(pow_sin)
+
         for k in range(int(np.floor((n - 1) / 2)) + 1):
             if 2 * k + 1 < n + 1:
                 fac_cos = float(sp.special.factorial(n + 2 * k + 1) / np.power(2, 2 * k + 1) / sp.special.factorial(
@@ -153,6 +157,12 @@ class SphericalBesselJnExplicit(Layer):
                 pow_cos = - (2 * k + 2)
                 self._pre_factor_cos.append(fac_cos)
                 self._powers_cos.append(pow_cos)
+
+        if self.fused:
+            self._pre_factor_sin = ops.convert_to_tensor(self._pre_factor_sin, dtype=self.dtype)
+            self._pre_factor_cos = ops.convert_to_tensor(self._pre_factor_cos, dtype=self.dtype)
+            self._powers_sin = ops.convert_to_tensor(self._powers_sin, dtype=self.dtype)
+            self._powers_cos = ops.convert_to_tensor(self._powers_cos, dtype=self.dtype)
 
     def build(self, input_shape):
         """Build layer."""
@@ -170,12 +180,16 @@ class SphericalBesselJnExplicit(Layer):
         n = self.n
         sin_x = ops.sin(x - n * np.pi / 2)
         cos_x = ops.cos(x - n * np.pi / 2)
-        sum_sin = ops.zeros_like(x)
-        sum_cos = ops.zeros_like(x)
-        for a, r in zip(self._pre_factor_sin, self._powers_sin):
-            sum_sin += a * ops.power(x, r)
-        for b, s in zip(self._pre_factor_cos, self._powers_cos):
-            sum_cos += b * ops.power(x, s)
+        if not self.fused:
+            sum_sin = ops.zeros_like(x)
+            sum_cos = ops.zeros_like(x)
+            for a, r in zip(self._pre_factor_sin, self._powers_sin):
+                sum_sin += a * ops.power(x, r)
+            for b, s in zip(self._pre_factor_cos, self._powers_cos):
+                sum_cos += b * ops.power(x, s)
+        else:
+            sum_sin = ops.sum(self._pre_factor_sin * ops.power(ops.expand_dims(x, axis=-1), self._powers_sin), axis=-1)
+            sum_cos = ops.sum(self._pre_factor_cos * ops.power(ops.expand_dims(x, axis=-1), self._powers_cos), axis=-1)
         return sum_sin * sin_x + sum_cos * cos_x
 
     def get_config(self):
@@ -261,19 +275,25 @@ class LegendrePolynomialPn(Layer):
 
     """
 
-    def __init__(self, n=0, **kwargs):
+    def __init__(self, n=0, fused: bool = False, **kwargs):
         r"""Initialize layer with constant n.
 
         Args:
             n (int): Positive integer for :math:`n` in :math:`P_n(x)`.
+            fused (bool): Whether to compute polynomial in a fused tensor representation.
         """
         super(LegendrePolynomialPn, self).__init__(**kwargs)
+        self.fused = fused
         self.n = n
         self._pre_factors = [
             float((-1) ** k * sp.special.factorial(2 * n - 2 * k) / sp.special.factorial(n - k) / sp.special.factorial(
                 n - 2 * k) / sp.special.factorial(k) / 2 ** n) for k in range(0, int(np.floor(n / 2)) + 1)
         ]
         self._powers = [float(n - 2 * k) for k in range(0, int(np.floor(n / 2)) + 1)]
+        if self.fused:
+            # Or maybe also as weight.
+            self._powers = ops.convert_to_tensor(self._powers, dtype=self.dtype)
+            self._pre_factors = ops.convert_to_tensor(self._pre_factors, dtype=self.dtype)
 
     def build(self, input_shape):
         """Build layer."""
@@ -288,15 +308,18 @@ class LegendrePolynomialPn(Layer):
         Returns:
             Tensor: Legendre Polynomial of order :math:`n`.
         """
-        out_sum = ops.zeros_like(x)
-        for a, r in zip(self._pre_factors, self._powers):
-            out_sum = out_sum + a * ops.power(x, r)
+        if not self.fused:
+            out_sum = ops.zeros_like(x)
+            for a, r in zip(self._pre_factors, self._powers):
+                out_sum = out_sum + a * ops.power(x, r)
+        else:
+            out_sum = ops.sum(self._pre_factors * ops.power(ops.expand_dims(x, axis=-1), self._powers), axis=-1)
         return out_sum
 
     def get_config(self):
         """Update layer config."""
         config = super(LegendrePolynomialPn, self).get_config()
-        config.update({"n": self.n})
+        config.update({"n": self.n, "fused": self.fused})
         return config
 
 
@@ -347,19 +370,25 @@ class SphericalHarmonicsYl(Layer):
 
     """
 
-    def __init__(self, l=0, **kwargs):
+    def __init__(self, l=0, fused: bool = False, **kwargs):
         r"""Initialize layer with constant l.
 
         Args:
             l (int): Positive integer for :math:`l` in :math:`Y_l(\cos\theta)`.
+            fused (bool): Whether to compute polynomial in a fused tensor representation.
         """
         super(SphericalHarmonicsYl, self).__init__(**kwargs)
         self.l = l
+        self.fused = fused
         self._pre_factors = [
             float((-1) ** k * sp.special.factorial(2 * l - 2 * k) / sp.special.factorial(l - k) / sp.special.factorial(
                 l - 2 * k) / sp.special.factorial(k) / 2 ** l) for k in range(0, int(np.floor(l / 2)) + 1)]
         self._powers = [float(l - 2 * k) for k in range(0, int(np.floor(l / 2)) + 1)]
         self._scale = float(np.sqrt((2 * l + 1) / 4 / np.pi))
+        if self.fused:
+            # Or maybe also as weight.
+            self._powers = ops.convert_to_tensor(self._powers, dtype=self.dtype)
+            self._pre_factors = ops.convert_to_tensor(self._pre_factors, dtype=self.dtype)
 
     def build(self, input_shape):
         """Build layer."""
@@ -375,16 +404,19 @@ class SphericalHarmonicsYl(Layer):
             Tensor: Spherical harmonics for :math:`m=0` and constant non-integer :math:`l`.
         """
         x = ops.cos(theta)
-        out_sum = ops.zeros_like(x)
-        for a, r in zip(self._pre_factors, self._powers):
-            out_sum = out_sum + a * ops.power(x, r)
+        if not self.fused:
+            out_sum = ops.zeros_like(x)
+            for a, r in zip(self._pre_factors, self._powers):
+                out_sum = out_sum + a * ops.power(x, r)
+        else:
+            out_sum = ops.sum(self._pre_factors * ops.power(ops.expand_dims(x, axis=-1), self._powers), axis=-1)
         out_sum = out_sum * self._scale
         return out_sum
 
     def get_config(self):
         """Update layer config."""
         config = super(SphericalHarmonicsYl, self).get_config()
-        config.update({"l": self.l})
+        config.update({"l": self.l, "fused": self.fused})
         return config
 
 
@@ -433,15 +465,17 @@ class AssociatedLegendrePolynomialPlm(Layer):
     \cdot \binom{l}{k}\binom{\frac{l+k-1}{2}}{l}`.
     """
 
-    def __init__(self, l: int = 0, m: int = 0, **kwargs):
+    def __init__(self, l: int = 0, m: int = 0, fused: bool = False, **kwargs):
         r"""Initialize layer with constant m, l.
 
         Args:
             l (int): Positive integer for :math:`l` in :math:`P_{l}^{m}(x)`.
             m (int): Positive/Negative integer for :math:`m` in :math:`P_{l}^{m}(x)`.
+            fused (bool): Whether to compute polynomial in a fused tensor representation.
         """
         super(AssociatedLegendrePolynomialPlm, self).__init__(**kwargs)
         self.m = m
+        self.fused = fused
         self.l = l
         if np.abs(m) > l:
             raise ValueError("Error: Legendre polynomial must have -l<= m <= l")
@@ -464,6 +498,11 @@ class AssociatedLegendrePolynomialPlm(Layer):
                 sp.special.binom((l + k - 1) / 2, l))
             self._pre_factors.append(fac)
 
+        if self.fused:
+            # Or maybe also as weight.
+            self._powers = ops.convert_to_tensor(self._powers, dtype=self.dtype)
+            self._pre_factors = ops.convert_to_tensor(self._pre_factors, dtype=self.dtype)
+
     def build(self, input_shape):
         """Build layer."""
         super(AssociatedLegendrePolynomialPlm, self).build(input_shape)
@@ -480,13 +519,16 @@ class AssociatedLegendrePolynomialPlm(Layer):
         neg_m = self._neg_m
         m = self._m
         x_pre_factor = ops.power(1 - ops.square(x), m / 2) * self._x_pre_factor
-        sum_out = ops.zeros_like(x)
-        for a, r in zip(self._pre_factors, self._powers):
-            sum_out += ops.power(x, r) * a
+        if not self.fused:
+            sum_out = ops.zeros_like(x)
+            for a, r in zip(self._pre_factors, self._powers):
+                sum_out += ops.power(x, r) * a
+        else:
+            sum_out = ops.sum(self._pre_factors * ops.power(ops.expand_dims(x, axis=-1), self._powers), axis=-1)
         return sum_out * x_pre_factor * neg_m
 
     def get_config(self):
         """Update layer config."""
         config = super(AssociatedLegendrePolynomialPlm, self).get_config()
-        config.update({"l": self.l, "m": self.m})
+        config.update({"l": self.l, "m": self.m, "fused": self.fused})
         return config

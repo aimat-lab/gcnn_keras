@@ -5,8 +5,9 @@ import keras as ks
 from keras import ops, Layer
 from keras.layers import Layer, Subtract, Multiply, Add, Subtract
 from kgcnn.layers.gather import GatherNodes, GatherState, GatherNodesOutgoing
-from kgcnn.layers.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_normalization_prefactor, \
-    tf_spherical_bessel_jn, tf_spherical_harmonics_yl
+from kgcnn.layers.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_normalization_prefactor
+from kgcnn.layers.polynom import tf_spherical_bessel_jn, tf_spherical_harmonics_yl
+from kgcnn.layers.polynom import SphericalBesselJnExplicit, SphericalHarmonicsYl
 from kgcnn.ops.axis import get_positive_axis
 from kgcnn.ops.core import cross as kgcnn_cross
 
@@ -1107,23 +1108,26 @@ class RealToFracCoordinates(Layer):
 class SphericalBasisLayer(Layer):
     r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to
     `Klicpera et al. 2020 <https://arxiv.org/abs/2011.14115>`__ .
-
-    Args:
-        num_spherical (int): Number of spherical basis functions
-        num_radial (int): Number of radial basis functions
-        cutoff (float): Cutoff distance c
-        envelope_exponent (int): Degree of the envelope to smoothen at cutoff. Default is 5.
-
     """
 
     def __init__(self, num_spherical,
                  num_radial,
                  cutoff,
                  envelope_exponent=5,
+                 fused: bool = True,
                  **kwargs):
-        super(SphericalBasisLayer, self).__init__(**kwargs)
+        """Initialize layer.
 
+        Args:
+            num_spherical (int): Number of spherical basis functions
+            num_radial (int): Number of radial basis functions
+            cutoff (float): Cutoff distance c
+            envelope_exponent (int): Degree of the envelope to smoothen at cutoff. Default is 5.
+            fused (bool): Whether to use fused implementation. Default is True.
+        """
+        super(SphericalBasisLayer, self).__init__(**kwargs)
         assert num_radial <= 64
+        self.fused = fused
         self.num_radial = int(num_radial)
         self.num_spherical = num_spherical
         self.cutoff = cutoff
@@ -1135,6 +1139,9 @@ class SphericalBasisLayer(Layer):
         self.bessel_norm = spherical_bessel_jn_normalization_prefactor(num_spherical, num_radial)
 
         self.layer_gather_out = GatherNodesOutgoing()
+        # non-explicit spherical bessel function seems faster.
+        # self.layers_spherical_jn = [SphericalBesselJnExplicit(n=n, fused=fused) for n in range(self.num_spherical)]
+        self.layers_spherical_yl = [SphericalHarmonicsYl(l=l, fused=fused) for l in range(self.num_spherical)]
 
     def envelope(self, inputs):
         p = self.envelope_exponent + 1
@@ -1164,6 +1171,7 @@ class SphericalBasisLayer(Layer):
         rbf = []
         for n in range(self.num_spherical):
             for k in range(self.num_radial):
+                # rbf += [self.bessel_norm[n, k] * self.layers_spherical_jn[n](d_scaled * self.bessel_n_zeros[n][k])]
                 rbf += [self.bessel_norm[n, k] * tf_spherical_bessel_jn(d_scaled * self.bessel_n_zeros[n][k], n)]
         rbf = ops.stack(rbf, axis=1)
 
@@ -1172,7 +1180,8 @@ class SphericalBasisLayer(Layer):
         rbf_env = self.layer_gather_out([rbf_env, angle_index], **kwargs)
         # rbf_env = tf.gather(rbf_env, id_expand_kj[:, 1])
 
-        cbf = [tf_spherical_harmonics_yl(angles[:, 0], n) for n in range(self.num_spherical)]
+        # cbf = [tf_spherical_harmonics_yl(angles[:, 0], n) for n in range(self.num_spherical)]
+        cbf = [self.layers_spherical_yl[n](angles[:, 0]) for n in range(self.num_spherical)]
         cbf = ops.stack(cbf, axis=1)
         cbf = ops.repeat(cbf, self.num_radial, axis=1)
         out = rbf_env * cbf
@@ -1182,6 +1191,6 @@ class SphericalBasisLayer(Layer):
     def get_config(self):
         """Update config."""
         config = super(SphericalBasisLayer, self).get_config()
-        config.update({"num_radial": self.num_radial, "cutoff": self.cutoff,
+        config.update({"num_radial": self.num_radial, "cutoff": self.cutoff, "fused": self.fused,
                        "envelope_exponent": self.envelope_exponent, "num_spherical": self.num_spherical})
         return config

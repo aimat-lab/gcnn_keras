@@ -259,6 +259,6 @@ class RelationalDense(Layer):
         })
         config_act = self._layer_activation.get_config()
         for x in ["activation", "activity_regularizer"]:
-            if x in config_act:
+            if x in config_act.keys():
                 config.update({x: config_act[x]})
         return config
