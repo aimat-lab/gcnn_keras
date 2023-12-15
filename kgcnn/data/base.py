@@ -330,7 +330,8 @@ class MemoryGraphList(list):
     get = obtain_property
 
     def tf_disjoint_data_generator(self, inputs, outputs, **kwargs):
-        module_logger.info("Dataloader is experimental and not fully tested nor stable.")
+        assert isinstance(inputs, list), "Dictionary input is not yet implemented"
+        module_logger.info("Dataloader is experimental and not fully tested or stable.")
         return experimental_tf_disjoint_list_generator(self, inputs=inputs, outputs=outputs, **kwargs)
 
 

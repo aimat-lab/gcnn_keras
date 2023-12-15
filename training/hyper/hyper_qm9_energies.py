@@ -94,7 +94,7 @@ hyper = {
                 "input_tensor_type": "ragged",
                 "input_embedding": None,
                 "input_node_embedding": {"input_dim": 10, "output_dim": 16},
-                "input_edge_embedding": {"input_dim": 100, "output_dim": 64},
+                # "input_edge_embedding": {"input_dim": 100, "output_dim": 64},
                 "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
                 "meg_block_args": {"node_embed": [64, 32, 32], "edge_embed": [64, 32, 32],
                                    "env_embed": [64, 32, 32], "activation": "kgcnn>softplus2"},

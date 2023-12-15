@@ -180,7 +180,6 @@ original implementations (with proper licencing).
 * **[MoGAT](kgcnn/literature/MoGAT)**: [Multi-order graph attention network for water solubility prediction and interpretation](https://www.nature.com/articles/s41598-022-25701-5) by Lee et al. (2023)
 * **[MXMNet](kgcnn/literature/MXMNet)**: [Molecular Mechanics-Driven Graph Neural Network with Multiplex Graph for Molecular Structures](https://arxiv.org/abs/2011.07457) by Zhang et al. (2020)
 * **[NMPN](kgcnn/literature/NMPN)**: [Neural Message Passing for Quantum Chemistry](http://arxiv.org/abs/1704.01212) by Gilmer et al. (2017)
-* **[Unet](kgcnn/literature/Unet)**: [Graph U-Nets](http://proceedings.mlr.press/v97/gao19a/gao19a.pdf) by H. Gao and S. Ji (2019)
 * **[PAiNN](kgcnn/literature/PAiNN)**: [Equivariant message passing for the prediction of tensorial properties and molecular spectra](https://arxiv.org/pdf/2102.03150.pdf) by Schütt et al. (2020)
 * **[RGCN](kgcnn/literature/RGCN)**: [Modeling Relational Data with Graph Convolutional Networks](https://arxiv.org/abs/1703.06103) by Schlichtkrull et al. (2017)
 * **[rGIN](kgcnn/literature/rGIN)** [Random Features Strengthen Graph Neural Networks](https://arxiv.org/abs/2002.03155) by Sato et al. (2020)

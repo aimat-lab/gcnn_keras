@@ -232,7 +232,7 @@ hyper = {
                 "input_tensor_type": "ragged",
                 'input_embedding': None,
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
-                "input_edge_embedding": {"input_dim": 100, "output_dim": 64},
+                # "input_edge_embedding": {"input_dim": 100, "output_dim": 64},
                 "make_distance": True, "expand_distance": True,
                 'gauss_args': {"bins": 25, "distance": 5, "offset": 0.0, "sigma": 0.4},
                 'meg_block_args': {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
