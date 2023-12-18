@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import os
 from sklearn.model_selection import KFold
-from kgcnn.io.loader import experimental_tf_disjoint_list_generator
+from kgcnn.io.loader import tf_disjoint_list_generator
 # import typing as t
 from typing import Union, List, Callable, Dict, Optional
 # from collections.abc import MutableSequence
@@ -332,7 +332,7 @@ class MemoryGraphList(list):
     def tf_disjoint_data_generator(self, inputs, outputs, **kwargs):
         assert isinstance(inputs, list), "Dictionary input is not yet implemented"
         module_logger.info("Dataloader is experimental and not fully tested or stable.")
-        return experimental_tf_disjoint_list_generator(self, inputs=inputs, outputs=outputs, **kwargs)
+        return tf_disjoint_list_generator(self, inputs=inputs, outputs=outputs, **kwargs)
 
 
 class MemoryGraphDataset(MemoryGraphList):

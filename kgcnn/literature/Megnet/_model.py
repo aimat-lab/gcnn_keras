@@ -133,7 +133,7 @@ def model_disjoint_crystal(
     # Edge distance as Gauss-Basis
     if make_distance:
         pos1, pos2 = NodePosition()([x, edi])
-        pos2 = ShiftPeriodicLattice()([pos2, edge_image, lattice])
+        pos2 = ShiftPeriodicLattice()([pos2, edge_image, lattice, batch_id_edge])
         ep = NodeDistanceEuclidean()([pos1, pos2])
     else:
         ep = x

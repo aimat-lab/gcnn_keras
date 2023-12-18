@@ -66,10 +66,12 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 | GIN         | 4.0.0   |      300 | 0.5369 &pm; 0.0334     | 0.7954 &pm; 0.0861     |
 | GNNFilm     | 4.0.0   |      800 | 0.4854 &pm; 0.0368     | 0.6724 &pm; 0.0436     |
 | GraphSAGE   | 4.0.0   |      500 | 0.4874 &pm; 0.0228     | 0.6982 &pm; 0.0608     |
+| HDNNP2nd    | 4.0.0   |      500 | 0.7857 &pm; 0.0986     | 1.0467 &pm; 0.1367     |
 | INorp       | 4.0.0   |      500 | 0.5055 &pm; 0.0436     | 0.7297 &pm; 0.0786     |
 | MAT         | 4.0.0   |      400 | 0.5064 &pm; 0.0299     | 0.7194 &pm; 0.0630     |
 | MEGAN       | 4.0.0   |      400 | **0.4281 &pm; 0.0201** | **0.6062 &pm; 0.0252** |
 | Megnet      | 4.0.0   |      800 | 0.5679 &pm; 0.0310     | 0.8196 &pm; 0.0480     |
+| MXMNet      | 4.0.0   |      900 | 0.6486 &pm; 0.0633     | 1.0123 &pm; 0.2059     |
 | NMPN        | 4.0.0   |      800 | 0.5046 &pm; 0.0266     | 0.7193 &pm; 0.0607     |
 | PAiNN       | 4.0.0   |      250 | 0.4857 &pm; 0.0598     | 0.6650 &pm; 0.0674     |
 | RGCN        | 4.0.0   |      800 | 0.4703 &pm; 0.0251     | 0.6529 &pm; 0.0318     |
@@ -180,10 +182,12 @@ Materials Project dataset from Matbench with 106113 crystal structures and their
 
 Materials Project dataset from Matbench with 636 crystal structures and their corresponding Exfoliation energy (meV/atom). We use a random 5-fold cross-validation. 
 
-| model                     | kgcnn   |   epochs | MAE [meV/atom]           | RMSE [meV/atom]           |
-|:--------------------------|:--------|---------:|:-------------------------|:--------------------------|
-| PAiNN.make_crystal_model  | 4.0.0   |      800 | 49.3889 &pm; 11.5376     | 121.7087 &pm; 30.0472     |
-| Schnet.make_crystal_model | 4.0.0   |      800 | **45.2412 &pm; 11.6395** | **115.6890 &pm; 39.0929** |
+| model                        | kgcnn   |   epochs | MAE [meV/atom]           | RMSE [meV/atom]           |
+|:-----------------------------|:--------|---------:|:-------------------------|:--------------------------|
+| CGCNN.make_crystal_model     | 4.0.0   |     1000 | 57.6974 &pm; 18.0803     | 140.6167 &pm; 44.8418     |
+| DimeNetPP.make_crystal_model | 4.0.0   |      780 | 50.2880 &pm; 11.4199     | 126.0600 &pm; 38.3769     |
+| PAiNN.make_crystal_model     | 4.0.0   |      800 | 49.3889 &pm; 11.5376     | 121.7087 &pm; 30.0472     |
+| Schnet.make_crystal_model    | 4.0.0   |      800 | **45.2412 &pm; 11.6395** | **115.6890 &pm; 39.0929** |
 
 #### MatProjectLogGVRHDataset
 

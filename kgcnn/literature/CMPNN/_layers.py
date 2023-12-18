@@ -15,6 +15,7 @@ class PoolingNodesGRU(Layer):
                  **kwargs):
         super(PoolingNodesGRU, self).__init__(**kwargs)
         self.units = units
+        self.static_output_shape = static_output_shape
         self.cast_layer = CastDisjointToBatchedAttributes(
             static_output_shape=static_output_shape, return_mask=True)
         self.gru = GRU(

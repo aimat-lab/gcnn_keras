@@ -117,7 +117,7 @@ def model_disjoint_crystal(inputs,
     if make_distance:
         x = ed
         pos1, pos2 = NodePosition()([x, disjoint_indices])
-        pos2 = ShiftPeriodicLattice()([pos2, edge_image, lattice])
+        pos2 = ShiftPeriodicLattice()([pos2, edge_image, lattice, batch_id_edge])
         ed = NodeDistanceEuclidean()([pos1, pos2])
 
     if expand_distance:

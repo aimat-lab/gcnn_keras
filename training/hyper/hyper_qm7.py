@@ -100,7 +100,6 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": None,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -169,7 +168,6 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": None,
             "fit": {
                 "batch_size": 32, "epochs": 500, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -232,7 +230,6 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": None,
             "fit": {
                 "batch_size": 32, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
@@ -304,7 +301,6 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": None,
             "fit": {
                 "batch_size": 10, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
@@ -388,7 +384,6 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": None,
             "fit": {
                 "batch_size": 128, "epochs": 900, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -473,7 +468,6 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": None,
             "fit": {
                 "batch_size": 64, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [

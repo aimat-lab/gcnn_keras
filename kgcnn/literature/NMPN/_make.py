@@ -1,6 +1,6 @@
 import keras as ks
 from kgcnn.layers.scale import get as get_scaler
-from ._model import model_disjoint
+from ._model import model_disjoint, model_disjoint_crystal
 from kgcnn.layers.modules import Input
 from kgcnn.models.casting import template_cast_output, template_cast_list_input
 from kgcnn.models.utils import update_model_kwargs
@@ -309,7 +309,7 @@ def make_crystal_model(inputs: list = None,
 
     n, x, d_indices, img, lattice, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = dj
 
-    out = model_disjoint(
+    out = model_disjoint_crystal(
         [n, x, d_indices, img, lattice, batch_id_node, batch_id_edge, count_nodes, count_edges],
         use_node_embedding=("int" in inputs[0]['dtype']) if input_node_embedding is not None else False,
         use_edge_embedding=("int" in inputs[1]['dtype']) if input_edge_embedding is not None else False,

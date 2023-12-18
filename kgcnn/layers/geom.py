@@ -103,7 +103,7 @@ class ShiftPeriodicLattice(Layer):
         """Forward pass.
 
         Args:
-            inputs (list): `[position, edge_image, lattice, num_edges]`
+            inputs (list): `[position, edge_image, lattice, batch_id_edge]`
 
                 - position (Tensor): Positions of shape `(M, 3)`
                 - edge_image (Tensor): Position in which image to shift of shape `(M, 3)`

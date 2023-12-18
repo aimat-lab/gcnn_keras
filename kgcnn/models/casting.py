@@ -38,6 +38,8 @@ def template_cast_output(model_outputs,
 
     # Output embedding choice
     if output_embedding == 'graph':
+        # Here we could also modify the behaviour for direct disjoint output to not remove padded ones,
+        # in case also the output is padded.
         out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == 'node':
         if output_tensor_type in ["padded", "masked"]:
@@ -85,6 +87,7 @@ def template_cast_list_input(model_inputs,
     :obj:`[nodes, edges, angles, edge_indices, angle_indices, graph_state, image_translation, lattice,...]` .
     Note that in place of nodes or edges also more than one tensor can be provided, depending on the model, for example
     :obj:`[nodes_1, nodes_2, edges_1, edges_2, edge_indices, ...]` .
+
     However, for future models we intend to used named inputs rather than a list that is sensible to ordering.
     Whether to use mask or length tensor for padded as well as further parameter of casting has to be set with
     (dict) :obj:`cast_disjoint_kwargs` .

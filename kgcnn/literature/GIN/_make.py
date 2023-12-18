@@ -151,7 +151,6 @@ def make_model(inputs: list = None,
 
 make_model.__doc__ = make_model.__doc__ % (template_cast_list_input.__doc__, template_cast_output.__doc__)
 
-
 model_default_edge = {
     "name": "GINE",
     "inputs": [
@@ -244,7 +243,12 @@ def make_model_edge(inputs: list = None,
     model_inputs = [Input(**x) for x in inputs]
 
     disjoint_inputs = template_cast_list_input(
-        model_inputs, input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs)
+        model_inputs,
+        input_tensor_type=input_tensor_type,
+        cast_disjoint_kwargs=cast_disjoint_kwargs,
+        mask_assignment=[0, 1, 1],
+        index_assignment=[None, None, 0]
+    )
 
     n, ed, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = disjoint_inputs
 
