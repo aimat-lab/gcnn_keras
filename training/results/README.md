@@ -71,6 +71,7 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 | MAT         | 4.0.0   |      400 | 0.5064 &pm; 0.0299     | 0.7194 &pm; 0.0630     |
 | MEGAN       | 4.0.0   |      400 | **0.4281 &pm; 0.0201** | **0.6062 &pm; 0.0252** |
 | Megnet      | 4.0.0   |      800 | 0.5679 &pm; 0.0310     | 0.8196 &pm; 0.0480     |
+| MoGAT       | 4.0.0   |      200 | 0.4797 &pm; 0.0114     | 0.6533 &pm; 0.0114     |
 | MXMNet      | 4.0.0   |      900 | 0.6486 &pm; 0.0633     | 1.0123 &pm; 0.2059     |
 | NMPN        | 4.0.0   |      800 | 0.5046 &pm; 0.0266     | 0.7193 &pm; 0.0607     |
 | PAiNN       | 4.0.0   |      250 | 0.4857 &pm; 0.0598     | 0.6650 &pm; 0.0674     |
@@ -186,6 +187,7 @@ Materials Project dataset from Matbench with 636 crystal structures and their co
 |:-----------------------------|:--------|---------:|:-------------------------|:--------------------------|
 | CGCNN.make_crystal_model     | 4.0.0   |     1000 | 57.6974 &pm; 18.0803     | 140.6167 &pm; 44.8418     |
 | DimeNetPP.make_crystal_model | 4.0.0   |      780 | 50.2880 &pm; 11.4199     | 126.0600 &pm; 38.3769     |
+| Megnet.make_crystal_model    | 4.0.0   |     1000 | 51.1735 &pm; 9.1746      | 123.4178 &pm; 32.9582     |
 | PAiNN.make_crystal_model     | 4.0.0   |      800 | 49.3889 &pm; 11.5376     | 121.7087 &pm; 30.0472     |
 | Schnet.make_crystal_model    | 4.0.0   |      800 | **45.2412 &pm; 11.6395** | **115.6890 &pm; 39.0929** |
 
@@ -264,9 +266,11 @@ TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes repre
 
 QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. We use dataset-specific 5-fold cross-validation. The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). 
 
-| model   | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]         |
-|:--------|:--------|---------:|:-----------------------|:------------------------|
-| Schnet  | 4.0.0   |      800 | **3.4313 &pm; 0.4757** | **10.8978 &pm; 7.3863** |
+| model   | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]        |
+|:--------|:--------|---------:|:-----------------------|:-----------------------|
+| Megnet  | 4.0.0   |      800 | **1.5180 &pm; 0.0802** | **3.0321 &pm; 0.1936** |
+| NMPN    | 4.0.0   |      500 | 7.2907 &pm; 0.9061     | 38.1446 &pm; 12.1445   |
+| Schnet  | 4.0.0   |      800 | 3.4313 &pm; 0.4757     | 10.8978 &pm; 7.3863    |
 
 #### QM9Dataset
 
