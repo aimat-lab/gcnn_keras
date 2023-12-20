@@ -46,7 +46,7 @@ class PoolingNodesGRU(Layer):
     def get_config(self):
         config = super(PoolingNodesGRU, self).get_config()
         config.update({"units": self.units, "static_output_shape": self.static_output_shape})
-        conf_gru = self.gru_cell.get_config()
+        conf_gru = self.gru.get_config()
         param_list = ["units", "activation", "recurrent_activation",
                       "use_bias", "kernel_initializer",
                       "recurrent_initializer",
