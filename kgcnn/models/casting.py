@@ -163,7 +163,7 @@ def template_cast_list_input(model_inputs,
 
     if input_tensor_type in ["padded", "masked"]:
         if mask_assignment is None or not isinstance(mask_assignment, (list, tuple)):
-            raise ValueError()
+            raise ValueError("Mask assignment information is required or invalid.")
 
         reduced_mask = [x for x in mask_assignment if x is not None]
         if len(reduced_mask) == 0:
