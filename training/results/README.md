@@ -57,6 +57,7 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 | model       | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
 |:------------|:--------|---------:|:-----------------------|:-----------------------|
 | AttentiveFP | 4.0.0   |      200 | 0.4351 &pm; 0.0110     | 0.6080 &pm; 0.0207     |
+| CMPNN       | 4.0.0   |      600 | 0.5276 &pm; 0.0154     | 0.7505 &pm; 0.0189     |
 | DGIN        | 4.0.0   |      300 | 0.4434 &pm; 0.0252     | 0.6225 &pm; 0.0420     |
 | DMPNN       | 4.0.0   |      300 | 0.4401 &pm; 0.0165     | 0.6203 &pm; 0.0292     |
 | EGNN        | 4.0.0   |      800 | 0.4507 &pm; 0.0152     | 0.6563 &pm; 0.0370     |
@@ -151,9 +152,13 @@ Energies and forces for molecular dynamics trajectories. All geometries in A, en
 
 Materials Project dataset from Matbench with 4764 crystal structures and their corresponding Refractive index (unitless). We use a random 5-fold cross-validation. 
 
-| model                     | kgcnn   |   epochs | MAE [no unit]          | RMSE [no unit]         |
-|:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
-| Schnet.make_crystal_model | 4.0.0   |      800 | **0.3180 &pm; 0.0359** | **1.8509 &pm; 0.5854** |
+| model                        | kgcnn   |   epochs | MAE [no unit]          | RMSE [no unit]         |
+|:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model     | 4.0.0   |     1000 | 0.3306 &pm; 0.0602     | 1.9736 &pm; 0.7324     |
+| DimeNetPP.make_crystal_model | 4.0.0   |      780 | 0.3415 &pm; 0.0542     | 1.9637 &pm; 0.6323     |
+| Megnet.make_crystal_model    | 4.0.0   |     1000 | 0.3362 &pm; 0.0550     | 2.0156 &pm; 0.5872     |
+| NMPN.make_crystal_model      | 4.0.0   |      700 | 0.3289 &pm; 0.0489     | 1.8770 &pm; 0.6522     |
+| Schnet.make_crystal_model    | 4.0.0   |      800 | **0.3180 &pm; 0.0359** | **1.8509 &pm; 0.5854** |
 
 #### MatProjectEFormDataset
 
@@ -188,6 +193,7 @@ Materials Project dataset from Matbench with 636 crystal structures and their co
 | CGCNN.make_crystal_model     | 4.0.0   |     1000 | 57.6974 &pm; 18.0803     | 140.6167 &pm; 44.8418     |
 | DimeNetPP.make_crystal_model | 4.0.0   |      780 | 50.2880 &pm; 11.4199     | 126.0600 &pm; 38.3769     |
 | Megnet.make_crystal_model    | 4.0.0   |     1000 | 51.1735 &pm; 9.1746      | 123.4178 &pm; 32.9582     |
+| NMPN.make_crystal_model      | 4.0.0   |      700 | 59.3986 &pm; 10.9272     | 139.5943 &pm; 32.1129     |
 | PAiNN.make_crystal_model     | 4.0.0   |      800 | 49.3889 &pm; 11.5376     | 121.7087 &pm; 30.0472     |
 | Schnet.make_crystal_model    | 4.0.0   |      800 | **45.2412 &pm; 11.6395** | **115.6890 &pm; 39.0929** |
 
@@ -266,11 +272,15 @@ TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes repre
 
 QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. We use dataset-specific 5-fold cross-validation. The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). 
 
-| model   | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]        |
-|:--------|:--------|---------:|:-----------------------|:-----------------------|
-| Megnet  | 4.0.0   |      800 | **1.5180 &pm; 0.0802** | **3.0321 &pm; 0.1936** |
-| NMPN    | 4.0.0   |      500 | 7.2907 &pm; 0.9061     | 38.1446 &pm; 12.1445   |
-| Schnet  | 4.0.0   |      800 | 3.4313 &pm; 0.4757     | 10.8978 &pm; 7.3863    |
+| model     | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]        |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|
+| DimeNetPP | 4.0.0   |      872 | 3.4639 &pm; 0.2003     | 7.5327 &pm; 1.8190     |
+| EGNN      | 4.0.0   |      800 | 1.7300 &pm; 0.1336     | 5.1268 &pm; 2.5134     |
+| Megnet    | 4.0.0   |      800 | 1.5180 &pm; 0.0802     | 3.0321 &pm; 0.1936     |
+| MXMNet    | 4.0.0   |      900 | **1.2431 &pm; 0.0820** | **2.6694 &pm; 0.2584** |
+| NMPN      | 4.0.0   |      500 | 7.2907 &pm; 0.9061     | 38.1446 &pm; 12.1445   |
+| PAiNN     | 4.0.0   |      872 | 1.5765 &pm; 0.0742     | 5.2705 &pm; 2.2848     |
+| Schnet    | 4.0.0   |      800 | 3.4313 &pm; 0.4757     | 10.8978 &pm; 7.3863    |
 
 #### QM9Dataset
 
