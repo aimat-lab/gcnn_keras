@@ -419,7 +419,8 @@ hyper = {
                 ]
             },
             # "multi_target_indices": [11]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G' or combination
-            "multi_target_indices": target_index
+            # "multi_target_indices": [18]  # 15, 16, 17, 18 = 'U0_atom', 'U_atom', 'H_atom', 'G_atom' or combination
+            "multi_target_indices": [i+5 for i in target_index]
         },
         "data": {
             "dataset": {

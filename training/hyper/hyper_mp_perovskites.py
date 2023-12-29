@@ -299,8 +299,8 @@ hyper = {
                     {'shape': (None,), 'name': 'node_number', 'dtype': 'int64', 'ragged': True},
                     {'shape': (None, 3), 'name': 'node_frac_coordinates', 'dtype': 'float64', 'ragged': True},
                     {'shape': (None, 2), 'name': 'range_indices', 'dtype': 'int64', 'ragged': True},
-                    {'shape': (3, 3), 'name': 'graph_lattice', 'dtype': 'float64', 'ragged': False},
                     {'shape': (None, 3), 'name': 'range_image', 'dtype': 'float32', 'ragged': True},
+                    {'shape': (3, 3), 'name': 'graph_lattice', 'dtype': 'float64', 'ragged': False},
                     # For `representation="asu"`:
                     # {'shape': (None, 1), 'name': 'multiplicities', 'dtype': 'float32', 'ragged': True},
                     # {'shape': (None, 4, 4), 'name': 'symmops', 'dtype': 'float64', 'ragged': True},
