@@ -381,7 +381,7 @@ hyper = {
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
                 "set2set_args": {"channels": 32, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
-                "pooling_args": {"pooling_method": "segment_mean"},
+                "pooling_args": {"pooling_method": "mean"},
                 "use_set2set": True,
                 "depth": 3,
                 "node_dim": 128,
