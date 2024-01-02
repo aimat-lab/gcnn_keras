@@ -7,12 +7,8 @@ from kgcnn.layers.casting import (
 )
 
 
-def template_cast_output(model_outputs,
-                         output_embedding,
-                         output_tensor_type,
-                         input_tensor_type,
-                         cast_disjoint_kwargs):
-    r"""The standard model output template returns a single tensor of either "graph", "node", or "edge"
+template_cast_output_docs = r"""
+    The standard model output template returns a single tensor of either "graph", "node", or "edge"
     embeddings specified by :obj:`output_embedding` within the model.
     The return tensor type is determined by :obj:`output_tensor_type` . Options are:
 
@@ -32,6 +28,25 @@ def template_cast_output(model_outputs,
             - ragged (RaggedTensor): Single tensor of shape `(batch, None, F)` .
             - padded (Tensor): Padded tensor of shape `(batch, M, F)`
             - disjoint (Tensor): Disjoint representation of shape `([M], F)` .
+"""
+
+
+def template_cast_output(model_outputs,
+                         output_embedding,
+                         output_tensor_type,
+                         input_tensor_type,
+                         cast_disjoint_kwargs):
+    """
+
+    Args:
+        model_outputs:
+        output_embedding:
+        output_tensor_type:
+        input_tensor_type:
+        cast_disjoint_kwargs:
+
+    Returns:
+        Tensor: Keras output tensor.
     """
 
     out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_outputs
@@ -158,83 +173,18 @@ def template_cast_list_input(model_inputs,
                              mask_assignment: list = None,
                              index_assignment: list = None,
                              return_sub_id: bool = True):
-    r"""Template of listed graph input tensors, which should be compatible to previous kgcnn versions and
-    defines the order as follows: :obj:`[nodes, edges, angles, edge_indices, angle_indices, graph_state, ...]` .
-    Where '...' denotes further mask or ID tensors, which is required for certain input types (see below).
-    Depending on the model, some inputs may not be used (see model description for information on supported inputs).
-    For example if the model does not support angles and no graph attribute input, the input becomes:
-    :obj:`[nodes, edges, edge_indices, ...]` .
-    In case of crystal graphs lattice and translation information has to be added. This will give a possible input of
-    :obj:`[nodes, edges, angles, edge_indices, angle_indices, graph_state, image_translation, lattice,...]` .
-    Note that in place of nodes or edges also more than one tensor can be provided, depending on the model, for example
-    :obj:`[nodes_1, nodes_2, edges_1, edges_2, edge_indices, ...]` .
+    """
 
-    However, for future models we intend to used named inputs rather than a list that is sensible to ordering.
-    Whether to use mask or length tensor for padded as well as further parameter of casting has to be set with
-    (dict) :obj:`cast_disjoint_kwargs` .
+    Args:
+        model_inputs:
+        input_tensor_type:
+        cast_disjoint_kwargs:
+        mask_assignment:
+        index_assignment:
+        return_sub_id:
 
-    Padded or Masked Inputs:
-        list: :obj:`[nodes, edges, angles, edge_indices, angle_indices, graph_state, image_translation, lattice,
-        node_mask/node_count, edge_mask/edge_count, angle_mask/angle_count]`
-
-            - nodes (Tensor): Node attributes of shape `(batch, N, F)` or `(batch, N)`
-              using an embedding layer.
-            - edges (Tensor): Edge attributes of shape `(batch, M, F)` or `(batch, M)`
-              using an embedding layer.
-            - angles (Tensor): Angle attributes of shape `(batch, M, F)` or `(batch, K)`
-              using an embedding layer.
-            - edge_indices (Tensor): Index list for edges of shape `(batch, M, 2)` referring to nodes.
-            - angle_indices (Tensor): Index list for angles of shape `(batch, K, 2)` referring to edges.
-            - graph_state (Tensor): Graph attributes of shape `(batch, F)` .
-            - image_translation (Tensor): Indices of the periodic image the sending node is located in.
-              Shape is `(batch, M, 3)` .
-            - lattice (Tensor): Lattice matrix of the periodic structure of shape `(batch, 3, 3)` .
-            - node_mask (Tensor): Mask for padded nodes of shape `(batch, N)` .
-            - edge_mask (Tensor): Mask for padded edges of shape `(batch, M)` .
-            - angle_mask (Tensor): Mask for padded angles of shape `(batch, K)` .
-            - node_count (Tensor): Total number of nodes if padding is used of shape `(batch, )` .
-            - edge_count (Tensor): Total number of edges if padding is used of shape `(batch, )` .
-            - angle_count (Tensor): Total number of angle if padding is used of shape `(batch, )` .
-
-    Ragged or Jagged Inputs:
-        list: :obj:`[nodes, edges, angles, edge_indices, angle_indices, graph_state, image_translation, lattice]`
-
-            - nodes (RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
-              using an embedding layer.
-            - edges (RaggedTensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
-              using an embedding layer.
-            - angles (RaggedTensor): Angle attributes of shape `(batch, None, F)` or `(batch, None)`
-              using an embedding layer.
-            - edge_indices (RaggedTensor): Index list for edges of shape `(batch, None, 2)` referring to nodes.
-            - angle_indices (RaggedTensor): Index list for angles of shape `(batch, None, 2)` referring to edges.
-            - graph_state (Tensor): Graph attributes of shape `(batch, F)` .
-            - image_translation (RaggedTensor): Indices of the periodic image the sending node is located in.
-              Shape is `(batch, None, 3)` .
-            - lattice (Tensor): Lattice matrix of the periodic structure of shape `(batch, 3, 3)` .
-
-    Disjoint Input:
-        list: :obj:`[nodes, edges, angles, edge_indices, angle_indices, graph_state, image_translation, lattice,
-        graph_id_node, graph_id_edge, graph_id_angle, nodes_id, edges_id, angle_id, nodes_count, edges_count,
-        angles_count]`
-
-            - nodes (Tensor): Node attributes of shape `([N], F)` or `([N], )` using an embedding layer.
-            - edges (Tensor): Edge attributes of shape `([M], F)` or `([M], )` using an embedding layer.
-            - angles (Tensor): Angle attributes of shape `([K], F)` or `([K], )` using an embedding layer.
-            - edge_indices (Tensor): Index list for edges of shape `(2, [M])` referring to nodes.
-            - angle_indices (Tensor): Index list for angles of shape `(2, [K])` referring to edges.
-            - graph_state (Tensor): Graph attributes of shape `(batch, F)` .
-            - image_translation (Tensor): Indices of the periodic image the sending node is located in.
-              Shape is `([M], 3)` .
-            - lattice (Tensor): Lattice matrix of the periodic structure of shape `(batch, 3, 3)` .
-            - graph_id_node (Tensor): ID tensor of batch assignment in disjoint graph of shape `([N], )` .
-            - graph_id_edge (Tensor): ID tensor of batch assignment in disjoint graph of shape `([M], )` .
-            - graph_id_angle (Tensor): ID tensor of batch assignment in disjoint graph of shape `([K], )` .
-            - nodes_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
-            - edges_id (Tensor): The ID-tensor to assign each edge to its respective graph of shape `([M], )` .
-            - angle_id (Tensor): The ID-tensor to assign each edge to its respective graph of shape `([K], )` .
-            - nodes_count (Tensor): Tensor of number of nodes for each graph of shape `(batch, )` .
-            - edges_count (Tensor): Tensor of number of edges for each graph of shape `(batch, )` .
-            - angles_count (Tensor): Tensor of number of angles for each graph of shape `(batch, )` .
+    Returns:
+        list: List of Keras Tensors for disjoint model.
     """
     out_tensor = []
     out_batch_id = []

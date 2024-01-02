@@ -86,7 +86,9 @@ hyper = {
                     {'shape': (None, 3), 'name': "range_image", 'dtype': 'int64', 'ragged': True},
                     {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
                 ],
-                "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
+                "input_tensor_type": "ragged",
+                "input_embedding": None,
+                "input_node_embedding": {"input_dim": 95, "output_dim": 128},
                 "equiv_initialize_kwargs": {"dim": 3, "method": "eye"},
                 "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
                 "pooling_args": {"pooling_method": "mean"},

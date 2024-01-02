@@ -3,7 +3,8 @@ from ._model import model_disjoint
 from kgcnn.layers.modules import Input
 from kgcnn.models.utils import update_model_kwargs
 from kgcnn.layers.scale import get as get_scaler
-from kgcnn.models.casting import template_cast_output, template_cast_list_input
+from kgcnn.models.casting import (template_cast_output, template_cast_list_input,
+                                  template_cast_list_input_docs, template_cast_output_docs)
 from keras.backend import backend as backend_to_use
 
 # Keep track of model version from commit date in literature.
@@ -163,4 +164,4 @@ def make_model(inputs: list = None,
     return model
 
 
-make_model.__doc__ = make_model.__doc__ % (template_cast_list_input.__doc__, template_cast_output.__doc__)
+make_model.__doc__ = make_model.__doc__ % (template_cast_list_input_docs, template_cast_output_docs)

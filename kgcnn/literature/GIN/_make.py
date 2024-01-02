@@ -3,7 +3,8 @@ from ._model import model_disjoint, model_disjoint_edge
 from kgcnn.models.utils import update_model_kwargs
 from kgcnn.layers.scale import get as get_scaler
 from kgcnn.layers.modules import Input
-from kgcnn.models.casting import template_cast_output, template_cast_list_input
+from kgcnn.models.casting import (template_cast_output, template_cast_list_input,
+                                  template_cast_list_input_docs, template_cast_output_docs)
 from keras.backend import backend as backend_to_use
 from kgcnn.ops.activ import *
 
@@ -149,7 +150,7 @@ def make_model(inputs: list = None,
     return model
 
 
-make_model.__doc__ = make_model.__doc__ % (template_cast_list_input.__doc__, template_cast_output.__doc__)
+make_model.__doc__ = make_model.__doc__ % (template_cast_list_input_docs, template_cast_output_docs)
 
 model_default_edge = {
     "name": "GINE",
@@ -285,4 +286,4 @@ def make_model_edge(inputs: list = None,
     return model
 
 
-make_model_edge.__doc__ = make_model_edge.__doc__ % (template_cast_list_input.__doc__, template_cast_output.__doc__)
+make_model_edge.__doc__ = make_model_edge.__doc__ % (template_cast_list_input_docs, template_cast_output_docs)

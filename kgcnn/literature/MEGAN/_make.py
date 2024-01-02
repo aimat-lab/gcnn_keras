@@ -2,7 +2,8 @@ from ._model import MEGAN
 from kgcnn.models.utils import update_model_kwargs
 from kgcnn.layers.modules import Input
 from keras.backend import backend as backend_to_use
-from kgcnn.models.casting import template_cast_list_input, template_cast_output
+from kgcnn.models.casting import (template_cast_output, template_cast_list_input,
+                                  template_cast_list_input_docs, template_cast_output_docs)
 from kgcnn.ops.activ import *
 
 # Keep track of model version from commit date in literature.
@@ -213,3 +214,6 @@ def make_model(inputs: list = None,
     model.__kgcnn_model_version__ = __model_version__
 
     return model
+
+
+make_model.__doc__ = make_model.__doc__ % (template_cast_list_input_docs, template_cast_output_docs)

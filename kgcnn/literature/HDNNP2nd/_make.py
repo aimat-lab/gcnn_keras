@@ -2,7 +2,8 @@ import keras as ks
 from kgcnn.layers.scale import get as get_scaler
 from ._model import model_disjoint_weighted, model_disjoint_behler, model_disjoint_atom_wise
 from kgcnn.layers.modules import Input
-from kgcnn.models.casting import template_cast_output, template_cast_list_input
+from kgcnn.models.casting import (template_cast_output, template_cast_list_input,
+                                  template_cast_list_input_docs, template_cast_output_docs)
 from kgcnn.models.utils import update_model_kwargs
 from keras.backend import backend as backend_to_use
 
@@ -165,8 +166,7 @@ def make_model_weighted(inputs: list = None,
     return model
 
 
-make_model_weighted.__doc__ = make_model_weighted.__doc__ % (
-    template_cast_list_input.__doc__, template_cast_output.__doc__)
+make_model_weighted.__doc__ = make_model_weighted.__doc__ % (template_cast_list_input_docs, template_cast_output_docs)
 
 model_default_behler = {
     "name": "HDNNP2nd",
@@ -313,8 +313,7 @@ def make_model_behler(inputs: list = None,
     return model
 
 
-make_model_behler.__doc__ = make_model_behler.__doc__ % (
-    template_cast_list_input.__doc__, template_cast_output.__doc__)
+make_model_behler.__doc__ = make_model_behler.__doc__ % (template_cast_list_input_docs, template_cast_output_docs)
 
 model_default_atom_wise = {
     "name": "HDNNP2nd",
@@ -442,8 +441,7 @@ def make_model_atom_wise(inputs: list = None,
     return model
 
 
-make_model_atom_wise.__doc__ = make_model_atom_wise.__doc__ % (
-    template_cast_list_input.__doc__, template_cast_output.__doc__)
+make_model_atom_wise.__doc__ = make_model_atom_wise.__doc__ % (template_cast_list_input_docs, template_cast_output_docs)
 
 # For default, the weighted ACSF are used, since they do should in principle work for all elements.
 make_model = make_model_weighted
