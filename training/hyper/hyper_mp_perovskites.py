@@ -218,13 +218,14 @@ hyper = {
             "module_name": "kgcnn.literature.DimeNetPP",
             "config": {
                 "name": "DimeNetPP",
-                "inputs": [{"shape": [None], "name": "node_number", "dtype": "int64", "ragged": True},
-                           {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                           {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
-                           {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True},
-                           {'shape': (None, 3), 'name': "range_image", 'dtype': 'int64', 'ragged': True},
-                           {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
-                           ],
+                "inputs": [
+                    {"shape": [None], "name": "node_number", "dtype": "int64", "ragged": True},
+                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
+                    {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True},
+                    {'shape': (None, 3), 'name': "range_image", 'dtype': 'int64', 'ragged': True},
+                    {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
+                ],
                 "input_tensor_type": "ragged",
                 "input_embedding": None,
                 "input_node_embedding": {"input_dim": 95, "output_dim": 128,
