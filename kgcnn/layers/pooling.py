@@ -7,22 +7,48 @@ from kgcnn.layers.aggr import Aggregate
 
 
 class PoolingNodes(Layer):
+    r"""Main layer to pool node or edge attributes. Uses :obj:`Aggregate` layer."""
 
     def __init__(self, pooling_method="scatter_sum", **kwargs):
+        """Initialize layer.
+
+        Args:
+            pooling_method (str): Pooling method to use i.e. segment_function. Default is 'scatter_sum'.
+        """
         super(PoolingNodes, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self._to_aggregate = Aggregate(pooling_method=pooling_method)
 
     def build(self, input_shape):
+        """Build Layer."""
         self._to_aggregate.build([input_shape[1], input_shape[2], input_shape[0]])
         self.built = True
 
     def compute_output_shape(self, input_shape):
+        """Compute output shape."""
         return self._to_aggregate.compute_output_shape([input_shape[1], input_shape[2], input_shape[0]])
 
     def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs: [reference, attr, weights, batch_index]
+
+                - reference (Tensor): Reference for aggregation of shape `(batch, ...)` .
+                - attr (Tensor): Node or edge embeddings of shape `([N], F)` .
+                - batch_index (Tensor): Batch assignment of shape `([N], )` .
+
+        Returns:
+            Tensor: Embedding tensor of pooled node of shape `(batch, F)` .
+        """
         reference, x, idx = inputs
         return self._to_aggregate([x, idx, reference])
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(PoolingNodes, self).get_config()
+        config.update({"pooling_method": self.pooling_method})
+        return config
 
 
 class PoolingWeightedNodes(Layer):
@@ -52,7 +78,7 @@ class PoolingWeightedNodes(Layer):
         self.built = True
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
             inputs: [reference, attr, weights, batch_index]
