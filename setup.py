@@ -6,10 +6,10 @@ with open("README.md", "r", encoding="utf8") as fh:
 
 setup(
     name="kgcnn",
-    version="4.0.0",  # If version is updated, change version in `kgcnn.__init__` too. (and update changelog)
+    version="4.0.1",  # If version is updated, change version in `kgcnn.__init__` too. (and update changelog)
     author="Patrick Reiser",
     author_email="patrick.reiser@kit.edu",
-    description="General Base Layers for Graph Convolutions with tensorflow.keras",
+    description="General Base Layers for Graph Convolutions with Keras",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/aimat-lab/gcnn_keras",

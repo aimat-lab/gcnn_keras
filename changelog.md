@@ -1,3 +1,7 @@
+v4.0.1
+
+*
+
 v4.0.0
 
 Completely reworked version of kgcnn for Keras 3.0 and multi-backend support. A lot of fundamental changes have been made.

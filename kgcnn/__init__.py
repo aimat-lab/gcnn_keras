@@ -1,5 +1,5 @@
 # Main package version.
-__kgcnn_version__ = "4.0.0"
+__kgcnn_version__ = "4.0.1"
 
 # Global definition of index order and axis.
 __indices_axis__ = 0

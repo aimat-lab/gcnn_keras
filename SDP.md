@@ -9,7 +9,7 @@ Software Development Plan (SDP)
 * [x] Rework and clean base layers.
 * [ ] Add a properly designed transformer layer in ``kgcnn.layers`` .
 * [ ] Add an element-wise loader for ``Graphlist`` apart from tensor files. Must change dataformat for standard save.
-* [ ] Make a ``tf_dataset()`` function to return a generator dataset from `Graphlist` .
+* [x] Make a ``tf_dataset()`` function to return a generator dataset from `Graphlist` .
 * [ ] Add ``JARVISDataset`` . There is already a (yet not fully) port for `kgcnn` .
 * [ ] Add package wide Logger Level to change. 
 * [x] Training scripts need all seed for maximum reproducibility.
