@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import os
 from sklearn.model_selection import KFold
-from kgcnn.io.loader import tf_disjoint_list_generator
+from kgcnn.io.loader import tf_dataset_disjoint_generator
 # import typing as t
 from typing import Union, List, Callable, Dict, Optional
 # from collections.abc import MutableSequence
@@ -329,10 +329,18 @@ class MemoryGraphList(list):
     set = assign_property
     get = obtain_property
 
-    def tf_disjoint_data_generator(self, inputs, outputs, **kwargs):
-        assert isinstance(inputs, list), "Dictionary input is not yet implemented"
-        module_logger.info("Dataloader is experimental and does not have all features for in and output.")
-        return tf_disjoint_list_generator(self, inputs=inputs, outputs=outputs, **kwargs)
+    def tf_dataset_disjoint(self, inputs,  **kwargs):
+        r"""Return generator via :obj:`tf.data.Dataset` from this list.
+        Uses :obj:`kgcnn.io.loader.tf_dataset_disjoint_generator`
+
+        Args:
+            inputs:
+            kwargs: Kwargs for :obj:`tf_dataset_disjoint_generator`
+
+        Returns:
+            tf.data.Dataset: Dataset from generator.
+        """
+        return tf_dataset_disjoint_generator(self, inputs=inputs, **kwargs)
 
 
 class MemoryGraphDataset(MemoryGraphList):

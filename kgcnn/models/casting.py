@@ -55,8 +55,8 @@ def template_cast_output(model_outputs,
 
     # Output embedding choice
     if output_embedding == 'graph':
-        # Here we could also modify the behaviour for direct disjoint output to not remove padded ones,
-        # in case also the output is padded.
+        # Here we could also modify the behaviour for direct disjoint without removing the padding via
+        # remove_padded_disjoint_from_batched_output
         out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == 'node':
         if output_tensor_type in ["padded", "masked"]:
@@ -66,10 +66,10 @@ def template_cast_output(model_outputs,
                 out_node_shape = None
             out = CastDisjointToBatchedAttributes(static_output_shape=out_node_shape, **cast_disjoint_kwargs)(
                 [out, batch_id_node, node_id, count_nodes])
-        if output_tensor_type in ["ragged", "jagged"]:
+        elif output_tensor_type in ["ragged", "jagged"]:
             out = CastDisjointToRaggedAttributes()([out, batch_id_node, node_id, count_nodes])
         else:
-            out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
+            pass
     elif output_embedding == 'edge':
         if output_tensor_type in ["padded", "masked"]:
             if "static_batched_edge_output_shape" in cast_disjoint_kwargs:
@@ -78,10 +78,10 @@ def template_cast_output(model_outputs,
                 out_edge_shape = None
             out = CastDisjointToBatchedAttributes(static_output_shape=out_edge_shape, **cast_disjoint_kwargs)(
                 [out, batch_id_edge, edge_id, count_edges])
-        if output_tensor_type in ["ragged", "jagged"]:
+        elif output_tensor_type in ["ragged", "jagged"]:
             out = CastDisjointToRaggedAttributes()([out, batch_id_edge, edge_id, count_edges])
         else:
-            out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
+            pass
     else:
         raise NotImplementedError("Unknown output embedding choice.")
 

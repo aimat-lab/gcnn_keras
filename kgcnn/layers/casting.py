@@ -20,6 +20,7 @@ class _CastBatchedDisjointBase(Layer):
                  padded_disjoint: bool = False, uses_mask: bool = False,
                  static_batched_node_output_shape: tuple = None,
                  static_batched_edge_output_shape: tuple = None,
+                 remove_padded_disjoint_from_batched_output: bool = True,
                  **kwargs):
         r"""Initialize layer.
 
@@ -32,6 +33,8 @@ class _CastBatchedDisjointBase(Layer):
                 non-padded nodes from index 0. Default is False.
             static_batched_node_output_shape (tuple): Statical output shape of nodes. Default is None.
             static_batched_edge_output_shape (tuple): Statical output shape of edges. Default is None.
+            remove_padded_disjoint_from_batched_output (bool): Whether to remove the first element on batched output
+                in case of padding.
         """
         super(_CastBatchedDisjointBase, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
@@ -42,6 +45,7 @@ class _CastBatchedDisjointBase(Layer):
         self.supports_jit = padded_disjoint
         self.static_batched_node_output_shape = static_batched_node_output_shape
         self.static_batched_edge_output_shape = static_batched_edge_output_shape
+        self.remove_padded_disjoint_from_batched_output = remove_padded_disjoint_from_batched_output
 
     def get_config(self):
         """Get config dictionary for this layer."""
@@ -50,7 +54,9 @@ class _CastBatchedDisjointBase(Layer):
                        "dtype_index": self.dtype_index, "padded_disjoint": self.padded_disjoint,
                        "uses_mask": self.uses_mask,
                        "static_batched_node_output_shape": self.static_batched_node_output_shape,
-                       "static_batched_edge_output_shape": self.static_batched_edge_output_shape})
+                       "static_batched_edge_output_shape": self.static_batched_edge_output_shape,
+                       "remove_padded_disjoint_from_batched_output": self.remove_padded_disjoint_from_batched_output
+                       })
         return config
 
 
@@ -417,30 +423,25 @@ class CastDisjointToBatchedAttributes(_CastBatchedDisjointBase):
                 attr_id = ops.arange(0, ops.shape(graph_id_attr)[0], dtype=graph_id_attr.dtype)
                 attr_splits = ops.pad(ops.cumsum(attr_len), [[1, 0]])
                 attr_id = attr_id - repeat_static_length(attr_splits[:1], attr_len, ops.shape(graph_id_attr)[0])
-            output_shape = [target_shape[0]*target_shape[1]] + list(ops.shape(attr)[1:])
-            indices = graph_id_attr*ops.convert_to_tensor(target_shape[1], dtype=graph_id_attr.dtype) + ops.cast(
-                attr_id, dtype=graph_id_attr.dtype)
-            out = scatter_reduce_sum(indices, attr, output_shape)
-            out = ops.reshape(out, list(target_shape[:2]) + list(ops.shape(attr)[1:]))
-            if self.return_mask:
-                output_mask_shape = output_shape[:1]
-                out_mask = scatter_reduce_sum(indices, ops.ones(ops.shape(attr)[0], dtype="bool"), output_mask_shape)
-                out_mask = ops.reshape(out_mask, list(target_shape[:2]))
         else:
             if attr_id is None:
                 # Required because padded graphs in the general case can have padded nodes inbetween batches.
                 raise ValueError("Require sub-graph IDs in addition to batch IDs for padded disjoint graphs.")
-            output_shape = [(target_shape[0]+1)*target_shape[1]] + list(ops.shape(attr)[1:])
-            indices = graph_id_attr * ops.convert_to_tensor(target_shape[1], dtype=graph_id_attr.dtype) + ops.cast(
-                attr_id, dtype=graph_id_attr.dtype)
-            out = scatter_reduce_sum(indices, attr, output_shape)
-            out = out[target_shape[1]:]  # Because first actual graph is 1*size shifted.
-            out = ops.reshape(out, list(target_shape[:2]) + list(ops.shape(attr)[1:]))
+
+        output_shape = tuple([target_shape[0] * target_shape[1]] + list(ops.shape(attr)[1:]))
+        indices = graph_id_attr * ops.convert_to_tensor(target_shape[1], dtype=graph_id_attr.dtype) + ops.cast(
+            attr_id, dtype=graph_id_attr.dtype)
+        out = scatter_reduce_sum(indices, attr, output_shape)
+        out = ops.reshape(out, list(target_shape[:2]) + list(ops.shape(attr)[1:]))
+        if self.return_mask:
+            output_mask_shape = output_shape[:1]
+            out_mask = scatter_reduce_sum(indices, ops.ones(ops.shape(attr)[0], dtype="bool"), output_mask_shape)
+            out_mask = ops.reshape(out_mask, list(target_shape[:2]))
+
+        if self.padded_disjoint and self.remove_padded_disjoint_from_batched_output:
+            out = out[1:]
             if self.return_mask:
-                output_mask_shape = output_shape[:1]
-                out_mask = scatter_reduce_sum(indices, ops.ones(ops.shape(attr)[0], dtype="bool"), output_mask_shape)
-                out_mask = out_mask[target_shape[1]:]
-                out_mask = ops.reshape(out_mask, list(target_shape[:2]))
+                out_mask = out_mask[1:]
 
         if self.return_mask:
             return out, out_mask
@@ -471,7 +472,7 @@ class CastDisjointToBatchedGraphState(_CastBatchedDisjointBase):
         self.built = True
 
     def compute_output_shape(self, input_shape):
-        if self.padded_disjoint:
+        if self.padded_disjoint and self.remove_padded_disjoint_from_batched_output:
             if input_shape[0] is not None:
                 return tuple([input_shape[0] - 1] + list(input_shape[1:]))
         return input_shape
@@ -487,7 +488,7 @@ class CastDisjointToBatchedGraphState(_CastBatchedDisjointBase):
             Tensor: Graph labels of shape `(batch, ...)` .
         """
         # Simply remove first graph.
-        if self.padded_disjoint:
+        if self.padded_disjoint and self.remove_padded_disjoint_from_batched_output:
             return inputs[1:]
         return inputs
 
