@@ -18,9 +18,9 @@ setup(
         "keras>=3.0.0",
         # Backends
         "tf-nightly-cpu==2.16.0.dev20231103",
-        "torch>=2.1.0",
-        "torchvision>=0.16.0",
-        "jax[cpu]",
+        # "torch>=2.1.0",
+        # "torchvision>=0.16.0",
+        # "jax[cpu]",
         # "torchrec",
         "numpy>=1.23.0",
         "scikit-learn>=1.1.3",
