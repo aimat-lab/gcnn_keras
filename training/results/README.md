@@ -158,6 +158,7 @@ Materials Project dataset from Matbench with 4764 crystal structures and their c
 | DimeNetPP.make_crystal_model | 4.0.0   |      780 | 0.3415 &pm; 0.0542     | 1.9637 &pm; 0.6323     |
 | Megnet.make_crystal_model    | 4.0.0   |     1000 | 0.3362 &pm; 0.0550     | 2.0156 &pm; 0.5872     |
 | NMPN.make_crystal_model      | 4.0.0   |      700 | 0.3289 &pm; 0.0489     | 1.8770 &pm; 0.6522     |
+| PAiNN.make_crystal_model     | 4.0.0   |      800 | 0.3539 &pm; 0.0433     | 1.8661 &pm; 0.5984     |
 | Schnet.make_crystal_model    | 4.0.0   |      800 | **0.3180 &pm; 0.0359** | **1.8509 &pm; 0.5854** |
 
 #### MatProjectEFormDataset
@@ -203,6 +204,7 @@ Materials Project dataset from Matbench with 10987 crystal structures and their 
 
 | model                     | kgcnn   |   epochs | MAE [log(GPa)]         | RMSE [log(GPa)]        |
 |:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model  | 4.0.0   |     1000 | 0.0874 &pm; 0.0022     | 0.1354 &pm; 0.0056     |
 | Schnet.make_crystal_model | 4.0.0   |      800 | **0.0836 &pm; 0.0021** | **0.1296 &pm; 0.0044** |
 
 #### MatProjectLogKVRHDataset
@@ -217,17 +219,27 @@ Materials Project dataset from Matbench with 10987 crystal structures and their 
 
 Materials Project dataset from Matbench with 18928 crystal structures and their corresponding Heat of formation of the entire 5-atom perovskite cell in eV. We use a random 5-fold cross-validation. 
 
-| model                     | kgcnn   |   epochs | MAE [eV]               | RMSE [eV]              |
-|:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
-| Schnet.make_crystal_model | 4.0.0   |      800 | **0.0381 &pm; 0.0005** | **0.0645 &pm; 0.0024** |
+| model                        | kgcnn   |   epochs | MAE [eV]               | RMSE [eV]              |
+|:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model     | 4.0.0   |     1000 | 0.0425 &pm; 0.0011     | 0.0712 &pm; 0.0037     |
+| DimeNetPP.make_crystal_model | 4.0.0   |      780 | 0.0447 &pm; 0.0016     | 0.0730 &pm; 0.0050     |
+| Megnet.make_crystal_model    | 4.0.0   |     1000 | 0.0388 &pm; 0.0017     | 0.0675 &pm; 0.0041     |
+| NMPN.make_crystal_model      | 4.0.0   |      700 | **0.0381 &pm; 0.0009** | 0.0652 &pm; 0.0029     |
+| PAiNN.make_crystal_model     | 4.0.0   |      800 | 0.0474 &pm; 0.0003     | 0.0762 &pm; 0.0017     |
+| Schnet.make_crystal_model    | 4.0.0   |      800 | 0.0381 &pm; 0.0005     | **0.0645 &pm; 0.0024** |
 
 #### MatProjectPhononsDataset
 
 Materials Project dataset from Matbench with 1,265 crystal structures and their corresponding vibration properties in [1/cm]. We use a random 5-fold cross-validation. 
 
-| model                     | kgcnn   |   epochs | MAE [eV/atom]           | RMSE [eV/atom]           |
-|:--------------------------|:--------|---------:|:------------------------|:-------------------------|
-| Schnet.make_crystal_model | 4.0.0   |      800 | **43.0692 &pm; 3.6227** | **88.5151 &pm; 20.0244** |
+| model                        | kgcnn   |   epochs | MAE [eV/atom]           | RMSE [eV/atom]           |
+|:-----------------------------|:--------|---------:|:------------------------|:-------------------------|
+| CGCNN.make_crystal_model     | 4.0.0   |     1000 | 42.6447 &pm; 4.5721     | 92.1627 &pm; 21.4345     |
+| DimeNetPP.make_crystal_model | 4.0.0   |      780 | 39.8893 &pm; 3.1280     | 77.5776 &pm; 16.0908     |
+| Megnet.make_crystal_model    | 4.0.0   |     1000 | **30.6620 &pm; 2.9013** | **60.8733 &pm; 17.1448** |
+| NMPN.make_crystal_model      | 4.0.0   |      700 | 45.9344 &pm; 5.7908     | 95.4136 &pm; 35.5401     |
+| PAiNN.make_crystal_model     | 4.0.0   |      800 | 47.5408 &pm; 4.2815     | 86.6761 &pm; 11.9220     |
+| Schnet.make_crystal_model    | 4.0.0   |      800 | 43.0692 &pm; 3.6227     | 88.5151 &pm; 20.0244     |
 
 #### MUTAGDataset
 
@@ -286,9 +298,10 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 
 QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels include geometric, energetic, electronic, and thermodynamic properties. We use a random 5-fold cross-validation, but not all splits are evaluated for cheaper evaluation. Test errors are MAE and for energies are given in [eV]. 
 
-| model   | kgcnn   |   epochs | HOMO [eV]              | LUMO [eV]              | U0 [eV]                | H [eV]                 | G [eV]                 |
-|:--------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|:-----------------------|
-| Schnet  | 4.0.0   |      800 | **0.0402 &pm; 0.0007** | **0.0340 &pm; 0.0001** | **0.0142 &pm; 0.0002** | **0.0146 &pm; 0.0002** | **0.0143 &pm; 0.0002** |
+| model   | kgcnn   |   epochs | HOMO [eV]              | LUMO [eV]              | U0 [eV]                | H [eV]                 | G [eV]             |
+|:--------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|:-------------------|
+| PAiNN   | 4.0.0   |      872 | 0.0483 &pm; 0.0275     | **0.0268 &pm; 0.0002** | **0.0099 &pm; 0.0003** | **0.0101 &pm; 0.0003** | **nan &pm; nan**   |
+| Schnet  | 4.0.0   |      800 | **0.0402 &pm; 0.0007** | 0.0340 &pm; 0.0001     | 0.0142 &pm; 0.0002     | 0.0146 &pm; 0.0002     | 0.0143 &pm; 0.0002 |
 
 #### SIDERDataset
 
