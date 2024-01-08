@@ -294,11 +294,10 @@ You can find a [table](training/results/README.md) of common benchmark datasets 
 # Issues
 
 Some known issues to be aware of, if using and making new models or layers with `kgcnn`.
-* Jagged or nested Tensors loading into models for PyTorch backend is not working.  
-* Dataloader for Jax is implemented but does not provide all functionalities like output padding or dictionary inputs.
-* ForceModel does not support all tensor types and does not have Scaler layer yet.
+* Jagged or nested Tensors loading into models for PyTorch backend is not working.
+* ForceModel does not support all backends and does not have Scaler layer yet.
 * BatchNormalization layer dos not support padding yet.
-
+* Keras AUC metric does not seem to work for torch cuda.
 
 <a name="citing"></a>
 # Citing
