@@ -116,7 +116,7 @@ hyper = {
             },
             "scaler": {
                 "class_name": "StandardLabelScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "module_name": "kgcnn.data.transform.scaler.standard",
                 "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
@@ -189,7 +189,7 @@ hyper = {
             },
             "scaler": {
                 "class_name": "StandardLabelScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "module_name": "kgcnn.data.transform.scaler.standard",
                 "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
@@ -267,7 +267,7 @@ hyper = {
             },
             "scaler": {
                 "class_name": "StandardLabelScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "module_name": "kgcnn.data.transform.scaler.standard",
                 "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
@@ -341,7 +341,7 @@ hyper = {
             },
             "scaler": {
                 "class_name": "StandardLabelScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "module_name": "kgcnn.data.transform.scaler.standard",
                 "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
