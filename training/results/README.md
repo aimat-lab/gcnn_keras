@@ -135,10 +135,10 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels f
 
 Energies and forces for molecular dynamics trajectories of eight organic molecules. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. Results are for the CCSD and CCSD(T) data in MD17. 
 
-| model                   | kgcnn   |   epochs | Aspirin          | Toluene          | Malonaldehyde    | Benzene          | Ethanol             |
-|:------------------------|:--------|---------:|:-----------------|:-----------------|:-----------------|:-----------------|:--------------------|
-| PAiNN.EnergyForceModel  | 4.0.0   |     1000 | **nan &pm; nan** | **nan &pm; nan** | **nan &pm; nan** | **nan &pm; nan** | 0.5805 &pm; nan     |
-| Schnet.EnergyForceModel | 4.0.0   |     1000 | 1.2173 &pm; nan  | 0.7395 &pm; nan  | 0.8444 &pm; nan  | 0.3353 &pm; nan  | **0.4832 &pm; nan** |
+| model                   | kgcnn   |   epochs | Aspirin          | Toluene             | Malonaldehyde    | Benzene          | Ethanol             |
+|:------------------------|:--------|---------:|:-----------------|:--------------------|:-----------------|:-----------------|:--------------------|
+| PAiNN.EnergyForceModel  | 4.0.0   |     1000 | **nan &pm; nan** | **0.2815 &pm; nan** | **nan &pm; nan** | **nan &pm; nan** | 0.5805 &pm; nan     |
+| Schnet.EnergyForceModel | 4.0.0   |     1000 | 1.2173 &pm; nan  | 0.7395 &pm; nan     | 0.8444 &pm; nan  | 0.3353 &pm; nan  | **0.4832 &pm; nan** |
 
 #### MD17RevisedDataset
 
@@ -183,6 +183,7 @@ Materials Project dataset from Matbench with 106113 crystal structures and their
 
 | model                     | kgcnn   |   epochs | Accuracy               | AUC                    |
 |:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model  | 4.0.0   |      100 | 0.8910 &pm; 0.0027     | 0.9406 &pm; 0.0024     |
 | Schnet.make_crystal_model | 4.0.0   |       80 | **0.8953 &pm; 0.0058** | **0.9506 &pm; 0.0053** |
 
 #### MatProjectJdft2dDataset
@@ -202,18 +203,27 @@ Materials Project dataset from Matbench with 636 crystal structures and their co
 
 Materials Project dataset from Matbench with 10987 crystal structures and their corresponding Base 10 logarithm of the DFT Voigt-Reuss-Hill average shear moduli in GPa. We use a random 5-fold cross-validation. 
 
-| model                     | kgcnn   |   epochs | MAE [log(GPa)]         | RMSE [log(GPa)]        |
-|:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
-| CGCNN.make_crystal_model  | 4.0.0   |     1000 | 0.0874 &pm; 0.0022     | 0.1354 &pm; 0.0056     |
-| Schnet.make_crystal_model | 4.0.0   |      800 | **0.0836 &pm; 0.0021** | **0.1296 &pm; 0.0044** |
+| model                        | kgcnn   |   epochs | MAE [log(GPa)]         | RMSE [log(GPa)]        |
+|:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model     | 4.0.0   |     1000 | 0.0874 &pm; 0.0022     | 0.1354 &pm; 0.0056     |
+| DimeNetPP.make_crystal_model | 4.0.0   |      780 | 0.0839 &pm; 0.0027     | **0.1290 &pm; 0.0065** |
+| Megnet.make_crystal_model    | 4.0.0   |     1000 | 0.0885 &pm; 0.0017     | 0.1360 &pm; 0.0054     |
+| NMPN.make_crystal_model      | 4.0.0   |      700 | 0.0874 &pm; 0.0027     | 0.1324 &pm; 0.0045     |
+| PAiNN.make_crystal_model     | 4.0.0   |      800 | 0.0870 &pm; 0.0033     | 0.1332 &pm; 0.0103     |
+| Schnet.make_crystal_model    | 4.0.0   |      800 | **0.0836 &pm; 0.0021** | 0.1296 &pm; 0.0044     |
 
 #### MatProjectLogKVRHDataset
 
 Materials Project dataset from Matbench with 10987 crystal structures and their corresponding Base 10 logarithm of the DFT Voigt-Reuss-Hill average bulk moduli in GPa. We use a random 5-fold cross-validation. 
 
-| model                     | kgcnn   |   epochs | MAE [log(GPa)]         | RMSE [log(GPa)]        |
-|:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
-| Schnet.make_crystal_model | 4.0.0   |      800 | **0.0635 &pm; 0.0016** | **0.1186 &pm; 0.0044** |
+| model                        | kgcnn   |   epochs | MAE [log(GPa)]         | RMSE [log(GPa)]        |
+|:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model     | 4.0.0   |     1000 | 0.0672 &pm; 0.0012     | 0.1265 &pm; 0.0042     |
+| DimeNetPP.make_crystal_model | 4.0.0   |      780 | **0.0604 &pm; 0.0023** | **0.1141 &pm; 0.0055** |
+| Megnet.make_crystal_model    | 4.0.0   |     1000 | 0.0686 &pm; 0.0016     | 0.1285 &pm; 0.0061     |
+| NMPN.make_crystal_model      | 4.0.0   |      700 | 0.0688 &pm; 0.0009     | 0.1262 &pm; 0.0031     |
+| PAiNN.make_crystal_model     | 4.0.0   |      800 | 0.0649 &pm; 0.0007     | 0.1170 &pm; 0.0048     |
+| Schnet.make_crystal_model    | 4.0.0   |      800 | 0.0635 &pm; 0.0016     | 0.1186 &pm; 0.0044     |
 
 #### MatProjectPerovskitesDataset
 
@@ -298,10 +308,10 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 
 QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels include geometric, energetic, electronic, and thermodynamic properties. We use a random 5-fold cross-validation, but not all splits are evaluated for cheaper evaluation. Test errors are MAE and for energies are given in [eV]. 
 
-| model   | kgcnn   |   epochs | HOMO [eV]              | LUMO [eV]              | U0 [eV]                | H [eV]                 | G [eV]             |
-|:--------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|:-------------------|
-| PAiNN   | 4.0.0   |      872 | 0.0483 &pm; 0.0275     | **0.0268 &pm; 0.0002** | **0.0099 &pm; 0.0003** | **0.0101 &pm; 0.0003** | **nan &pm; nan**   |
-| Schnet  | 4.0.0   |      800 | **0.0402 &pm; 0.0007** | 0.0340 &pm; 0.0001     | 0.0142 &pm; 0.0002     | 0.0146 &pm; 0.0002     | 0.0143 &pm; 0.0002 |
+| model   | kgcnn   |   epochs | HOMO [eV]              | LUMO [eV]              | U0 [eV]                | H [eV]                 | G [eV]                 |
+|:--------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|:-----------------------|
+| PAiNN   | 4.0.0   |      872 | 0.0483 &pm; 0.0275     | **0.0268 &pm; 0.0002** | **0.0099 &pm; 0.0003** | **0.0101 &pm; 0.0003** | **0.0110 &pm; 0.0002** |
+| Schnet  | 4.0.0   |      800 | **0.0402 &pm; 0.0007** | 0.0340 &pm; 0.0001     | 0.0142 &pm; 0.0002     | 0.0146 &pm; 0.0002     | 0.0143 &pm; 0.0002     |
 
 #### SIDERDataset
 

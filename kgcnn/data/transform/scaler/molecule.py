@@ -524,7 +524,7 @@ class ExtensiveMolecularLabelScaler(_ExtensiveMolecularScalerBase):
             molecular_property=y, sample_weight=sample_weight, atomic_number=atomic_number)
 
     # noinspection PyPep8Naming
-    def transform(self, y=None, *, X, copy=True, atomic_number=None):
+    def transform(self, y=None, *, X=None, copy=True, atomic_number=None):
         """Transform any atomic number list with matching labels based on previous fit with sequential std-scaling.
 
         Args:

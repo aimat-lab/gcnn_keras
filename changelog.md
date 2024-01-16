@@ -1,6 +1,8 @@
 v4.0.1
 
-*
+* Fix Error in ``ExtensiveMolecularLabelScaler.transform`` missing default value.
+* Added further benchmark results for kgcnn version 4.
+
 
 v4.0.0
 
