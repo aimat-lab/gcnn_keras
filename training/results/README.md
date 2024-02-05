@@ -67,6 +67,7 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 | GIN         | 4.0.0   |      300 | 0.5369 &pm; 0.0334     | 0.7954 &pm; 0.0861     |
 | GNNFilm     | 4.0.0   |      800 | 0.4854 &pm; 0.0368     | 0.6724 &pm; 0.0436     |
 | GraphSAGE   | 4.0.0   |      500 | 0.4874 &pm; 0.0228     | 0.6982 &pm; 0.0608     |
+| HamNet      | 4.0.0   |      400 | 0.5479 &pm; 0.0143     | 0.7417 &pm; 0.0298     |
 | HDNNP2nd    | 4.0.0   |      500 | 0.7857 &pm; 0.0986     | 1.0467 &pm; 0.1367     |
 | INorp       | 4.0.0   |      500 | 0.5055 &pm; 0.0436     | 0.7297 &pm; 0.0786     |
 | MAT         | 4.0.0   |      400 | 0.5064 &pm; 0.0299     | 0.7194 &pm; 0.0630     |
@@ -135,10 +136,10 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels f
 
 Energies and forces for molecular dynamics trajectories of eight organic molecules. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. Results are for the CCSD and CCSD(T) data in MD17. 
 
-| model                   | kgcnn   |   epochs | Aspirin          | Toluene             | Malonaldehyde    | Benzene          | Ethanol             |
-|:------------------------|:--------|---------:|:-----------------|:--------------------|:-----------------|:-----------------|:--------------------|
-| PAiNN.EnergyForceModel  | 4.0.0   |     1000 | **nan &pm; nan** | **0.2815 &pm; nan** | **nan &pm; nan** | **nan &pm; nan** | 0.5805 &pm; nan     |
-| Schnet.EnergyForceModel | 4.0.0   |     1000 | 1.2173 &pm; nan  | 0.7395 &pm; nan     | 0.8444 &pm; nan  | 0.3353 &pm; nan  | **0.4832 &pm; nan** |
+| model                   | kgcnn   |   epochs | Aspirin             | Toluene             | Malonaldehyde       | Benzene             | Ethanol             |
+|:------------------------|:--------|---------:|:--------------------|:--------------------|:--------------------|:--------------------|:--------------------|
+| PAiNN.EnergyForceModel  | 4.0.0   |     1000 | **0.8551 &pm; nan** | **0.2815 &pm; nan** | **0.7749 &pm; nan** | **0.0427 &pm; nan** | 0.5805 &pm; nan     |
+| Schnet.EnergyForceModel | 4.0.0   |     1000 | 1.2173 &pm; nan     | 0.7395 &pm; nan     | 0.8444 &pm; nan     | 0.3353 &pm; nan     | **0.4832 &pm; nan** |
 
 #### MD17RevisedDataset
 
@@ -173,9 +174,10 @@ Materials Project dataset from Matbench with 132752 crystal structures and their
 
 Materials Project dataset from Matbench with 106113 crystal structures and their band gap as calculated by PBE DFT from the Materials Project, in eV. We use a random 5-fold cross-validation. 
 
-| model                     | kgcnn   |   epochs | MAE [eV]               | RMSE [eV]                 |
-|:--------------------------|:--------|---------:|:-----------------------|:--------------------------|
-| Schnet.make_crystal_model | 4.0.0   |      800 | **1.2226 &pm; 1.0573** | **58.3713 &pm; 114.2957** |
+| model                     | kgcnn   |   epochs | MAE [eV]               | RMSE [eV]              |
+|:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model  | 4.0.0   |     1000 | **0.2039 &pm; 0.0050** | **0.4882 &pm; 0.0213** |
+| Schnet.make_crystal_model | 4.0.0   |      800 | 1.2226 &pm; 1.0573     | 58.3713 &pm; 114.2957  |
 
 #### MatProjectIsMetalDataset
 
@@ -184,7 +186,8 @@ Materials Project dataset from Matbench with 106113 crystal structures and their
 | model                     | kgcnn   |   epochs | Accuracy               | AUC                    |
 |:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
 | CGCNN.make_crystal_model  | 4.0.0   |      100 | 0.8910 &pm; 0.0027     | 0.9406 &pm; 0.0024     |
-| Schnet.make_crystal_model | 4.0.0   |       80 | **0.8953 &pm; 0.0058** | **0.9506 &pm; 0.0053** |
+| Megnet.make_crystal_model | 4.0.0   |      100 | **0.8966 &pm; 0.0033** | **0.9506 &pm; 0.0026** |
+| Schnet.make_crystal_model | 4.0.0   |       80 | 0.8953 &pm; 0.0058     | 0.9506 &pm; 0.0053     |
 
 #### MatProjectJdft2dDataset
 
@@ -308,10 +311,11 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 
 QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels include geometric, energetic, electronic, and thermodynamic properties. We use a random 5-fold cross-validation, but not all splits are evaluated for cheaper evaluation. Test errors are MAE and for energies are given in [eV]. 
 
-| model   | kgcnn   |   epochs | HOMO [eV]              | LUMO [eV]              | U0 [eV]                | H [eV]                 | G [eV]                 |
-|:--------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|:-----------------------|
-| PAiNN   | 4.0.0   |      872 | 0.0483 &pm; 0.0275     | **0.0268 &pm; 0.0002** | **0.0099 &pm; 0.0003** | **0.0101 &pm; 0.0003** | **0.0110 &pm; 0.0002** |
-| Schnet  | 4.0.0   |      800 | **0.0402 &pm; 0.0007** | 0.0340 &pm; 0.0001     | 0.0142 &pm; 0.0002     | 0.0146 &pm; 0.0002     | 0.0143 &pm; 0.0002     |
+| model   | kgcnn   |   epochs | HOMO [eV]          | LUMO [eV]              | U0 [eV]            | H [eV]             | G [eV]                 |
+|:--------|:--------|---------:|:-------------------|:-----------------------|:-------------------|:-------------------|:-----------------------|
+| Megnet  | 4.0.0   |      800 | **nan &pm; nan**   | 0.0407 &pm; 0.0009     | **nan &pm; nan**   | **nan &pm; nan**   | 0.0169 &pm; 0.0006     |
+| PAiNN   | 4.0.0   |      872 | 0.0483 &pm; 0.0275 | **0.0268 &pm; 0.0002** | 0.0099 &pm; 0.0003 | 0.0101 &pm; 0.0003 | **0.0110 &pm; 0.0002** |
+| Schnet  | 4.0.0   |      800 | 0.0402 &pm; 0.0007 | 0.0340 &pm; 0.0001     | 0.0142 &pm; 0.0002 | 0.0146 &pm; 0.0002 | 0.0143 &pm; 0.0002     |
 
 #### SIDERDataset
 

@@ -364,9 +364,9 @@ hyper = {
                     {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
                     {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},
                     {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
+                    {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True},
                     {"shape": [None, 2], "name": "angle_indices_1", "dtype": "int64", "ragged": True},
-                    {"shape": [None, 2], "name": "angle_indices_2", "dtype": "int64", "ragged": True},
-                    {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}
+                    {"shape": [None, 2], "name": "angle_indices_2", "dtype": "int64", "ragged": True}
                 ],
                 "input_tensor_type": "ragged",
                 "input_embedding": None,
@@ -460,7 +460,7 @@ hyper = {
                 "input_edge_embedding": {"input_dim": 95, "output_dim": 128},
                 "depth": 7,
                 "node_mlp_initialize": {"units": 128, "activation": "linear"},
-                "euclidean_norm_kwargs": {"keepdims": True, "axis": 2, "square_norm": True},
+                "euclidean_norm_kwargs": {"keepdims": True, "axis": 1, "square_norm": True},
                 "use_edge_attributes": False,
                 "edge_mlp_kwargs": {"units": [128, 128], "activation": ["swish", "swish"]},
                 "edge_attention_kwargs": {"units": 1, "activation": "sigmoid"},

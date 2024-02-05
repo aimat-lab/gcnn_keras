@@ -1,0 +1,58 @@
+OS: posix_linux
+backend: tensorflow
+cuda_available: 'True'
+data_unit: ''
+date_time: '2024-02-03 06:14:04'
+device_id: '[LogicalDevice(name=''/device:CPU:0'', device_type=''CPU''), LogicalDevice(name=''/device:GPU:0'',
+  device_type=''GPU'')]'
+device_memory: '[]'
+device_name: '[{}, {''compute_capability'': (7, 0), ''device_name'': ''Tesla V100-SXM2-32GB''}]'
+energy_scaled_mean_absolute_error:
+- 0.006360400002449751
+epochs:
+- 1000
+execute_folds: null
+force_scaled_mean_absolute_error:
+- 0.02935820259153843
+kgcnn_version: 4.0.0
+loss:
+- 0.01170190330594778
+max_energy_scaled_mean_absolute_error:
+- 10.103582382202148
+max_force_scaled_mean_absolute_error:
+- 12.756863594055176
+max_loss:
+- 5.149803638458252
+max_val_energy_scaled_mean_absolute_error:
+- 23.537092208862305
+max_val_force_scaled_mean_absolute_error:
+- 6.165292739868164
+max_val_loss:
+- 2.6731419563293457
+min_energy_scaled_mean_absolute_error:
+- 0.006335231009870768
+min_force_scaled_mean_absolute_error:
+- 0.02935820259153843
+min_loss:
+- 0.01170190330594778
+min_val_energy_scaled_mean_absolute_error:
+- 0.006716604344546795
+min_val_force_scaled_mean_absolute_error:
+- 0.04271000623703003
+min_val_loss:
+- 0.01723838970065117
+model_class: EnergyForceModel
+model_name: PAiNN
+model_version: ''
+multi_target_indices: null
+number_histories: 1
+seed: 42
+time_list:
+- '0:17:39.003485'
+trajectory_name: benzene_ccsd_t
+val_energy_scaled_mean_absolute_error:
+- 0.006726829335093498
+val_force_scaled_mean_absolute_error:
+- 0.04271000623703003
+val_loss:
+- 0.01723838970065117
