@@ -451,7 +451,7 @@ hyper = {
                 "inputs": [
                     {"shape": (None, 15), "name": "node_attributes", "dtype": "float32", "ragged": True},
                     {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                    {"shape": (None, 1), "name": "range_attributes", "dtype": "int64", "ragged": True},
+                    {"shape": (None, 1), "name": "range_attributes", "dtype": "float32", "ragged": True},
                     {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}
                 ],
                 "input_tensor_type": "ragged",
