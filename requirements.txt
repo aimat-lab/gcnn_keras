@@ -1,6 +1,6 @@
 keras>=3.0.0
 torch>=2.1.0
-tensorflow>=2.15
+tf-nightly-cpu==2.16.0.dev20240101
 torchvision>=0.16.0
 jax[cpu]
 numpy>=1.23.0
