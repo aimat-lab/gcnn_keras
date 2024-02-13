@@ -17,7 +17,7 @@ setup(
         # "dm-tree",
         "keras>=3.0.0",
         # Backends
-        "tf-nightly-cpu==2.16.0.dev20231103",
+        # "tf-nightly-cpu==2.16.0.dev20231103",
         # "torch>=2.1.0",
         # "torchvision>=0.16.0",
         # "jax[cpu]",
