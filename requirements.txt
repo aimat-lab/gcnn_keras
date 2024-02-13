@@ -1,5 +1,6 @@
 keras>=3.0.0
 torch>=2.1.0
+tensorflow>=2.15
 torchvision>=0.16.0
 jax[cpu]
 numpy>=1.23.0
@@ -17,5 +18,5 @@ sympy>=1.11.1
 ase>=3.22.1
 click>=7.1.2
 brotli>=1.0.9
-pyxtal>=0.5.5
+# pyxtal>=0.5.5
 h5py>=3.9.0
