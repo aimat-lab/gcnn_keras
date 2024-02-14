@@ -57,7 +57,7 @@ model_default = {
 @update_model_kwargs(model_default, update_recursive=0, deprecated=["input_embedding", "output_to_tensor"])
 def make_model(name: str = None,
                inputs: list = None,
-               input_embedding: dict = None,  # noqa
+               input_embedding: dict = None,
                input_node_embedding: dict = None,
                input_tensor_type: str = None,
                input_edge_embedding: dict = None,
@@ -69,10 +69,10 @@ def make_model(name: str = None,
                depth: int = None,
                heads: int = None,
                merge_heads: str = None,
-               verbose: int = None,  # noqa
+               verbose: int = None,
                pooling_kwargs: dict = None,
                output_embedding: str = None,
-               output_to_tensor: bool = None,  # noqa
+               output_to_tensor: bool = None,
                output_mlp: dict = None,
                output_tensor_type: str = None
                ):

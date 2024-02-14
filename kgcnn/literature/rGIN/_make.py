@@ -51,17 +51,17 @@ model_default = {
 def make_model(inputs: list = None,
                input_tensor_type: str = None,
                cast_disjoint_kwargs: dict = None,
-               input_embedding: dict = None,  # noqa
+               input_embedding: dict = None,
                input_node_embedding: dict = None,
                depth: int = None,
                rgin_args: dict = None,
                gin_mlp: dict = None,
                last_mlp: dict = None,
                dropout: float = None,
-               name: str = None,  # noqa
-               verbose: int = None,  # noqa
+               name: str = None,
+               verbose: int = None,
                output_embedding: str = None,
-               output_to_tensor: bool = None,  # noqa
+               output_to_tensor: bool = None,
                output_mlp: dict = None,
                output_scaling: dict = None,
                output_tensor_type: str = None,
@@ -104,7 +104,6 @@ def make_model(inputs: list = None,
     Returns:
         :obj:`keras.models.Model`
     """
-    # Make input
     # Make input
     model_inputs = [Input(**x) for x in inputs]
 

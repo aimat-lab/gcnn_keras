@@ -71,27 +71,27 @@ def make_model(name: str = None,
                inputs: list = None,
                input_tensor_type: str = None,
                cast_disjoint_kwargs: dict = None,
-               input_embedding: dict = None,  # noqa
+               input_embedding: dict = None,
                input_node_embedding: dict = None,
                input_edge_embedding: dict = None,
                input_graph_embedding: dict = None,
                pooling_args: dict = None,
                edge_initialize: dict = None,
                edge_dense: dict = None,
-               node_dense: dict = None,  # noqa
+               node_dense: dict = None,
                edge_activation: dict = None,
-               dropoutDMPNN: dict = None,  # noqa
-               dropoutGIN: dict = None,  # noqa
-               depthDMPNN: int = None,  # noqa
-               depthGIN: int = None,  # noqa
+               dropoutDMPNN: dict = None,
+               dropoutGIN: dict = None,
+               depthDMPNN: int = None,
+               depthGIN: int = None,
                gin_args: dict = None,
                gin_mlp: dict = None,
                last_mlp: dict = None,
-               verbose: int = None,  # noqa
+               verbose: int = None,
                node_pooling_kwargs: dict = None,
                use_graph_state: bool = False,
                output_embedding: str = None,
-               output_to_tensor: bool = None,  # noqa
+               output_to_tensor: bool = None,
                output_tensor_type: str = None,
                output_mlp: dict = None,
                output_scaling: dict = None
@@ -125,6 +125,7 @@ def make_model(name: str = None,
         pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`AggregateLocalEdges` layers.
         edge_initialize (dict): Dictionary of layer arguments unpacked in :obj:`Dense` layer for first edge embedding.
         edge_dense (dict): Dictionary of layer arguments unpacked in :obj:`Dense` layer for edge embedding.
+        node_dense (dict): Dictionary of layer arguments unpacked in :obj:`Dense` layer for node embedding.
         edge_activation (dict): Edge Activation after skip connection.
         depthDMPNN (int): Number of graph embedding units or depth of the DMPNN subnetwork.
         depthGIN (int): Number of graph embedding units or depth of the GIN subnetwork.
