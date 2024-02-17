@@ -135,19 +135,25 @@ for current_split, (train_index, test_index) in enumerate(train_test_indices):
         # Save scaler to file
         scaler.save(os.path.join(filepath, f"scaler{postfix_file}_fold_{current_split}"))
 
-    # Compile model with optimizer and loss from hyperparameter.
-    # The metrics from this script is added to the hyperparameter entry for metrics.
-    model.compile(**hyper.compile(metrics=scaled_metrics))
-
-    # Model summary
-    model.summary()
-    print(" Compiled with jit: %s" % model._jit_compile)  # noqa
-
     # Pick train/test data.
     x_train = dataset_train.tensor(hyper["model"]["config"]["inputs"])
     y_train = np.array(dataset_train.get("graph_labels"))
     x_test = dataset_test.tensor(hyper["model"]["config"]["inputs"])
     y_test = np.array(dataset_test.get("graph_labels"))
+
+    # Compile model with optimizer and loss from hyperparameter.
+    # The metrics from this script is added to the hyperparameter entry for metrics.
+    model.compile(**hyper.compile(metrics=scaled_metrics))
+
+    # Build model with reasonable data.
+    model.predict(x_test)
+    model._compile_metrics.build(y_test, y_test)
+    model._compile_loss.build(y_test, y_test)
+
+    # Model summary
+    model.summary()
+    print(" Compiled with jit: %s" % model._jit_compile)  # noqa
+    print(" Model is built: %s" % all([layer.built for layer in model._flatten_layers()]))  # noqa
 
     # Run keras model-fit and take time for training.
     start = time.time()

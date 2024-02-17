@@ -30,7 +30,7 @@ class MEGAN(ks.models.Model):
     def __init__(self,
                  # convolutional network related arguments
                  units: List[int],
-                 activation: str = "kgcnn>leaky_relu",
+                 activation: str = "kgcnn>leaky_relu2",
                  use_bias: bool = True,
                  dropout_rate: float = 0.0,
                  use_edge_features: bool = True,
@@ -100,6 +100,10 @@ class MEGAN(ks.models.Model):
                 (output, node importances, edge importances), otherwise it is just the output itself
         """
         super().__init__()
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default. Also renames to prevent clashes with keras leaky_relu.
+        if activation in ["kgcnn>leaky_relu", "kgcnn>leaky_relu2"]:
+            activation = {"class_name": "function", "config": "kgcnn>leaky_relu2"}
         self.units = units
         self.activation = activation
         self.use_bias = use_bias

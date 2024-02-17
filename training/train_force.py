@@ -22,7 +22,7 @@ from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_md17.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="PAiNN.EnergyForceModel")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet.EnergyForceModel")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
@@ -148,6 +148,10 @@ for current_split, (train_index, test_index) in enumerate(train_test_indices):
     x_train = dataset_train.tensor(hyper["model"]["config"]["inputs"])
     x_test = dataset_test.tensor(hyper["model"]["config"]["inputs"])
 
+    # Convert targets into tensors.
+    y_train = dataset_train.tensor(hyper["model"]["config"]["outputs"])
+    y_test = dataset_test.tensor(hyper["model"]["config"]["outputs"])
+
     # Compile model with optimizer and loss
     model.compile(**hyper.compile(
         loss={
@@ -156,14 +160,15 @@ for current_split, (train_index, test_index) in enumerate(train_test_indices):
         },
         metrics=scaled_metrics))
 
+    # Build model with reasonable data.
     model.predict(x_test)
+    model._compile_metrics.build(y_test, y_test)
+    model._compile_loss.build(y_test, y_test)
+
     # Model summary
     model.summary()
     print(" Compiled with jit: %s" % model._jit_compile)  # noqa
-
-    # Convert targets into tensors.
-    y_train = dataset_train.tensor(hyper["model"]["config"]["outputs"])
-    y_test = dataset_test.tensor(hyper["model"]["config"]["outputs"])
+    print(" Model is built: %s" % all([layer.built for layer in model._flatten_layers()]))  # noqa
 
     # Start and time training
     start = time.time()

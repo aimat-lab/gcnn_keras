@@ -1,3 +1,4 @@
+import keras as ks
 from typing import Union
 from keras.layers import Layer, Concatenate
 from keras import ops
@@ -50,7 +51,8 @@ class GatherNodes(Layer):
         self.split_indices = split_indices
         self.concat_axis = concat_axis
         self.axis_indices = axis_indices
-        self._concat = Concatenate(axis=concat_axis)
+        if self.concat_axis is not None:
+            self._concat = Concatenate(axis=concat_axis)
 
     def _compute_gathered_shape(self, input_shape):
         assert len(input_shape) == 2
@@ -75,6 +77,12 @@ class GatherNodes(Layer):
         if self.concat_axis is not None:
             xs = self._concat.compute_output_shape(xs)
         return xs
+
+    def compute_output_spec(self, inputs_spec):
+        output_shape = self.compute_output_shape([x.shape for x in inputs_spec])
+        if self.concat_axis is not None:
+            return ks.KerasTensor(output_shape, dtype=inputs_spec[0].dtype)
+        return [ks.KerasTensor(s, dtype=inputs_spec[0].dtype) for s in output_shape]
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.

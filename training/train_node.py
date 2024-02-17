@@ -97,8 +97,15 @@ for i, (train_index, test_index) in enumerate(kf.split(X=np.arange(len(labels[0]
     # Compile model with optimizer and loss from hyperparameter.
     # Since we use a sample weights for validation, the 'weighted_metrics' parameter has to be used for metrics.
     model.compile(**hyper.compile(weighted_metrics=None))
+
+    # Build model with reasonable data.
+    model.predict(x_train)
+    model._compile_metrics.build(y_train, y_train)
+    model._compile_loss.build(y_train, y_train)
+
     model.summary()
     print(" Compiled with jit: %s" % model._jit_compile)  # noqa
+    print(" Model is built: %s" % all([layer.built for layer in model._flatten_layers()]))  # noqa
 
     # Run keras model-fit and take time for training.
     start = time.time()

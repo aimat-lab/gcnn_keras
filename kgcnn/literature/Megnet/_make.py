@@ -39,17 +39,34 @@ model_default = {
     "input_graph_embedding": {"input_dim": 100, "output_dim": 64},
     "make_distance": True, "expand_distance": True,
     "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
-    "meg_block_args": {"node_embed": [64, 32, 32], "edge_embed": [64, 32, 32],
-                       "env_embed": [64, 32, 32], "activation": "kgcnn>softplus2"},
+    "meg_block_args": {
+        "node_embed": [64, 32, 32],
+        "edge_embed": [64, 32, 32],
+        "env_embed": [64, 32, 32],
+        "activation": {"class_name": "function", "config": "kgcnn>softplus2"}
+    },
     "set2set_args": {"channels": 16, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
-    "node_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
-    "edge_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
-    "state_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
+    "node_ff_args": {
+        "units": [64, 32],
+        "activation": {"class_name": "function", "config": "kgcnn>softplus2"}
+    },
+    "edge_ff_args": {
+        "units": [64, 32],
+        "activation": {"class_name": "function", "config": "kgcnn>softplus2"}
+    },
+    "state_ff_args": {
+        "units": [64, 32],
+        "activation": {"class_name": "function", "config": "kgcnn>softplus2"}
+    },
     "nblocks": 3, "has_ff": True, "dropout": None, "use_set2set": True,
     "verbose": 10,
     "output_embedding": "graph",
     "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
-                   "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]},
+                   "activation": [
+                       {"class_name": "function", "config": "kgcnn>softplus2"},
+                       {"class_name": "function", "config": "kgcnn>softplus2"},
+                       "linear"
+                   ]},
     "output_scaling": None
 }
 
@@ -210,17 +227,34 @@ model_crystal_default = {
     "input_graph_embedding": {"input_dim": 100, "output_dim": 64},
     "make_distance": True, "expand_distance": True,
     'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
-    'meg_block_args': {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
-                       'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2'},
+    'meg_block_args': {
+        'node_embed': [64, 32, 32],
+        'edge_embed': [64, 32, 32],
+        'env_embed': [64, 32, 32],
+        'activation': {"class_name": "function", "config": "kgcnn>softplus2"}
+    },
     'set2set_args': {'channels': 16, 'T': 3, "pooling_method": "sum", "init_qstar": "0"},
-    'node_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
-    'edge_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
-    'state_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
+    'node_ff_args': {
+        "units": [64, 32],
+        "activation": {"class_name": "function", "config": "kgcnn>softplus2"}
+    },
+    'edge_ff_args': {
+        "units": [64, 32],
+        "activation": {"class_name": "function", "config": "kgcnn>softplus2"}
+    },
+    'state_ff_args': {
+        "units": [64, 32],
+        "activation": {"class_name": "function", "config": "kgcnn>softplus2"}
+    },
     'nblocks': 3, 'has_ff': True, 'dropout': None, 'use_set2set': True,
     'verbose': 10,
     'output_embedding': 'graph',
     'output_mlp': {"use_bias": [True, True, True], "units": [32, 16, 1],
-                   "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']},
+                   "activation": [
+                       {"class_name": "function", "config": "kgcnn>softplus2"},
+                       {"class_name": "function", "config": "kgcnn>softplus2"},
+                       'linear'
+                   ]},
     "output_scaling": None
 }
 

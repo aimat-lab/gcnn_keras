@@ -55,7 +55,9 @@ class ACSFG2(Layer):
                  eta_rs_rc: list,
                  element_mapping: list,
                  add_eps: bool = False,
-                 param_constraint=None, param_regularizer=None, param_initializer="zeros",
+                 param_constraint=None,
+                 param_regularizer=None,
+                 param_initializer="zeros",
                  param_trainable: bool = False,
                  **kwargs):
         r"""Initialize layer.
@@ -272,7 +274,9 @@ class ACSFG4(Layer):
                  add_eps: bool = False,
                  keep_pair_order: bool = False,
                  multiplicity: float = None,
-                 param_initializer="zeros", param_regularizer=None, param_constraint=None,
+                 param_initializer="zeros",
+                 param_regularizer=None,
+                 param_constraint=None,
                  param_trainable: bool = False,
                  **kwargs):
         r"""Initialize layer.

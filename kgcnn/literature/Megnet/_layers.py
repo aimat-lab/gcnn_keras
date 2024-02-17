@@ -40,6 +40,10 @@ class MEGnetBlock(Layer):
             bias_initializer: Initializer for bias. Default is 'zeros'.
         """
         super(MEGnetBlock, self).__init__(**kwargs)
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default.
+        if activation in ["kgcnn>softplus2"]:
+            activation = {"class_name": "function", "config": "kgcnn>softplus2"}
         self.pooling_method = pooling_method
         if node_embed is None:
             node_embed = [16, 16, 16]

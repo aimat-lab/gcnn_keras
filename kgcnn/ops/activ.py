@@ -8,10 +8,10 @@ def shifted_softplus(x):
     r"""Shifted soft-plus activation function.
 
     Args:
-        x (tf.Tensor): Single values to apply activation with ks functions.
+        x (Tensor): Single values to apply activation with ks functions.
 
     Returns:
-        tf.Tensor: Output tensor computed as :math:`\log(e^{x}+1) - \log(2)`.
+        Tensor: Output tensor computed as :math:`\log(e^{x}+1) - \log(2)`.
     """
     return ks.activations.softplus(x) - ops.log(ops.convert_to_tensor(2.0, dtype=x.dtype))
 
@@ -22,10 +22,10 @@ def softplus2(x):
     :math:`\log(e^{x}+1) - \log(2)` .
 
     Args:
-        x (tf.Tensor): Single values to apply activation with ks functions.
+        x (Tensor): Single values to apply activation with ks functions.
 
     Returns:
-         tf.Tensor: Output tensor computed as :math:`\log(e^{x}+1) - \log(2)`.
+         Tensor: Output tensor computed as :math:`\log(e^{x}+1) - \log(2)`.
     """
     return ks.activations.relu(x) + ops.log(0.5 * ops.exp(-ops.abs(x)) + 0.5)
 
@@ -40,35 +40,35 @@ def leaky_softplus(x, alpha: float = 0.05):
         Use :obj:`kgcnn.layers.activ` activation layers instead.
 
     Args:
-        x (tf.Tensor): Single values to apply activation with ks functions.
+        x (Tensor): Single values to apply activation with ks functions.
         alpha (float): Leak parameter. Default is 0.05.
 
     Returns:
-         tf.Tensor: Output tensor.
+         Tensor: Output tensor.
     """
     return ks.activations.softplus(x) * (1 - alpha) + alpha * x
 
 
-@ks.saving.register_keras_serializable(package='kgcnn', name='leaky_relu')
-def leaky_relu(x, alpha: float = 0.05):
+@ks.saving.register_keras_serializable(package='kgcnn', name='leaky_relu2')
+def leaky_relu2(x, alpha: float = 0.05):
     r"""Leaky RELU activation function.
 
     .. warning::
 
-        The leak parameter can not be changed if 'kgcnn>leaky_softplus' is passed as activation function to a layer.
+        The leak parameter can not be changed if 'kgcnn>leaky_relu2' is passed as activation function to a layer.
         Use :obj:`kgcnn.layers.activ` activation layers instead.
 
     Args:
-        x (tf.Tensor): Single values to apply activation with ks functions.
+        x (Tensor): Single values to apply activation with ks functions.
         alpha (float): Leak parameter. Default is 0.05.
 
     Returns:
-         tf.Tensor: Output tensor.
+         Tensor: Output tensor of activations.
     """
     return ks.activations.leaky_relu(x, negative_slope=alpha)
 
 
-@ks.saving.register_keras_serializable(package='kgcnn', name='swish')
-def swish(x):
+@ks.saving.register_keras_serializable(package='kgcnn', name='swish2')
+def swish2(x):
     """Swish activation function."""
     return ks.activations.silu(x)

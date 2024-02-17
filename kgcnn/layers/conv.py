@@ -2,7 +2,7 @@ from keras.layers import Layer, Dense, Activation, Add, Multiply
 from kgcnn.layers.aggr import AggregateWeightedLocalEdges, AggregateLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing
 from keras import ops
-from kgcnn.ops.activ import shifted_softplus
+import kgcnn.ops.activ
 
 
 class GCN(Layer):
@@ -28,7 +28,7 @@ class GCN(Layer):
                  units,
                  pooling_method='scatter_sum',
                  normalize_by_weights=False,
-                 activation='kgcnn>leaky_relu',
+                 activation="kgcnn>leaky_relu2",
                  use_bias=True,
                  kernel_regularizer=None,
                  bias_regularizer=None,
@@ -45,7 +45,7 @@ class GCN(Layer):
             pooling_method (str): Pooling method for summing edges. Default is 'segment_sum'.
             normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
                 In this case the edge features are considered weights of dimension (...,1) and are summed for each node.
-            activation (str): Activation. Default is 'kgcnn>leaky_relu'.
+            activation (str): Activation. Default is "kgcnn>leaky_relu2".
             use_bias (bool): Use bias. Default is True.
             kernel_regularizer: Kernel regularization. Default is None.
             bias_regularizer: Bias regularization. Default is None.
@@ -56,6 +56,10 @@ class GCN(Layer):
             bias_initializer: Initializer for bias. Default is 'zeros'.
         """
         super(GCN, self).__init__(**kwargs)
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default. Also renames to prevent clashes with keras leaky_relu.
+        if activation in ["kgcnn>leaky_relu", "kgcnn>leaky_relu2"]:
+            activation = {"class_name": "function", "config": "kgcnn>leaky_relu2"}
         self.normalize_by_weights = normalize_by_weights
         self.pooling_method = pooling_method
         self.units = units
@@ -133,7 +137,7 @@ class SchNetCFconv(Layer):
             units (int): Units for Dense layer.
             cfconv_pool (str): Pooling method. Default is 'segment_sum'.
             use_bias (bool): Use bias. Default is True.
-            activation (str): Activation function. Default is 'kgcnn>shifted_softplus'.
+            activation (str): Activation function. Default is "kgcnn>shifted_softplus".
             kernel_regularizer: Kernel regularization. Default is None.
             bias_regularizer: Bias regularization. Default is None.
             activity_regularizer: Activity regularization. Default is None.
@@ -143,6 +147,10 @@ class SchNetCFconv(Layer):
             bias_initializer: Initializer for bias. Default is 'zeros'.
         """
         super(SchNetCFconv, self).__init__(**kwargs)
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default.
+        if activation in ["kgcnn>shifted_softplus"]:
+            activation = {"class_name": "function", "config": "kgcnn>shifted_softplus"}
         self.cfconv_pool = cfconv_pool
         self.units = units
         self.use_bias = use_bias
@@ -173,6 +181,7 @@ class SchNetCFconv(Layer):
         Returns:
             Tensor: Updated node features.
         """
+        # print(inputs)
         node, edge, disjoint_indices = inputs
         x = self.lay_dense1(edge, **kwargs)
         x = self.lay_dense2(x, **kwargs)
@@ -202,7 +211,7 @@ class SchNetInteraction(Layer):
                  units=128,
                  cfconv_pool='scatter_sum',
                  use_bias=True,
-                 activation='kgcnn>shifted_softplus',
+                 activation="kgcnn>shifted_softplus",
                  kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,
@@ -215,9 +224,9 @@ class SchNetInteraction(Layer):
 
         Args:
             units (int): Dimension of node embedding. Default is 128.
-            cfconv_pool (str): Pooling method information for SchNetCFconv layer. Default is'segment_sum'.
+            cfconv_pool (str): Pooling method information for SchNetCFconv layer. Default is 'scatter_sum'.
             use_bias (bool): Use bias in last layers. Default is True.
-            activation (str): Activation function. Default is 'kgcnn>shifted_softplus'.
+            activation (str): Activation function. Default is "kgcnn>shifted_softplus".
             kernel_regularizer: Kernel regularization. Default is None.
             bias_regularizer: Bias regularization. Default is None.
             activity_regularizer: Activity regularization. Default is None.
@@ -227,6 +236,10 @@ class SchNetInteraction(Layer):
             bias_initializer: Initializer for bias. Default is 'zeros'.
         """
         super(SchNetInteraction, self).__init__(**kwargs)
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default.
+        if activation in ["kgcnn>shifted_softplus"]:
+            activation = {"class_name": "function", "config": "kgcnn>shifted_softplus"}
         self.cfconv_pool = cfconv_pool
         self.use_bias = use_bias
         self.units = units

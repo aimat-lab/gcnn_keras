@@ -4,7 +4,6 @@ from kgcnn.layers.mlp import MLP, GraphMLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.literature.DimeNetPP._layers import EmbeddingDimeBlock
 from ._layers import MXMGlobalMP, MXMLocalMP
-from kgcnn.ops.activ import swish
 
 
 def model_disjoint(

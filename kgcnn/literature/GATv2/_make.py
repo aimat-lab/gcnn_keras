@@ -40,8 +40,11 @@ model_default = {
     "cast_disjoint_kwargs": {},
     "input_node_embedding":  {"input_dim": 95, "output_dim": 64},
     "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
-    'attention_args': {"units": 32, "use_final_activation": False, "use_edge_features": True,
-                       "has_self_loops": True, "activation": "kgcnn>leaky_relu", "use_bias": True},
+    'attention_args': {
+        "units": 32, "use_final_activation": False, "use_edge_features": True,
+        "has_self_loops": True, "use_bias": True,
+        "activation": {"class_name": "function", "config": "kgcnn>leaky_relu2"}
+    },
     "pooling_nodes_args": {"pooling_method": "scatter_mean"},
     'depth': 3, 'attention_heads_num': 5,
     'attention_heads_concat': False, 'verbose': 10,

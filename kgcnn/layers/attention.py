@@ -3,6 +3,7 @@ from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing
 from keras.layers import Dense, Concatenate, Activation, Average, Layer
 from kgcnn.layers.aggr import AggregateLocalEdgesAttention
 from keras import ops
+import kgcnn.ops.activ
 
 
 class AttentionHeadGAT(Layer):  # noqa
@@ -23,7 +24,7 @@ class AttentionHeadGAT(Layer):  # noqa
                  use_edge_features=False,
                  use_final_activation=True,
                  has_self_loops=True,
-                 activation="kgcnn>leaky_relu",
+                 activation="kgcnn>leaky_relu2",
                  use_bias=True,
                  kernel_regularizer=None,
                  bias_regularizer=None,
@@ -41,7 +42,7 @@ class AttentionHeadGAT(Layer):  # noqa
             use_edge_features (bool): Append edge features to attention computation. Default is False.
             use_final_activation (bool): Whether to apply the final activation for the output.
             has_self_loops (bool): If the graph has self-loops. Not used here. Default is True.
-            activation (str): Activation. Default is "kgcnn>leaky_relu",
+            activation (str): Activation. Default is "kgcnn>leaky_relu2".
             use_bias (bool): Use bias. Default is True.
             kernel_regularizer: Kernel regularization. Default is None.
             bias_regularizer: Bias regularization. Default is None.
@@ -52,6 +53,10 @@ class AttentionHeadGAT(Layer):  # noqa
             bias_initializer: Initializer for bias. Default is 'zeros'.
         """
         super(AttentionHeadGAT, self).__init__(**kwargs)
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default. Also renames to prevent clashes with keras leaky_relu.
+        if activation in ["kgcnn>leaky_relu", "kgcnn>leaky_relu2"]:
+            activation = {"class_name": "function", "config": "kgcnn>leaky_relu2"}
         self.use_edge_features = use_edge_features
         self.use_final_activation = use_final_activation
         self.has_self_loops = has_self_loops
@@ -138,7 +143,7 @@ class AttentionHeadGATV2(Layer):  # noqa
                  use_edge_features=False,
                  use_final_activation=True,
                  has_self_loops=True,
-                 activation="kgcnn>leaky_relu",
+                 activation="kgcnn>leaky_relu2",
                  use_bias=True,
                  kernel_regularizer=None,
                  bias_regularizer=None,
@@ -156,7 +161,7 @@ class AttentionHeadGATV2(Layer):  # noqa
             use_edge_features (bool): Append edge features to attention computation. Default is False.
             use_final_activation (bool): Whether to apply the final activation for the output.
             has_self_loops (bool): If the graph has self-loops. Not used here. Default is True.
-            activation (str): Activation. Default is "kgcnn>leaky_relu",
+            activation (str): Activation. Default is "kgcnn>leaky_relu2".
             use_bias (bool): Use bias. Default is True.
             kernel_regularizer: Kernel regularization. Default is None.
             bias_regularizer: Bias regularization. Default is None.
@@ -167,6 +172,10 @@ class AttentionHeadGATV2(Layer):  # noqa
             bias_initializer: Initializer for bias. Default is 'zeros'.
         """
         super(AttentionHeadGATV2, self).__init__(**kwargs)
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default. Also renames to prevent clashes with keras leaky_relu.
+        if activation in ["kgcnn>leaky_relu", "kgcnn>leaky_relu2"]:
+            activation = {"class_name": "function", "config": "kgcnn>leaky_relu2"}
         self.use_edge_features = use_edge_features
         self.use_final_activation = use_final_activation
         self.has_self_loops = has_self_loops
@@ -243,7 +252,7 @@ class MultiHeadGATV2Layer(AttentionHeadGATV2):  # noqa
     def __init__(self,
                  units: int,
                  num_heads: int,
-                 activation: str = 'kgcnn>leaky_relu',
+                 activation: str = "kgcnn>leaky_relu2",
                  use_bias: bool = True,
                  concat_heads: bool = True,
                  **kwargs):
@@ -253,6 +262,10 @@ class MultiHeadGATV2Layer(AttentionHeadGATV2):  # noqa
             use_bias=use_bias,
             **kwargs
         )
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default. Also renames to prevent clashes with keras leaky_relu.
+        if activation in ["kgcnn>leaky_relu", "kgcnn>leaky_relu2"]:
+            activation = {"class_name": "function", "config": "kgcnn>leaky_relu2"}
         self.num_heads = num_heads
         self.concat_heads = concat_heads
 
@@ -345,7 +358,7 @@ class AttentiveHeadFP(Layer):
     def __init__(self,
                  units,
                  use_edge_features=False,
-                 activation='kgcnn>leaky_relu',
+                 activation="kgcnn>leaky_relu2",
                  activation_context="elu",
                  use_bias=True,
                  kernel_regularizer=None,
@@ -361,7 +374,7 @@ class AttentiveHeadFP(Layer):
         Args:
             units (int): Units for the linear trafo of node features before attention.
             use_edge_features (bool): Append edge features to attention computation. Default is False.
-            activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}}.
+            activation (str): Activation. Default is "kgcnn>leaky_relu2".
             activation_context (str): Activation function for context. Default is "elu".
             use_bias (bool): Use bias. Default is True.
             kernel_regularizer: Kernel regularization. Default is None.
@@ -373,6 +386,10 @@ class AttentiveHeadFP(Layer):
             bias_initializer: Initializer for bias. Default is 'zeros'.
         """
         super(AttentiveHeadFP, self).__init__(**kwargs)
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default. Also renames to prevent clashes with keras leaky_relu.
+        if activation in ["kgcnn>leaky_relu", "kgcnn>leaky_relu2"]:
+            activation = {"class_name": "function", "config": "kgcnn>leaky_relu2"}
         self.use_edge_features = use_edge_features
         self.units = int(units)
         self.use_bias = use_bias

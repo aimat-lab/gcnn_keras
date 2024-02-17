@@ -2,6 +2,7 @@ import keras as ks
 from keras.layers import Layer, Dense, Concatenate, GRUCell, Activation
 from kgcnn.layers.gather import GatherState
 from keras import ops
+import kgcnn.ops.activ
 from kgcnn.ops.scatter import scatter_reduce_softmax
 from kgcnn.layers.aggr import Aggregate
 
@@ -180,7 +181,7 @@ class PoolingNodesAttentive(Layer):
                  units,
                  depth=3,
                  pooling_method="sum",
-                 activation='kgcnn>leaky_relu',
+                 activation="kgcnn>leaky_relu2",
                  activation_context="elu",
                  use_bias=True,
                  kernel_regularizer=None,
@@ -204,7 +205,7 @@ class PoolingNodesAttentive(Layer):
             units (int): Units for the linear trafo of node features before attention.
             pooling_method(str): Initial pooling before iteration. Default is "sum".
             depth (int): Number of iterations for graph embedding. Default is 3.
-            activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}}.
+            activation (str): Activation. Default is "kgcnn>leaky_relu2".
             activation_context (str): Activation function for context. Default is "elu".
             use_bias (bool): Use bias. Default is True.
             kernel_regularizer: Kernel regularization. Default is None.
@@ -216,6 +217,10 @@ class PoolingNodesAttentive(Layer):
             bias_initializer: Initializer for bias. Default is 'zeros'.
         """
         super(PoolingNodesAttentive, self).__init__(**kwargs)
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default. Also renames to prevent clashes with keras leaky_relu.
+        if activation in ["kgcnn>leaky_relu", "kgcnn>leaky_relu2"]:
+            activation = {"class_name": "function", "config": "kgcnn>leaky_relu2"}
         self.pooling_method = pooling_method
         self.depth = depth
         self.units = int(units)

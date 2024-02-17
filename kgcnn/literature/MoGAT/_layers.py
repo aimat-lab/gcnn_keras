@@ -11,26 +11,12 @@ class AttentiveHeadFP_(Layer):
     And finally pooled for context :math:`C_i = \sigma_2(\sum_j \alpha_{ij} W_2 h_j)`.
 
     An edge is defined by index tuple :math:`(i, j)` with the direction of the connection from :math:`j` to :math:`i`.
-
-    Args:
-        units (int): Units for the linear trafo of node features before attention.
-        use_edge_features (bool): Append edge features to attention computation. Default is False.
-        activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}}.
-        activation_context (str): Activation function for context. Default is "elu".
-        use_bias (bool): Use bias. Default is True.
-        kernel_regularizer: Kernel regularization. Default is None.
-        bias_regularizer: Bias regularization. Default is None.
-        activity_regularizer: Activity regularization. Default is None.
-        kernel_constraint: Kernel constrains. Default is None.
-        bias_constraint: Bias constrains. Default is None.
-        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
-        bias_initializer: Initializer for bias. Default is 'zeros'.
     """
 
     def __init__(self,
                  units,
                  use_edge_features=False,
-                 activation='kgcnn>leaky_relu',
+                 activation='kgcnn>leaky_relu2',
                  activation_context="elu",
                  use_bias=True,
                  kernel_regularizer=None,
@@ -41,8 +27,27 @@ class AttentiveHeadFP_(Layer):
                  kernel_initializer='glorot_uniform',
                  bias_initializer='zeros',
                  **kwargs):
-        """Initialize layer."""
+        """Initialize layer.
+
+        Args:
+            units (int): Units for the linear trafo of node features before attention.
+            use_edge_features (bool): Append edge features to attention computation. Default is False.
+            activation (str): Activation. Default is "kgcnn>leaky_relu2".
+            activation_context (str): Activation function for context. Default is "elu".
+            use_bias (bool): Use bias. Default is True.
+            kernel_regularizer: Kernel regularization. Default is None.
+            bias_regularizer: Bias regularization. Default is None.
+            activity_regularizer: Activity regularization. Default is None.
+            kernel_constraint: Kernel constrains. Default is None.
+            bias_constraint: Bias constrains. Default is None.
+            kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
+            bias_initializer: Initializer for bias. Default is 'zeros'.
+        """
         super(AttentiveHeadFP_, self).__init__(**kwargs)
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default. Also renames to prevent clashes with keras leaky_relu.
+        if activation in ["kgcnn>leaky_relu", "kgcnn>leaky_relu2"]:
+            activation = {"class_name": "function", "config": "kgcnn>leaky_relu2"}
         self.use_edge_features = use_edge_features
         self.units = int(units)
         self.use_bias = use_bias

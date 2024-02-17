@@ -48,10 +48,15 @@ class NodePosition(Layer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(NodePosition, self).build(input_shape)
+        self.layer_gather.build(input_shape)
+        self.built = True
 
     def compute_output_shape(self, input_shape):
         return self.layer_gather.compute_output_shape(input_shape)
+
+    def compute_output_spec(self, inputs_spec):
+        output_shape = self.compute_output_shape([x.shape for x in inputs_spec])
+        return [ks.KerasTensor(s, dtype=inputs_spec[0].dtype) for s in output_shape]
 
     def call(self, inputs, **kwargs):
         r"""Forward pass of :obj:`NodePosition`.
@@ -194,7 +199,7 @@ class EuclideanNorm(Layer):
         if not square_norm:
             out = ops.sqrt(out)
         if invert_norm:
-            out = 1/out
+            out = 1 / out
             if no_nan:
                 out = ops.where(ops.isnan(out), ops.convert_to_tensor(0, dtype=out.dtype), out)
         return out
@@ -580,7 +585,7 @@ class GaussBasisLayer(Layer):
             Tensor: Expanded distance. Shape is `([K], bins)`.
         """
         return self._compute_gauss_basis(inputs,
-            offset=self.offset, gamma=self.gamma, bins=self.bins, distance=self.distance)
+                                         offset=self.offset, gamma=self.gamma, bins=self.bins, distance=self.distance)
 
     def get_config(self):
         """Update config."""
@@ -695,10 +700,9 @@ class PositionEncodingBasisLayer(Layer):
         Returns:
             Tensor: Expanded distance. Shape is `([K], bins)`.
         """
-        return self.map_values(
-            self._compute_fourier_encoding, inputs, dim_half=self.dim_half, wave_length_min=self.wave_length_min,
-            num_mult=self.num_mult, include_frequencies=self.include_frequencies,
-            interleave_sin_cos=self.interleave_sin_cos)
+        return self._compute_fourier_encoding(inputs, dim_half=self.dim_half, wave_length_min=self.wave_length_min,
+                                              num_mult=self.num_mult, include_frequencies=self.include_frequencies,
+                                              interleave_sin_cos=self.interleave_sin_cos)
 
     def get_config(self):
         """Update config."""
@@ -762,7 +766,7 @@ class BesselBasisLayer(Layer):
 
         self.frequencies = self.add_weight(
             name="frequencies",
-            shape=(self.num_radial, ),
+            shape=(self.num_radial,),
             dtype=self.dtype,
             initializer=freq_init,
             trainable=True

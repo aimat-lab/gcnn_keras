@@ -6,7 +6,6 @@ from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.mlp import GraphMLP
 from kgcnn.layers.update import ResidualLayer
 from kgcnn.initializers.initializers import GlorotOrthogonal, HeOrthogonal
-from kgcnn.ops.activ import swish
 
 
 class DimNetInteractionPPBlock(Layer):
@@ -20,7 +19,7 @@ class DimNetInteractionPPBlock(Layer):
         num_after_skip: Number of residual layers in interaction block before skip connection
         use_bias (bool, optional): Use bias. Defaults to True.
         pooling_method (str): Pooling method information for layer. Default is 'sum'.
-        activation (str): Activation function. Default is "kgcnn>swish".
+        activation (str): Activation function. Default is "swish".
         kernel_regularizer: Kernel regularization. Default is None.
         bias_regularizer: Bias regularization. Default is None.
         activity_regularizer: Activity regularization. Default is None.
@@ -37,7 +36,7 @@ class DimNetInteractionPPBlock(Layer):
                  num_after_skip,
                  use_bias=True,
                  pooling_method="sum",
-                 activation='kgcnn>swish',  # default is 'kgcnn>swish'
+                 activation='swish',
                  kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,
@@ -192,7 +191,7 @@ class DimNetOutputBlock(Layer):
                  use_bias=True,
                  output_kernel_initializer="zeros", kernel_initializer='kgcnn>glorot_orthogonal',
                  bias_initializer='zeros',
-                 activation='kgcnn>swish',
+                 activation='swish',
                  kernel_regularizer=None, bias_regularizer=None, activity_regularizer=None,
                  kernel_constraint=None, bias_constraint=None,
                  pooling_method="sum",

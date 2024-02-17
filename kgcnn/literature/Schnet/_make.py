@@ -38,21 +38,31 @@ model_default = {
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
     "make_distance": True,
     "expand_distance": True,
-    "interaction_args": {"units": 128, "use_bias": True,
-                         "activation": "kgcnn>shifted_softplus", "cfconv_pool": "scatter_sum"},
+    "interaction_args": {
+        "units": 128,
+        "use_bias": True,
+        "activation": {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+        "cfconv_pool": "scatter_sum"
+    },
     "node_pooling_args": {"pooling_method": "sum"},
     "depth": 4,
     "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
     "verbose": 10,
     "last_mlp": {"use_bias": [True, True], "units": [128, 64],
-                 "activation": ["kgcnn>shifted_softplus", "kgcnn>shifted_softplus"]},
+                 "activation": [
+                     {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                     {"class_name": "function", "config": "kgcnn>shifted_softplus"}
+                 ]},
     "output_embedding": "graph",
     "output_to_tensor": None,  # deprecated
     "use_output_mlp": True,
     "output_tensor_type": "padded",
     "output_scaling": None,
     "output_mlp": {"use_bias": [True, True], "units": [64, 1],
-                   "activation": ["kgcnn>shifted_softplus", "linear"]}
+                   "activation": [
+                       {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                       "linear"
+                   ]}
 }
 
 
@@ -190,20 +200,31 @@ model_crystal_default = {
     "cast_disjoint_kwargs": {},
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
     "make_distance": True, "expand_distance": True,
-    "interaction_args": {"units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"},
+    "interaction_args": {
+        "units": 128,
+        "use_bias": True,
+        "activation": {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+        "cfconv_pool": "sum"
+    },
     "node_pooling_args": {"pooling_method": "sum"},
     "depth": 4,
     "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
     "verbose": 10,
     "last_mlp": {"use_bias": [True, True], "units": [128, 64],
-                 "activation": ["kgcnn>shifted_softplus", "kgcnn>shifted_softplus"]},
+                 "activation": [
+                     {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                     {"class_name": "function", "config": "kgcnn>shifted_softplus"}
+                 ]},
     "output_embedding": "graph",
     "output_to_tensor": None,  # deprecated
     "use_output_mlp": True,
     "output_scaling": None,
     "output_tensor_type": "padded",
     "output_mlp": {"use_bias": [True, True], "units": [64, 1],
-                   "activation": ["kgcnn>shifted_softplus", "linear"]}
+                   "activation": [
+                       {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                       "linear"
+                   ]}
 }
 
 

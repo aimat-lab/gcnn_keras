@@ -38,7 +38,7 @@ model_default = {
     'input_embedding': None,
     "cast_disjoint_kwargs": {},
     "units": [128],
-    "activation":  "kgcnn>leaky_relu",
+    "activation": {"class_name": "function", "config": "kgcnn>leaky_relu2"},
     "use_bias":  True,
     "dropout_rate":  0.0,
     "use_edge_features":  True,
@@ -94,7 +94,7 @@ def make_model(inputs: list = None,
                regression_limits: tuple = None,
                regression_reference: float = None,
                return_importances: bool = True,
-               output_embedding: dict = None,
+               output_embedding: str = None,
                output_tensor_type: str = None
                ):
     r"""Functional model definition of MEGAN. Please check documentation of :obj:`kgcnn.literature.MEGAN` .

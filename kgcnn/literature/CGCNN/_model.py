@@ -1,5 +1,5 @@
 import keras as ks
-from kgcnn.ops.activ import *
+import kgcnn.ops.activ
 from kgcnn.layers.geom import (
     DisplacementVectorsUnitCell,
     DisplacementVectorsASU, NodePosition, FracToRealCoordinates,

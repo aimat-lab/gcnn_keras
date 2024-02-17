@@ -3,7 +3,7 @@ from kgcnn.layers.gather import GatherState, GatherNodes
 from kgcnn.layers.aggr import AggregateLocalEdgesAttention
 from kgcnn.layers.pooling import PoolingNodes, PoolingNodesAttention
 from kgcnn.layers.update import GRUUpdate
-from kgcnn.ops.activ import leaky_relu
+import kgcnn.ops.activ
 
 # Gated recurrent unit update. See kgcnn.layers.conv.mpnn_conv for details.
 HamNetGRUUnion = GRUUpdate
@@ -23,7 +23,7 @@ class HamNetNaiveUnion(Layer):
     """
     def __init__(self,
                  units: int,
-                 activation="kgcnn>leaky_relu",
+                 activation="kgcnn>leaky_relu2",
                  use_bias: bool = True,
                  kernel_initializer='glorot_uniform',
                  bias_initializer='zeros',
@@ -39,7 +39,7 @@ class HamNetNaiveUnion(Layer):
             units (int): Positive integer, dimensionality of the output space.
             activation: Activation function to use.
                 If you don't specify anything, no activation is applied
-                (ie. "linear" activation: `a(x) = x`). Default is "kgcnn>leaky_relu".
+                (ie. "linear" activation: `a(x) = x`). Default is "kgcnn>leaky_relu2".
             use_bias (bool): Boolean, whether the layer uses a bias vector. Default is True.
             kernel_initializer: Initializer for the `kernel` weights matrix. Default is "glorot_uniform".
             bias_initializer: Initializer for the bias vector. Default is "zeros".
@@ -53,6 +53,10 @@ class HamNetNaiveUnion(Layer):
             bias_constraint: Constraint function applied to the bias vector. Default is None.
         """
         super(HamNetNaiveUnion, self).__init__(**kwargs)
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default. Also renames to prevent clashes with keras leaky_relu.
+        if activation in ["kgcnn>leaky_relu", "kgcnn>leaky_relu2"]:
+            activation = {"class_name": "function", "config": "kgcnn>leaky_relu2"}
         self.units = int(units)
         self.use_bias = use_bias
         kernel_args = {"kernel_regularizer": kernel_regularizer,
@@ -117,7 +121,7 @@ class HamNetGlobalReadoutAttend(Layer):
 
     def __init__(self,
                  units,
-                 activation="kgcnn>leaky_relu",
+                 activation="kgcnn>leaky_relu2",
                  activation_last="elu",
                  use_bias=True,
                  kernel_regularizer=None,
@@ -134,7 +138,7 @@ class HamNetGlobalReadoutAttend(Layer):
 
         Args:
             units (int): Units for the linear transformation of node features before attention.
-            activation (str, dict): Activation. Default is "kgcnn>leaky_relu".
+            activation (str, dict): Activation. Default is "kgcnn>leaky_relu2".
             activation_last (str, dict): Last activation for messages. Default is "elu".
             use_bias (bool): Boolean, whether the layer uses a bias vector. Default is True.
             kernel_initializer: Initializer for the `kernel` weights matrix. Default is "glorot_uniform".
@@ -154,6 +158,10 @@ class HamNetGlobalReadoutAttend(Layer):
             seed (int): A Python integer to use as random seed.
         """
         super(HamNetGlobalReadoutAttend, self).__init__(**kwargs)
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default. Also renames to prevent clashes with keras leaky_relu.
+        if activation in ["kgcnn>leaky_relu", "kgcnn>leaky_relu2"]:
+            activation = {"class_name": "function", "config": "kgcnn>leaky_relu2"}
         self.units = int(units)
         self.use_bias = use_bias
         self.use_dropout = use_dropout
@@ -244,7 +252,7 @@ class HamNetFingerprintGenerator(Layer):
     def __init__(self,
                  units: int,
                  units_attend: int,
-                 activation="kgcnn>leaky_relu",
+                 activation="kgcnn>leaky_relu2",
                  use_bias: bool = True,
                  depth=4,
                  pooling_method="mean",
@@ -270,7 +278,7 @@ class HamNetFingerprintGenerator(Layer):
         Args:
             units (int): Units for the linear transformation of node features before attention.
             units_attend (int): Units for attention attributes.
-            activation (str, dict): Activation. Default is "kgcnn>leaky_relu".
+            activation (str, dict): Activation. Default is "kgcnn>leaky_relu2".
             use_bias (bool): Boolean, whether the layer uses a bias vector. Default is True.
             depth (int): Number of iterations. Default is 4.
             pooling_method(str): Initial pooling before iteration. Default is "mean".
@@ -308,6 +316,10 @@ class HamNetFingerprintGenerator(Layer):
             seed (int): A Python integer to use as random seed.
         """
         super(HamNetFingerprintGenerator, self).__init__(**kwargs)
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default. Also renames to prevent clashes with keras leaky_relu.
+        if activation in ["kgcnn>leaky_relu", "kgcnn>leaky_relu2"]:
+            activation = {"class_name": "function", "config": "kgcnn>leaky_relu2"}
         self.units = int(units)
         self.units_attend = int(units_attend)
         self.use_bias = bool(use_bias)
@@ -421,7 +433,7 @@ class HamNaiveDynMessage(Layer):
     def __init__(self,
                  units,
                  units_edge,
-                 activation="kgcnn>leaky_relu",
+                 activation="kgcnn>leaky_relu2",
                  activation_last="elu",
                  use_bias=True,
                  kernel_regularizer=None,
@@ -439,7 +451,7 @@ class HamNaiveDynMessage(Layer):
         Args:
             units (int): Units for the linear transformation of node features before attention.
             units_edge (int): Units for :obj:`Dense` layer for edge updates.
-            activation (str, dict): Activation. Default is "kgcnn>leaky_relu".
+            activation (str, dict): Activation. Default is "kgcnn>leaky_relu2".
             activation_last (str, dict): Last activation for messages. Default is "elu".
             use_bias (bool): Boolean, whether the layer uses a bias vector. Default is True.
             kernel_initializer: Initializer for the `kernel` weights matrix. Default is "glorot_uniform".
@@ -459,6 +471,10 @@ class HamNaiveDynMessage(Layer):
             seed (int): A Python integer to use as random seed.
         """
         super(HamNaiveDynMessage, self).__init__(**kwargs)
+        # Changes in keras serialization behaviour for activations in 3.0.2.
+        # Keep string at least for default. Also renames to prevent clashes with keras leaky_relu.
+        if activation in ["kgcnn>leaky_relu", "kgcnn>leaky_relu2"]:
+            activation = {"class_name": "function", "config": "kgcnn>leaky_relu2"}
         self.units = int(units)
         self.units_edge = int(units_edge)
         self.use_bias = use_bias

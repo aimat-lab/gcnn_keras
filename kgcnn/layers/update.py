@@ -116,7 +116,7 @@ class ResidualLayer(Layer):
 
     def __init__(self, units,
                  use_bias=True,
-                 activation='kgcnn>swish',
+                 activation='swish',
                  kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,
