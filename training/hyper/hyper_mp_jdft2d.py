@@ -17,14 +17,18 @@ hyper = {
                 "cast_disjoint_kwargs": {"padded_disjoint": False},
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "interaction_args": {
-                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus",
+                    "units": 128, "use_bias": True,
+                    "activation": {"class_name": "function", "config": "kgcnn>shifted_softplus"},
                     "cfconv_pool": "scatter_sum"
                 },
                 "node_pooling_args": {"pooling_method": "scatter_mean"},
                 "depth": 4,
                 "gauss_args": {"bins": 25, "distance": 5, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
                 "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
-                             "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
+                             "activation": [
+                                 {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                                 {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                                 'linear']},
                 "output_embedding": "graph",
                 "use_output_mlp": False,
                 "output_mlp": None,  # Last MLP sets output dimension if None.
@@ -166,14 +170,17 @@ hyper = {
                 'gauss_args': {'bins': 60, 'distance': 6, 'offset': 0.0, 'sigma': 0.4},
                 'conv_layer_args': {
                     'units': 128,
-                    'activation_s': 'kgcnn>shifted_softplus',
-                    'activation_out': 'kgcnn>shifted_softplus',
+                    'activation_s': {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                    'activation_out': {"class_name": "function", "config": "kgcnn>shifted_softplus"},
                     'batch_normalization': True,
                 },
                 'node_pooling_args': {'pooling_method': 'scatter_mean'},
                 'depth': 4,
                 'output_mlp': {'use_bias': [True, True, False], 'units': [128, 64, 1],
-                               'activation': ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
+                               'activation': [
+                                   {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                                   {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                                   'linear']},
             }
         },
         "training": {
@@ -236,16 +243,27 @@ hyper = {
                 "make_distance": True, "expand_distance": True,
                 'gauss_args': {"bins": 25, "distance": 5, "offset": 0.0, "sigma": 0.4},
                 'meg_block_args': {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
-                                   'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2'},
+                                   'env_embed': [64, 32, 32],
+                                   'activation': {"class_name": "function", "config": "kgcnn>softplus2"}
+                                   },
                 'set2set_args': {'channels': 16, 'T': 3, "pooling_method": "sum", "init_qstar": "0"},
-                'node_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
-                'edge_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
-                'state_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
+                'node_ff_args': {"units": [64, 32],
+                                 "activation": {"class_name": "function", "config": "kgcnn>softplus2"}
+                                 },
+                'edge_ff_args': {"units": [64, 32],
+                                 "activation": {"class_name": "function", "config": "kgcnn>softplus2"}
+                                 },
+                'state_ff_args': {"units": [64, 32],
+                                  "activation": {"class_name": "function", "config": "kgcnn>softplus2"}
+                                  },
                 'nblocks': 3, 'has_ff': True, 'dropout': None, 'use_set2set': True,
                 'verbose': 10,
                 'output_embedding': 'graph',
                 'output_mlp': {"use_bias": [True, True, True], "units": [32, 16, 1],
-                               "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']}
+                               "activation": [
+                                   {"class_name": "function", "config": "kgcnn>softplus2"},
+                                   {"class_name": "function", "config": "kgcnn>softplus2"},
+                                   'linear']}
             }
         },
         "training": {

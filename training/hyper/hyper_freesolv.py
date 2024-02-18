@@ -28,15 +28,15 @@ hyper = {
             "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []},
             "compile": {
                 "optimizer": {"class_name": "Adam",
-                    "config": {"learning_rate": {
-                        "module": "keras.optimizers.schedules",
-                        "class_name": "ExponentialDecay",
-                        "config": {"initial_learning_rate": 0.001,
-                                   "decay_steps": 5800,
-                                   "decay_rate": 0.5, "staircase":  False}
-                        }
-                    }
-                },
+                              "config": {"learning_rate": {
+                                  "module": "keras.optimizers.schedules",
+                                  "class_name": "ExponentialDecay",
+                                  "config": {"initial_learning_rate": 0.001,
+                                             "decay_steps": 5800,
+                                             "decay_rate": 0.5, "staircase": False}
+                              }
+                              }
+                              },
                 "loss": "mean_absolute_error"
             },
             "scaler": {"class_name": "StandardLabelScaler",
@@ -142,7 +142,7 @@ hyper = {
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 8, "output_dim": 64},
                 "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
-                                   "activation": "kgcnn>leaky_relu",
+                                   "activation": {"class_name": "function", "config": "kgcnn>leaky_relu2"},
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "scatter_sum"},
                 "depth": 4, "attention_heads_num": 10,
@@ -206,11 +206,17 @@ hyper = {
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "output_embedding": "graph",
                 'output_mlp': {"use_bias": [True, True], "units": [64, 1],
-                               "activation": ['kgcnn>shifted_softplus', "linear"]},
+                               "activation": [
+                                   {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                                   "linear"]
+                               },
                 'last_mlp': {"use_bias": [True, True], "units": [128, 64],
-                             "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
+                             "activation": [{"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                                            {"class_name": "function", "config": "kgcnn>shifted_softplus"}]},
                 "interaction_args": {
-                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "scatter_sum"
+                    "units": 128, "use_bias": True,
+                    "activation": {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                    "cfconv_pool": "scatter_sum"
                 },
                 "node_pooling_args": {"pooling_method": "scatter_sum"},
                 "depth": 4,
@@ -545,7 +551,7 @@ hyper = {
                 "input_embedding": None,
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
-                "gin_mlp": {"units": [64,64], "use_bias": True, "activation": ["relu","linear"],
+                "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
                             "use_normalization": True, "normalization_technique": "graph_layer"},
                 "gin_args": {},
                 "pooling_args": {"pooling_method": "sum"},
@@ -554,7 +560,7 @@ hyper = {
                 "edge_dense": {"units": 100, "use_bias": True, "activation": "linear"},
                 "edge_activation": {"activation": "relu"},
                 "node_dense": {"units": 100, "use_bias": True, "activation": "relu"},
-                "verbose": 10, "depthDMPNN": 5,"depthGIN": 5,
+                "verbose": 10, "depthDMPNN": 5, "depthGIN": 5,
                 "dropoutDMPNN": {"rate": 0.05},
                 "dropoutGIN": {"rate": 0.05},
                 "output_embedding": "graph", "output_to_tensor": True,
@@ -859,7 +865,7 @@ hyper = {
                 'output_embedding': 'graph',
                 'output_mlp': {"use_bias": [True, False], "units": [200, 1],
                                "activation": ['relu', 'linear'],
-                               "use_dropout": [True,  False],
+                               "use_dropout": [True, False],
                                "rate": [0.5, 0.0]}
             }
         },
@@ -915,17 +921,25 @@ hyper = {
                 "input_graph_embedding": {"input_dim": 100, "output_dim": 64},
                 "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
                 "meg_block_args": {"node_embed": [64, 32, 32], "edge_embed": [64, 32, 32],
-                                   "env_embed": [64, 32, 32], "activation": "kgcnn>softplus2"},
+                                   "env_embed": [64, 32, 32],
+                                   "activation": {"class_name": "function", "config": "kgcnn>softplus2"}
+                                   },
                 "set2set_args": {"channels": 16, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
-                "node_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
-                "edge_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
-                "state_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
+                "node_ff_args": {"units": [64, 32],
+                                 "activation": {"class_name": "function", "config": "kgcnn>softplus2"}},
+                "edge_ff_args": {"units": [64, 32],
+                                 "activation": {"class_name": "function", "config": "kgcnn>softplus2"}},
+                "state_ff_args": {"units": [64, 32],
+                                  "activation": {"class_name": "function", "config": "kgcnn>softplus2"}},
                 "nblocks": 3, "has_ff": True, "dropout": None, "use_set2set": True,
                 "make_distance": True, "expand_distance": True,
                 "verbose": 10,
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
-                               "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]}
+                               "activation": [
+                                   {"class_name": "function", "config": "kgcnn>softplus2"},
+                                   {"class_name": "function", "config": "kgcnn>softplus2"},
+                                   "linear"]}
             }
         },
         "training": {
@@ -1122,7 +1136,7 @@ hyper = {
                 "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
                 "attention_args": {"units": 100},
                 "depthato": 2, "depthmol": 2,
-                "pooling_gat_nodes_args":  {'pooling_method': 'mean'},
+                "pooling_gat_nodes_args": {'pooling_method': 'mean'},
                 "dropout": 0.2,
                 "verbose": 10,
                 "output_embedding": "graph",
@@ -1239,7 +1253,7 @@ hyper = {
                 'name': "MEGAN",
                 'inputs': [
                     {'shape': (None, 41), 'name': "node_attributes", 'dtype': 'float32'},
-                    {'shape': (None, ), 'name': "edge_number", 'dtype': 'float32'},
+                    {'shape': (None,), 'name': "edge_number", 'dtype': 'float32'},
                     {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64'},
                     {"shape": [2], "name": "graph_attributes", "dtype": "float32"},
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
@@ -1439,7 +1453,7 @@ hyper = {
                                   "angle_attributes": "angle_attributes_2"}},
                     {"map_list": {"method": "count_nodes_and_edges"}},
                     {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
-                                   "count_edges": "range_indices"}},
+                                  "count_edges": "range_indices"}},
                     {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_angles_1",
                                   "count_edges": "angle_indices_1"}},
                     {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_angles_2",

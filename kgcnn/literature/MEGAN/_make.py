@@ -4,7 +4,7 @@ from kgcnn.layers.modules import Input
 from keras.backend import backend as backend_to_use
 from kgcnn.models.casting import (template_cast_output, template_cast_list_input,
                                   template_cast_list_input_docs, template_cast_output_docs)
-from kgcnn.ops.activ import *
+import kgcnn.ops.activ
 
 # Keep track of model version from commit date in literature.
 # To be updated if model is changed in a significant way.

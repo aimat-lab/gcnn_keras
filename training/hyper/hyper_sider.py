@@ -155,7 +155,7 @@ hyper = {
                 "verbose": 10,
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True], "units": [200, 27],
-                               "activation": ["kgcnn>leaky_relu", "sigmoid"]},
+                               "activation": [{"class_name": "function", "config": "kgcnn>leaky_relu2"}, "sigmoid"]},
             }
         },
         "training": {
@@ -396,11 +396,16 @@ hyper = {
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "output_embedding": "graph",
                 'output_mlp': {"use_bias": [True, True], "units": [64, 27],
-                               "activation": ['kgcnn>shifted_softplus', "sigmoid"]},
+                               "activation": [{"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                                              "sigmoid"]},
                 'last_mlp': {"use_bias": [True, True], "units": [128, 64],
-                             "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
+                             "activation": [
+                                 {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                                 {"class_name": "function", "config": "kgcnn>shifted_softplus"}]},
                 "interaction_args": {
-                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "scatter_sum"
+                    "units": 128, "use_bias": True,
+                    "activation": {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                    "cfconv_pool": "scatter_sum"
                 },
                 "node_pooling_args": {"pooling_method": "scatter_sum"},
                 "depth": 4,

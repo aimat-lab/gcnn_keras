@@ -211,7 +211,8 @@ hyper = {
                 "verbose": 10,
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True], "units": [200, 1],
-                               "activation": ["kgcnn>leaky_relu", "sigmoid"]},
+                               "activation": [
+                                   {"class_name": "function", "config": "kgcnn>leaky_relu2"}, "sigmoid"]},
             }
         },
         "training": {

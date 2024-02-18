@@ -9,7 +9,7 @@ from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.aggr import AggregateLocalEdges
 from kgcnn.layers.modules import Embedding
 from ._layers import ExplanationSparsityRegularization
-from kgcnn.ops.activ import leaky_relu
+import kgcnn.ops.activ
 
 
 def shifted_sigmoid(x: KerasTensor, multiplier: float = 1.0, shift: float = 10) -> float:
@@ -30,7 +30,7 @@ class MEGAN(ks.models.Model):
     def __init__(self,
                  # convolutional network related arguments
                  units: List[int],
-                 activation: str = "kgcnn>leaky_relu2",
+                 activation: Union[str, dict] = "kgcnn>leaky_relu2",
                  use_bias: bool = True,
                  dropout_rate: float = 0.0,
                  use_edge_features: bool = True,

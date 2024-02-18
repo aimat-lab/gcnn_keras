@@ -90,7 +90,9 @@ hyper = {
                 "verbose": 10,
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True], "units": [200, 1],
-                               "activation": ["kgcnn>leaky_relu", "linear"]},
+                               "activation": [
+                                   {"class_name": "function", "config": "kgcnn>leaky_relu2"},
+                                   "linear"]},
             }
         },
         "training": {
@@ -267,7 +269,7 @@ hyper = {
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 8, "output_dim": 64},
                 "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
-                                   "activation": "kgcnn>leaky_relu",
+                                   "activation": {"class_name": "function", "config": "kgcnn>leaky_relu2"},
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "scatter_sum"},
                 "depth": 1, "attention_heads_num": 10,
@@ -331,7 +333,7 @@ hyper = {
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 8, "output_dim": 64},
                 "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
-                                   "activation": "kgcnn>leaky_relu",
+                                   "activation": {"class_name": "function", "config": "kgcnn>leaky_relu2"},
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "scatter_sum"},
                 "depth": 4, "attention_heads_num": 10,
@@ -395,11 +397,16 @@ hyper = {
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "output_embedding": "graph",
                 'output_mlp': {"use_bias": [True, True], "units": [64, 1],
-                               "activation": ['kgcnn>shifted_softplus', "linear"]},
+                               "activation": [
+                                   {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                                   "linear"]},
                 'last_mlp': {"use_bias": [True, True], "units": [128, 64],
-                             "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
+                             "activation": [
+                                 {"class_name": "function", "config": "kgcnn>shifted_softplus"},
+                                 {"class_name": "function", "config": "kgcnn>shifted_softplus"}]},
                 "interaction_args": {
-                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus",
+                    "units": 128, "use_bias": True,
+                    "activation": {"class_name": "function", "config": "kgcnn>shifted_softplus"},
                     "cfconv_pool": "scatter_sum"
                 },
                 "node_pooling_args": {"pooling_method": "scatter_sum"},
