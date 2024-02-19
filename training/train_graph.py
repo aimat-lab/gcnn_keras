@@ -153,7 +153,10 @@ for current_split, (train_index, test_index) in enumerate(train_test_indices):
     # Model summary
     model.summary()
     print(" Compiled with jit: %s" % model._jit_compile)  # noqa
-    print(" Model is built: %s" % all([layer.built for layer in model._flatten_layers()]))  # noqa
+    print(" Model is built: %s, with unbuilt: %s" % (
+        all([layer.built for layer in model._flatten_layers()]),  # noqa
+        [layer.name for layer in model._flatten_layers() if not layer.built]
+    ))
 
     # Run keras model-fit and take time for training.
     start = time.time()

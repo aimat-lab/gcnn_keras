@@ -119,7 +119,7 @@ def make_model(inputs: list = None,
         model_inputs,
         input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        mask_assignment=[0, 0, 1],
+        mask_assignment=[0, 1, 1],
         index_assignment=[None, None, 0]
     )
 

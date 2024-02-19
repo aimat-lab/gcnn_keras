@@ -153,16 +153,18 @@ hyper = {
             "config": {
                 'name': 'CGCNN',
                 'inputs': [
-                    {'shape': (None,), 'name': 'node_number', 'dtype': 'int64', 'ragged': True},
-                    {'shape': (None, 3), 'name': 'node_frac_coordinates', 'dtype': 'float64', 'ragged': True},
-                    {'shape': (None, 2), 'name': 'range_indices', 'dtype': 'int64', 'ragged': True},
-                    {'shape': (None, 3), 'name': 'range_image', 'dtype': 'float32', 'ragged': True},
-                    {'shape': (3, 3), 'name': 'graph_lattice', 'dtype': 'float64', 'ragged': False},
+                    {'shape': (None,), 'name': 'node_number', 'dtype': 'int64'},
+                    {'shape': (None, 3), 'name': 'node_frac_coordinates', 'dtype': 'float64'},
+                    {'shape': (None, 2), 'name': 'range_indices', 'dtype': 'int64'},
+                    {'shape': (None, 3), 'name': 'range_image', 'dtype': 'float32'},
+                    {'shape': (3, 3), 'name': 'graph_lattice', 'dtype': 'float64'},
                     # For `representation="asu"`:
                     # {'shape': (None, 1), 'name': 'multiplicities', 'dtype': 'float32', 'ragged': True},
                     # {'shape': (None, 4, 4), 'name': 'symmops', 'dtype': 'float64', 'ragged': True},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_ranges", "dtype": "int64"}
                 ],
-                "input_tensor_type": "ragged",
+                "input_tensor_type": "padded",
                 'input_node_embedding': {'input_dim': 95, 'output_dim': 64},
                 'representation': 'unit',  # None, 'asu' or 'unit'
                 'expand_distance': True,
@@ -205,15 +207,18 @@ hyper = {
                 "config": {"with_std": True, "with_mean": True, "copy": True}
             },
         },
-        "data": {
-            "dataset": {
+        "dataset": {
                 "class_name": "MatProjectJdft2dDataset",
                 "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range_periodic", "max_distance": 6.0}}
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 6.0}},
+                    {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
+                                  "count_edges": "range_indices", "count_nodes": "node_number",
+                                  "total_nodes": "total_nodes"}},
                 ]
-            },
+        },
+        "data": {
             "data_unit": "meV/atom"
         },
         "info": {

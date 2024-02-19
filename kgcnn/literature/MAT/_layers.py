@@ -40,6 +40,7 @@ class MATDistanceMatrix(ks.layers.Layer):
     def __init__(self, trafo: Union[str, None] = "exp", **kwargs):
         super(MATDistanceMatrix, self).__init__(**kwargs)
         self.trafo = trafo
+        # self._softmax = ks.layers.Softmax(axis=2)
         if self.trafo not in [None, "exp", "softmax"]:
             raise ValueError("`trafo` must be in [None, 'exp', 'softmax']")
 

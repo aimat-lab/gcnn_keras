@@ -4,6 +4,7 @@ v4.0.1
 * Added further benchmark results for kgcnn version 4.
 * Fix error in ``kgcnn.layers.geom.PositionEncodingBasisLayer``
 * Fix error in ``kgcnn.literature.GCN.make_model_weighted``
+* Fix error in ``kgcnn.literature.AttentiveFP.make_model``
 * Had to change serialization for activation functions since with keras>=3.0.2 custom strings are not allowed also 
 causing clashes with built-in functions. We catch defaults to be at least backward compatible as possible and changed to serialization dictionary. Adapted all hyperparameter.
 * Renamed leaky_relu and swish in ``kgcnn.ops.activ`` to leaky_relu2 and swish2. 

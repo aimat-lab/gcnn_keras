@@ -181,7 +181,6 @@ class SchNetCFconv(Layer):
         Returns:
             Tensor: Updated node features.
         """
-        # print(inputs)
         node, edge, disjoint_indices = inputs
         x = self.lay_dense1(edge, **kwargs)
         x = self.lay_dense2(x, **kwargs)

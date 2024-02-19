@@ -129,7 +129,7 @@ class DimNetInteractionPPBlock(Layer):
         # Transform via 2D spherical basis
         sbf = self.dense_sbf1(sbf, **kwargs)
         sbf = self.dense_sbf2(sbf, **kwargs)
-        x_kj = self.lay_mult1([x_kj, sbf], **kwargs)
+        x_kj = self.lay_mult2([x_kj, sbf], **kwargs)
 
         # Aggregate interactions and up-project embeddings
         x_kj = self.lay_pool([rbf, x_kj, id_expand], **kwargs)

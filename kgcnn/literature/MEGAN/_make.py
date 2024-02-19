@@ -1,3 +1,4 @@
+import keras as ks
 from ._model import MEGAN
 from kgcnn.models.utils import update_model_kwargs
 from kgcnn.layers.modules import Input

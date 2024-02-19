@@ -119,7 +119,7 @@ class MXMLocalMP(Layer):
 
         self.lin_rbf_out = Dense(self.dim, use_bias=False, activation="linear")
 
-        self.h_mlp = GraphMLP(self.dim, activation=activation)
+        # Fix for kgcnn==4.0.1: removed overwrite mlp here. Should not change model but prevents unused layers.
 
         self.y_mlp = GraphMLP([self.dim, self.dim, self.dim], activation=activation)
         self.y_W = Dense(self.output_dim, activation="linear",

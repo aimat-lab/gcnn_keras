@@ -478,11 +478,13 @@ hyper = {
             "config": {
                 "name": "PAiNN",
                 "inputs": [
-                    {"shape": [None], "name": "node_number", "dtype": "int64", "ragged": True},
-                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                    {"shape": [None], "name": "node_number", "dtype": "int64"},
+                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_ranges", "dtype": "int64"}
                 ],
-                "input_tensor_type": "ragged",
+                "input_tensor_type": "padded",
                 "cast_disjoint_kwargs": {},
                 "input_node_embedding": {"input_dim": 95, "output_dim": 128},
                 "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
@@ -522,7 +524,9 @@ hyper = {
                 "config": {},
                 "methods": [
                     {"set_attributes": {"add_hydrogen": True}},
-                    {"map_list": {"method": "set_range", "max_distance": 3, "max_neighbours": 10000}}
+                    {"map_list": {"method": "set_range", "max_distance": 3, "max_neighbours": 10000}},
+                    {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
+                              "count_edges": "range_indices"}},
                 ]
             },
             "data_unit": "mol/L"

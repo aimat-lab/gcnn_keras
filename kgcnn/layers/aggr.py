@@ -191,8 +191,9 @@ class AggregateWeightedLocalEdges(AggregateLocalEdges):
         self.normalize_by_weights = normalize_by_weights
         self.pooling_index = pooling_index
         self.pooling_method = pooling_method
-        self.to_aggregate = Aggregate(pooling_method=pooling_method)
-        self.to_aggregate_weights = Aggregate(pooling_method="scatter_sum")
+        # to_aggregate already made by super
+        if self.normalize_by_weights:
+            self.to_aggregate_weights = Aggregate(pooling_method="scatter_sum")
         self.axis_indices = axis_indices
 
     def build(self, input_shape):
@@ -201,7 +202,8 @@ class AggregateWeightedLocalEdges(AggregateLocalEdges):
         node_shape, edges_shape, edge_index_shape, weights_shape = [list(x) for x in input_shape]
         edge_index_shape.pop(self.axis_indices)
         self.to_aggregate.build([tuple(x) for x in [edges_shape, edge_index_shape, node_shape]])
-        self.to_aggregate_weights.build([tuple(x) for x in [weights_shape, edge_index_shape, node_shape]])
+        if self.normalize_by_weights:
+            self.to_aggregate_weights.build([tuple(x) for x in [weights_shape, edge_index_shape, node_shape]])
         self.built = True
 
     def compute_output_shape(self, input_shape):

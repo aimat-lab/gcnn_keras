@@ -530,7 +530,7 @@ class HamNaiveDynMessage(Layer):
         q_u_ftr, q_v_ftr = self.gather_p([q_ftr, edi], **kwargs)
         p_u_ftr, p_v_ftr = self.gather_q([p_ftr, edi], **kwargs)
         p_uv_ftr = self.lazy_sub_p([p_v_ftr, p_u_ftr], **kwargs)
-        q_uv_ftr = self.lazy_sub_p([q_v_ftr, q_u_ftr], **kwargs)
+        q_uv_ftr = self.lazy_sub_q([q_v_ftr, q_u_ftr], **kwargs)
 
         attend_ftr = self.dense_attend(hv_v_ftr, **kwargs)
 

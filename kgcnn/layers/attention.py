@@ -247,7 +247,11 @@ class AttentionHeadGATV2(Layer):  # noqa
         return config
 
 
-class MultiHeadGATV2Layer(AttentionHeadGATV2):  # noqa
+class MultiHeadGATV2Layer(Layer):  # noqa
+    r"""Single layer for multiple Attention heads from :obj:`AttentionHeadGATV2` .
+
+    Uses concatenation or averaging of heads for final output.
+    """
 
     def __init__(self,
                  units: int,
@@ -255,39 +259,85 @@ class MultiHeadGATV2Layer(AttentionHeadGATV2):  # noqa
                  activation: str = "kgcnn>leaky_relu2",
                  use_bias: bool = True,
                  concat_heads: bool = True,
+                 use_edge_features=False,
+                 use_final_activation=True,
+                 has_self_loops=True,
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 normalize_softmax: bool = False,
                  **kwargs):
-        super(MultiHeadGATV2Layer, self).__init__(
-            units=units,
-            activation=activation,
-            use_bias=use_bias,
-            **kwargs
-        )
+        r"""Initialize layer.
+
+        Args:
+            units (int): Units for the linear trafo of node features before attention.
+            num_heads: Number of attention heads.
+            concat_heads: Whether to concatenate heads or average.
+            use_edge_features (bool): Append edge features to attention computation. Default is False.
+            use_final_activation (bool): Whether to apply the final activation for the output.
+            has_self_loops (bool): If the graph has self-loops. Not used here. Default is True.
+            activation (str): Activation. Default is "kgcnn>leaky_relu2".
+            use_bias (bool): Use bias. Default is True.
+            kernel_regularizer: Kernel regularization. Default is None.
+            bias_regularizer: Bias regularization. Default is None.
+            activity_regularizer: Activity regularization. Default is None.
+            kernel_constraint: Kernel constrains. Default is None.
+            bias_constraint: Bias constrains. Default is None.
+            kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
+            bias_initializer: Initializer for bias. Default is 'zeros'.
+        """
+        super(MultiHeadGATV2Layer, self).__init__(**kwargs)
         # Changes in keras serialization behaviour for activations in 3.0.2.
         # Keep string at least for default. Also renames to prevent clashes with keras leaky_relu.
         if activation in ["kgcnn>leaky_relu", "kgcnn>leaky_relu2"]:
             activation = {"class_name": "function", "config": "kgcnn>leaky_relu2"}
         self.num_heads = num_heads
         self.concat_heads = concat_heads
+        self.use_edge_features = use_edge_features
+        self.use_final_activation = use_final_activation
+        self.has_self_loops = has_self_loops
+        self.units = int(units)
+        self.normalize_softmax = normalize_softmax
+        self.use_bias = use_bias
+        kernel_args = {"kernel_regularizer": kernel_regularizer,
+                       "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
+                       "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
+                       "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
 
         self.head_layers = []
         for _ in range(num_heads):
-            lay_linear = Dense(units, activation=activation, use_bias=use_bias)
-            lay_alpha_activation = Dense(units, activation=activation, use_bias=use_bias)
-            lay_alpha = Dense(1, activation='linear', use_bias=False)
+            lay_linear = Dense(units, activation=activation, use_bias=use_bias, **kernel_args)
+            lay_alpha_activation = Dense(units, activation=activation, use_bias=use_bias, **kernel_args)
+            lay_alpha = Dense(1, activation='linear', use_bias=False, **kernel_args)
 
             self.head_layers.append((lay_linear, lay_alpha_activation, lay_alpha))
 
         self.lay_concat_alphas = Concatenate(axis=-2)
-        self.lay_concat_embeddings = Concatenate(axis=-2)
-        self.lay_pool_attention = AggregateLocalEdgesAttention()
-        # self.lay_pool = AggregateLocalEdges()
+
+        # self.lay_linear_trafo = Dense(units, activation="linear", use_bias=use_bias, **kernel_args)
+        # self.lay_alpha_activation = Dense(units, activation=activation, use_bias=use_bias, **kernel_args)
+        # self.lay_alpha = Dense(1, activation="linear", use_bias=False, **kernel_args)
+        self.lay_gather_in = GatherNodesIngoing()
+        self.lay_gather_out = GatherNodesOutgoing()
+        self.lay_concat = Concatenate(axis=-1)
+        self.lay_pool_attention = AggregateLocalEdgesAttention(normalize_softmax=normalize_softmax)
+        if self.use_final_activation:
+            self.lay_final_activ = Activation(activation=activation)
 
         if self.concat_heads:
             self.lay_combine_heads = Concatenate(axis=-1)
         else:
             self.lay_combine_heads = Average()
 
-    def __call__(self, inputs, **kwargs):
+    def build(self, input_shape):
+        """Build layer."""
+        super(MultiHeadGATV2Layer, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
         node, edge, edge_index = inputs
 
         # "a_ij" is a single-channel edge attention logits tensor. "a_ijs" is consequently the list which
@@ -338,6 +388,16 @@ class MultiHeadGATV2Layer(AttentionHeadGATV2):  # noqa
     def get_config(self):
         """Update layer config."""
         config = super(MultiHeadGATV2Layer, self).get_config()
+        config.update({"use_edge_features": self.use_edge_features, "use_bias": self.use_bias,
+                       "units": self.units, "has_self_loops": self.has_self_loops,
+                       "normalize_softmax": self.normalize_softmax,
+                       "use_final_activation": self.use_final_activation})
+        if self.num_heads > 0:
+            conf_sub = self.head_layers[0][0].get_config()
+            for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
+                      "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
+                if x in conf_sub:
+                    config.update({x: conf_sub[x]})
         config.update({
             'num_heads': self.num_heads,
             'concat_heads': self.concat_heads
