@@ -3,6 +3,7 @@ from keras import ops
 from keras.losses import Loss
 from keras.losses import mean_absolute_error
 import keras.saving
+from kgcnn.ops.core import decompose_ragged_tensor
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='MeanAbsoluteError')
@@ -62,3 +63,19 @@ class BinaryCrossentropyNoNaN(ks.losses.BinaryCrossentropy):
         y_pred = ops.where(is_nan, ops.zeros_like(y_pred), y_pred)
         y_true = ops.where(is_nan, ops.zeros_like(y_true), y_true)
         return super(BinaryCrossentropyNoNaN, self).call(y_true, y_pred)
+
+
+@ks.saving.register_keras_serializable(package='kgcnn', name='RaggedValuesMeanAbsoluteError')
+class RaggedValuesMeanAbsoluteError(Loss):
+
+    def __init__(self, reduction="sum_over_batch_size", name="mean_absolute_error", dtype=None):
+        super(RaggedValuesMeanAbsoluteError, self).__init__(reduction=reduction, name=name, dtype=dtype)
+
+    def call(self, y_true, y_pred):
+        y_true_values = decompose_ragged_tensor(y_true)[0]
+        y_pred_values = decompose_ragged_tensor(y_pred)[0]
+        return mean_absolute_error(y_true_values, y_pred_values)
+
+    def get_config(self):
+        config = super(RaggedValuesMeanAbsoluteError, self).get_config()
+        return config

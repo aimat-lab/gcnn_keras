@@ -1,4 +1,25 @@
+import numpy as np
 import jax.numpy as jnp
+from kgcnn import __safe_scatter_max_min_to_zero__ as global_safe_scatter_max_min_to_zero
+
+
+class binfo:
+  kind: str = "b"
+  bits: int = 8  # May be different for jax.
+  min: bool = False
+  max: bool = True
+  dtype: np.dtype = "bool"
+
+
+def dtype_infos(dtype):
+    if dtype.kind in ["f", "c"]:
+        return jnp.finfo(dtype)
+    elif dtype.kind in ["i", "u"]:
+        return jnp.iinfo(dtype)
+    elif dtype.kind in ["b"]:
+        return binfo()
+    else:
+        raise TypeError("Unknown dtype '%s' to get type info." % dtype)
 
 
 def scatter_reduce_sum(indices, values, shape):
@@ -7,13 +28,25 @@ def scatter_reduce_sum(indices, values, shape):
 
 
 def scatter_reduce_min(indices, values, shape):
-    zeros = jnp.zeros(shape, values.dtype.max, values.dtype)
-    return zeros.at[indices].min(values)
+    max_of_dtype = dtype_infos(values.dtype).max
+    zeros = jnp.full(shape, max_of_dtype, values.dtype)
+    out = zeros.at[indices].min(values)
+    if global_safe_scatter_max_min_to_zero:
+        has_scattered = jnp.zeros(shape, "bool")
+        has_scattered = has_scattered.at[indices].set(jnp.ones_like(values, dtype="bool"))
+        out = jnp.where(has_scattered, out, jnp.zeros_like(out))
+    return out
 
 
 def scatter_reduce_max(indices, values, shape):
-    zeros = jnp.full(shape, values.dtype.min, values.dtype)
-    return zeros.at[indices].max(values)
+    min_of_dtype = dtype_infos(values.dtype).min
+    zeros = jnp.full(shape, min_of_dtype, values.dtype)
+    out = zeros.at[indices].max(values)
+    if global_safe_scatter_max_min_to_zero:
+        has_scattered = jnp.zeros(shape, "bool")
+        has_scattered = has_scattered.at[indices].set(jnp.ones_like(values, dtype="bool"))
+        out = jnp.where(has_scattered, out, jnp.zeros_like(out))
+    return out
 
 
 def scatter_reduce_mean(indices, values, shape):

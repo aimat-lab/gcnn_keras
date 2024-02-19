@@ -1,13 +1,19 @@
 v4.0.1
 
+* Removed unused layers and added manual built in scripts and training functions, since with keras==3.0.5 the pytorch trainer tries to rebuild the model,
+even if the model is already built and does it eagerly without proper tensor input, which causes crashes for almost every model in kgcnn.
 * Fix Error in ``ExtensiveMolecularLabelScaler.transform`` missing default value.
 * Added further benchmark results for kgcnn version 4.
 * Fix error in ``kgcnn.layers.geom.PositionEncodingBasisLayer``
 * Fix error in ``kgcnn.literature.GCN.make_model_weighted``
 * Fix error in ``kgcnn.literature.AttentiveFP.make_model``
 * Had to change serialization for activation functions since with keras>=3.0.2 custom strings are not allowed also 
-causing clashes with built-in functions. We catch defaults to be at least backward compatible as possible and changed to serialization dictionary. Adapted all hyperparameter.
-* Renamed leaky_relu and swish in ``kgcnn.ops.activ`` to leaky_relu2 and swish2. 
+causing clashes with built-in functions. We catch defaults to be at least as backward compatible as possible and changed to serialization dictionary. Adapted all hyperparameter.
+* Renamed leaky_relu and swish in ``kgcnn.ops.activ`` to leaky_relu2 and swish2.
+* Fix error in jax scatter min/max functions.
+* Added ``kgcnn.__safe_scatter_max_min_to_zero__`` for tensorflow and jax backend scattering with default to True.
+* Added simple ragged support for loss and metrics.
+* Added simple ragged support for ``train_force.py``
 
 v4.0.0
 

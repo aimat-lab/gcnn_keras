@@ -187,6 +187,8 @@ hyper = {
             "kgcnn_version": "4.0.0"
         }
     },
+    # Ragged!
+    # The Metrics deviate from padded sum.
     "EGNN.EnergyForceModel": {
         "model": {
             "class_name": "EnergyForceModel",
@@ -243,7 +245,7 @@ hyper = {
                     }
                 },
                 "outputs": {"energy": {"name": "energy", "shape": (1,)},
-                            "force": {"name": "force", "shape": (None, 3)}}
+                            "force": {"name": "force", "shape": (None, 3), "ragged": True}}
             }
         },
         "training": {
@@ -256,7 +258,11 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
-                "loss_weights": {"energy": 0.02, "force": 0.98}
+                "loss_weights": {"energy": 0.02, "force": 0.98},
+                "loss": {
+                    "energy": "mean_absolute_error",
+                    "force": {"class_name": "kgcnn>RaggedValuesMeanAbsoluteError", "config": {}}
+                }
             },
             "scaler": {"class_name": "EnergyForceExtensiveLabelScaler",
                        "config": {"standardize_scale": False}},

@@ -3,6 +3,7 @@ import keras.metrics
 import numpy as np
 from keras import ops
 import keras.saving
+from kgcnn.ops.core import decompose_ragged_tensor
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='ScaledMeanAbsoluteError')
@@ -10,9 +11,11 @@ class ScaledMeanAbsoluteError(ks.metrics.MeanAbsoluteError):
     """Metric for a scaled mean absolute error (MAE), which can undo a pre-scaling of the targets. Only intended as
     metric this allows to info the MAE with correct units or absolute values during fit."""
 
-    def __init__(self, scaling_shape=(), name='mean_absolute_error', dtype_scale: str = None, **kwargs):
+    def __init__(self, scaling_shape=(), name='mean_absolute_error', dtype_scale: str = None, ragged: bool = False,
+                 **kwargs):
         super(ScaledMeanAbsoluteError, self).__init__(name=name, **kwargs)
         self.scaling_shape = scaling_shape
+        self._is_ragged = ragged
         self.dtype_scale = dtype_scale
         self.scale = self.add_variable(
             shape=scaling_shape,
@@ -27,6 +30,9 @@ class ScaledMeanAbsoluteError(ks.metrics.MeanAbsoluteError):
                 v.assign(ops.zeros(v.shape, dtype=v.dtype))
 
     def update_state(self, y_true, y_pred, sample_weight=None):
+        if self._is_ragged:
+            y_true = decompose_ragged_tensor(y_true)[0]
+            y_pred = decompose_ragged_tensor(y_pred)[0]
         y_true = self.scale * ops.cast(y_true, dtype=self.scale.dtype)
         y_pred = self.scale * ops.cast(y_pred, dtype=self.scale.dtype)
         return super(ScaledMeanAbsoluteError, self).update_state(y_true, y_pred, sample_weight=sample_weight)
@@ -34,7 +40,8 @@ class ScaledMeanAbsoluteError(ks.metrics.MeanAbsoluteError):
     def get_config(self):
         """Returns the serializable config of the metric."""
         conf = super(ScaledMeanAbsoluteError, self).get_config()
-        conf.update({"scaling_shape": self.scaling_shape, "dtype_scale": self.dtype_scale})
+        conf.update({"scaling_shape": self.scaling_shape, "dtype_scale": self.dtype_scale,
+                     "ragged": self._is_ragged})
         return conf
 
     def set_scale(self, scale):
@@ -47,10 +54,12 @@ class ScaledRootMeanSquaredError(ks.metrics.RootMeanSquaredError):
     """Metric for a scaled root mean squared error (RMSE), which can undo a pre-scaling of the targets.
     Only intended as metric this allows to info the MAE with correct units or absolute values during fit."""
 
-    def __init__(self, scaling_shape=(), name='root_mean_squared_error', dtype_scale: str = None, **kwargs):
+    def __init__(self, scaling_shape=(), name='root_mean_squared_error', dtype_scale: str = None, ragged: bool = False,
+                 **kwargs):
         super(ScaledRootMeanSquaredError, self).__init__(name=name, **kwargs)
         self.scaling_shape = scaling_shape
         self.dtype_scale = dtype_scale
+        self._is_ragged = ragged
         self.scale = self.add_variable(
             shape=scaling_shape,
             initializer=ks.initializers.Ones(),
@@ -64,6 +73,9 @@ class ScaledRootMeanSquaredError(ks.metrics.RootMeanSquaredError):
                 v.assign(ops.zeros(v.shape, dtype=v.dtype))
 
     def update_state(self, y_true, y_pred, sample_weight=None):
+        if self._is_ragged:
+            y_true = decompose_ragged_tensor(y_true)[0]
+            y_pred = decompose_ragged_tensor(y_pred)[0]
         y_true = self.scale * ops.cast(y_true, dtype=self.scale.dtype)
         y_pred = self.scale * ops.cast(y_pred, dtype=self.scale.dtype)
         return super(ScaledRootMeanSquaredError, self).update_state(y_true, y_pred, sample_weight=sample_weight)
@@ -71,7 +83,7 @@ class ScaledRootMeanSquaredError(ks.metrics.RootMeanSquaredError):
     def get_config(self):
         """Returns the serializable config of the metric."""
         conf = super(ScaledRootMeanSquaredError, self).get_config()
-        conf.update({"scaling_shape": self.scaling_shape, "dtype_scale": self.dtype_scale})
+        conf.update({"scaling_shape": self.scaling_shape, "dtype_scale": self.dtype_scale, "ragged": self._is_ragged})
         return conf
 
     def set_scale(self, scale):

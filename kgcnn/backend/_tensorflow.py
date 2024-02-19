@@ -1,4 +1,5 @@
 import tensorflow as tf
+from kgcnn import __safe_scatter_max_min_to_zero__ as global_safe_scatter_max_min_to_zero
 
 
 def scatter_reduce_sum(indices, values, shape):
@@ -9,13 +10,21 @@ def scatter_reduce_sum(indices, values, shape):
 def scatter_reduce_min(indices, values, shape):
     indices = tf.expand_dims(indices, axis=1)
     target = tf.cast(tf.fill(shape, values.dtype.max), dtype=values.dtype)
-    return tf.tensor_scatter_nd_min(target, indices, values)
+    out = tf.tensor_scatter_nd_min(target, indices, values)
+    if global_safe_scatter_max_min_to_zero:
+        has_scattered = tf.scatter_nd(indices, tf.ones_like(values, dtype="bool"), tf.cast(shape, dtype="int64"))
+        out = tf.where(has_scattered, out, tf.zeros_like(out))
+    return out
 
 
 def scatter_reduce_max(indices, values, shape):
     indices = tf.expand_dims(indices, axis=1)
     target = tf.cast(tf.fill(shape, values.dtype.min), dtype=values.dtype)
-    return tf.tensor_scatter_nd_max(target, indices, values)
+    out = tf.tensor_scatter_nd_max(target, indices, values)
+    if global_safe_scatter_max_min_to_zero:
+        has_scattered = tf.scatter_nd(indices, tf.ones_like(values, dtype="bool"), tf.cast(shape, dtype="int64"))
+        out = tf.where(has_scattered, out, tf.zeros_like(out))
+    return out
 
 
 def scatter_reduce_mean(indices, values, shape):

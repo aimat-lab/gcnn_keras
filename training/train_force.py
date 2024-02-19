@@ -22,7 +22,7 @@ from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_md17.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet.EnergyForceModel")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="EGNN.EnergyForceModel")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
@@ -133,8 +133,14 @@ for current_split, (train_index, test_index) in enumerate(train_test_indices):
             # If scaler was used we add rescaled standard metrics to compile, since otherwise the keras history will not
             # directly log the original target values, but the scaled ones.
             scaler_scale = scaler.get_scaling()
+            force_output_parameter = hyper["model"]["config"]["outputs"]["force"]
+            is_ragged = force_output_parameter["ragged"] if "ragged" in force_output_parameter else False
             mae_metric_energy = ScaledMeanAbsoluteError(scaler_scale.shape, name="scaled_mean_absolute_error")
-            mae_metric_force = ScaledForceMeanAbsoluteError(scaler_scale.shape, name="scaled_mean_absolute_error")
+            if is_ragged:
+                mae_metric_force = ScaledMeanAbsoluteError(
+                    scaler_scale.shape, name="scaled_mean_absolute_error", ragged=True)
+            else:
+                mae_metric_force = ScaledForceMeanAbsoluteError(scaler_scale.shape, name="scaled_mean_absolute_error")
             if scaler_scale is not None:
                 mae_metric_energy.set_scale(scaler_scale)
                 mae_metric_force.set_scale(scaler_scale)
@@ -158,7 +164,8 @@ for current_split, (train_index, test_index) in enumerate(train_test_indices):
             "energy": "mean_absolute_error",
             "force": ForceMeanAbsoluteError()
         },
-        metrics=scaled_metrics))
+        metrics=scaled_metrics
+    ))
 
     # Build model with reasonable data.
     model.predict(x_test)
