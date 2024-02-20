@@ -235,7 +235,7 @@ class EquivariantInitialize(ks.layers.Layer):
     """
 
     def __init__(self, dim=3, units=128, method: str = "zeros", value: float = 1.0, stddev: float = 1.0,
-                 seed: int = None, **kwargs):
+                 seed: int = 42, **kwargs):
         """Initialize Layer."""
         super(EquivariantInitialize, self).__init__(**kwargs)
         self.dim = int(dim)
