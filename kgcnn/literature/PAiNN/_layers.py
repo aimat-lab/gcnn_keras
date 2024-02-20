@@ -234,7 +234,8 @@ class EquivariantInitialize(ks.layers.Layer):
         method (str): How to initialize equivariant tensor. Default is "zeros".
     """
 
-    def __init__(self, dim=3, units=128, method: str = "zeros", value: float = 1.0, stddev: float = 1.0, **kwargs):
+    def __init__(self, dim=3, units=128, method: str = "zeros", value: float = 1.0, stddev: float = 1.0,
+                 seed: int = None, **kwargs):
         """Initialize Layer."""
         super(EquivariantInitialize, self).__init__(**kwargs)
         self.dim = int(dim)
@@ -242,6 +243,7 @@ class EquivariantInitialize(ks.layers.Layer):
         self.method = str(method)
         self.value = float(value)
         self.stddev = float(stddev)
+        self.seed = seed
 
     def build(self, input_shape):
         """Build layer."""
@@ -271,7 +273,9 @@ class EquivariantInitialize(ks.layers.Layer):
             out = ops.expand_dims(out, axis=1)
             out = ops.repeat(out, self.dim, axis=1)
         elif self.method == "normal":
-            raise NotImplementedError()
+            out = ks.random.normal((self.dim, ops.shape(inputs)[-1]), seed=self.seed)
+            out = ops.expand_dims(out, axis=0)
+            out = ops.repeat(out, ops.shape(inputs)[0], axis=0)
         elif self.method == "ones":
             out = ops.ones_like(inputs, dtype=self.dtype)
             out = ops.expand_dims(out, axis=1)
@@ -296,7 +300,7 @@ class EquivariantInitialize(ks.layers.Layer):
         """Update layer config."""
         config = super(EquivariantInitialize, self).get_config()
         config.update({"dim": self.dim, "method": self.method, "value": self.value, "stddev": self.stddev,
-                       "units": self.units})
+                       "units": self.units, "seed": self.seed})
         return config
 
 

@@ -39,7 +39,7 @@ model_default = {
     "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
     "pooling_args": {"pooling_method": "scatter_sum"},
     "conv_args": {"units": 128, "cutoff": None, "conv_pool": "scatter_sum"},
-    "update_args": {"units": 128},
+    "update_args": {"units": 128, "add_eps": False},
     "equiv_normalization": False, "node_normalization": False,
     "depth": 3,
     "verbose": 10,

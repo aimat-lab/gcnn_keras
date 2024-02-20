@@ -168,7 +168,7 @@ for current_split, (train_index, test_index) in enumerate(train_test_indices):
     ))
 
     # Build model with reasonable data.
-    model.predict(x_test)
+    model.predict(x_test, batch_size=2, steps=2)
     model._compile_metrics.build(y_test, y_test)
     model._compile_loss.build(y_test, y_test)
 

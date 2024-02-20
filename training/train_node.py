@@ -99,7 +99,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X=np.arange(len(labels[0]
     model.compile(**hyper.compile(weighted_metrics=None))
 
     # Build model with reasonable data.
-    model.predict(x_train)
+    model.predict(x_train, batch_size=2, steps=2)
     model._compile_metrics.build(y_train, y_train)
     model._compile_loss.build(y_train, y_train)
 

@@ -50,7 +50,6 @@ def template_cast_output(model_outputs,
     Returns:
         Tensor: Keras output tensor.
     """
-
     out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = model_outputs
 
     # Output embedding choice

@@ -24,7 +24,7 @@ from kgcnn.data.utils import save_pickle_file
 parser = argparse.ArgumentParser(description='Train a GNN on a graph regression or classification task.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
                     default="hyper/hyper_esol.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="PAiNN")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
@@ -146,7 +146,7 @@ for current_split, (train_index, test_index) in enumerate(train_test_indices):
     model.compile(**hyper.compile(metrics=scaled_metrics))
 
     # Build model with reasonable data.
-    model.predict(x_test)
+    model.predict(x_test, batch_size=2, steps=2)
     model._compile_metrics.build(y_test, y_test)
     model._compile_loss.build(y_test, y_test)
 

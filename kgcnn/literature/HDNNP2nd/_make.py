@@ -34,6 +34,7 @@ model_default_weighted = {
     ],
     "input_tensor_type": "padded",
     "cast_disjoint_kwargs": {},
+    "has_charge_input": False,
     "w_acsf_ang_kwargs": {},
     "w_acsf_rad_kwargs": {},
     "normalize_kwargs": None,
@@ -44,6 +45,7 @@ model_default_weighted = {
     "node_pooling_args": {"pooling_method": "sum"},
     "verbose": 10,
     "output_embedding": "graph", "output_to_tensor": True,
+    "predict_dipole": False,
     "use_output_mlp": False,
     "output_mlp": {"use_bias": [True, True], "units": [64, 1],
                    "activation": ["swish", "linear"]},
@@ -56,6 +58,7 @@ model_default_weighted = {
 def make_model_weighted(inputs: list = None,
                         input_tensor_type: str = None,
                         cast_disjoint_kwargs: dict = None,
+                        has_charge_input: bool = False,
                         node_pooling_args: dict = None,
                         name: str = None,
                         verbose: int = None,
@@ -67,6 +70,7 @@ def make_model_weighted(inputs: list = None,
                         output_embedding: str = None,
                         use_output_mlp: bool = None,
                         output_to_tensor: bool = None,
+                        predict_dipole: bool = None,
                         output_mlp: dict = None,
                         output_scaling: dict = None,
                         output_tensor_type: str = None
@@ -93,6 +97,7 @@ def make_model_weighted(inputs: list = None,
         inputs (list): List of dictionaries unpacked in :obj:`Input`. Order must match model definition.
         input_tensor_type (str): Input type of graph tensor. Default is "padded".
         cast_disjoint_kwargs (dict): Dictionary of arguments for casting layer.
+        has_charge_input (bool): Whether the model needs total charge as input. Default is False.
         node_pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layers.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
@@ -104,6 +109,7 @@ def make_model_weighted(inputs: list = None,
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
         output_to_tensor (bool): Deprecated in favour of `output_tensor_type` .
+        predict_dipole (bool): Whether to predict additional dipole based on charges. Default is False.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
         output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
@@ -119,14 +125,18 @@ def make_model_weighted(inputs: list = None,
         model_inputs,
         input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        mask_assignment=[0, 0, 1, 2],
-        index_assignment=[None, None, 0, 0]
+        mask_assignment=[0, 0, 1, 2] + ([None] if has_charge_input else []),
+        index_assignment=[None, None, 0, 0] + ([None] if has_charge_input else [])
     )
 
-    n, x, disjoint_indices, ang_ind, batch_id_node, batch_id_edge, batch_id_angles, node_id, edge_id, angle_id, count_nodes, count_edges, count_angle = dj
+    if has_charge_input:
+        n, x, disjoint_indices, ang_ind, tot_charge, batch_id_node, batch_id_edge, batch_id_angles, node_id, edge_id, angle_id, count_nodes, count_edges, count_angle = dj
+    else:
+        n, x, disjoint_indices, ang_ind, batch_id_node, batch_id_edge, batch_id_angles, node_id, edge_id, angle_id, count_nodes, count_edges, count_angle = dj
+        tot_charge = None
 
     out = model_disjoint_weighted(
-        [n, x, disjoint_indices, ang_ind, batch_id_node, count_nodes],
+        [n, x, disjoint_indices, ang_ind, tot_charge, batch_id_node, count_nodes],
         node_pooling_args=node_pooling_args,
         w_acsf_ang_kwargs=w_acsf_ang_kwargs,
         w_acsf_rad_kwargs=w_acsf_rad_kwargs,
@@ -135,23 +145,33 @@ def make_model_weighted(inputs: list = None,
         mlp_kwargs=mlp_kwargs,
         output_embedding=output_embedding,
         use_output_mlp=use_output_mlp,
-        output_mlp=output_mlp
+        output_mlp=output_mlp,
+        predict_dipole=predict_dipole
     )
+
+    if not isinstance(out, list):
+        out = [out]
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
+        # We will only apply scale to first output, i.e. energy.
+        out_scaled = out[0]
         if scaler.extensive:
             # Node information must be numbers, or we need an additional input.
-            out = scaler([out, n, batch_id_node])
+            out_scaled = scaler([out_scaled, n, batch_id_node])
         else:
-            out = scaler(out)
+            out_scaled = scaler(out_scaled)
+        out[0] = out_scaled
 
     # Output embedding choice
-    out = template_cast_output(
-        [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
+    out = [template_cast_output(
+        [out_to_cast, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
         output_embedding=output_embedding, output_tensor_type=output_tensor_type,
         input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
-    )
+    ) for out_to_cast in out]
+
+    if len(out) == 1:
+        out = out[0]
 
     model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
 
@@ -181,6 +201,7 @@ model_default_behler = {
     ],
     "input_tensor_type": "padded",
     "cast_disjoint_kwargs": {},
+    "has_charge_input": False,
     "g2_kwargs": {"eta": [0.0, 0.3], "rs": [0.0, 3.0], "rc": 10.0, "elements": [1, 6, 16]},
     "g4_kwargs": {"eta": [0.0, 0.3], "lamda": [-1.0, 1.0], "rc": 6.0,
                   "zeta": [1.0, 8.0], "elements": [1, 6, 16], "multiplicity": 2.0},
@@ -193,6 +214,7 @@ model_default_behler = {
     "verbose": 10,
     "output_embedding": "graph", "output_to_tensor": True,
     "use_output_mlp": False,
+    "predict_dipole": False,
     "output_mlp": {"use_bias": [True, True], "units": [64, 1],
                    "activation": ["swish", "linear"]},
     "output_tensor_type": "padded",
@@ -204,6 +226,7 @@ model_default_behler = {
 def make_model_behler(inputs: list = None,
                       input_tensor_type: str = None,
                       cast_disjoint_kwargs: dict = None,
+                      has_charge_input: bool = None,
                       node_pooling_args: dict = None,
                       name: str = None,
                       verbose: int = None,
@@ -214,6 +237,7 @@ def make_model_behler(inputs: list = None,
                       mlp_kwargs: dict = None,
                       output_embedding: str = None,
                       use_output_mlp: bool = None,
+                      predict_dipole: bool = None,
                       output_to_tensor: bool = None,
                       output_mlp: dict = None,
                       output_scaling: dict = None,
@@ -240,6 +264,7 @@ def make_model_behler(inputs: list = None,
         inputs (list): List of dictionaries unpacked in :obj:`Input`. Order must match model definition.
         input_tensor_type (str): Input type of graph tensor. Default is "padded".
         cast_disjoint_kwargs (dict): Dictionary of arguments for casting layer.
+        has_charge_input (bool): Whether the model needs total charge as input. Default is False.
         node_pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layers.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
@@ -250,6 +275,7 @@ def make_model_behler(inputs: list = None,
         mlp_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalMLP` layer.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
+        predict_dipole (bool): Whether to predict additional dipole based on charges. Default is False.
         output_to_tensor (bool): Deprecated in favour of `output_tensor_type` .
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
@@ -266,14 +292,18 @@ def make_model_behler(inputs: list = None,
         model_inputs,
         input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        mask_assignment=[0, 0, 1, 2],
-        index_assignment=[None, None, 0, 0]
+        mask_assignment=[0, 0, 1, 2] + ([None] if has_charge_input else []),
+        index_assignment=[None, None, 0, 0] + ([None] if has_charge_input else [])
     )
 
-    n, x, disjoint_indices, ang_index, batch_id_node, batch_id_edge, batch_id_angles, node_id, edge_id, angle_id, count_nodes, count_edges, count_angle = dj
+    if has_charge_input:
+        n, x, disjoint_indices, ang_index, tot_charge, batch_id_node, batch_id_edge, batch_id_angles, node_id, edge_id, angle_id, count_nodes, count_edges, count_angle = dj
+    else:
+        n, x, disjoint_indices, ang_index, batch_id_node, batch_id_edge, batch_id_angles, node_id, edge_id, angle_id, count_nodes, count_edges, count_angle = dj
+        tot_charge = None
 
     out = model_disjoint_behler(
-        [n, x, disjoint_indices, ang_index, batch_id_node, count_nodes],
+        [n, x, disjoint_indices, ang_index, tot_charge, batch_id_node, count_nodes],
         node_pooling_args=node_pooling_args,
         normalize_kwargs=normalize_kwargs,
         const_normalize_kwargs=const_normalize_kwargs,
@@ -282,23 +312,33 @@ def make_model_behler(inputs: list = None,
         mlp_kwargs=mlp_kwargs,
         output_embedding=output_embedding,
         use_output_mlp=use_output_mlp,
-        output_mlp=output_mlp
+        output_mlp=output_mlp,
+        predict_dipole=predict_dipole
     )
+
+    if not isinstance(out, list):
+        out = [out]
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
+        # We will only apply scale to first output, i.e. energy.
+        out_scaled = out[0]
         if scaler.extensive:
             # Node information must be numbers, or we need an additional input.
-            out = scaler([out, n, batch_id_node])
+            out_scaled = scaler([out_scaled, n, batch_id_node])
         else:
-            out = scaler(out)
+            out_scaled = scaler(out_scaled)
+        out[0] = out_scaled
 
     # Output embedding choice
-    out = template_cast_output(
-        [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
+    out = [template_cast_output(
+        [out_to_cast, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
         output_embedding=output_embedding, output_tensor_type=output_tensor_type,
         input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
-    )
+    ) for out_to_cast in out]
+
+    if len(out) == 1:
+        out = out[0]
 
     model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
 
@@ -323,6 +363,7 @@ model_default_atom_wise = {
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
     ],
     "input_tensor_type": "padded",
+    "has_charge_input": False,
     "cast_disjoint_kwargs": {},
     "mlp_kwargs": {"units": [64, 64, 64],
                    "num_relations": 96,
@@ -330,6 +371,7 @@ model_default_atom_wise = {
     "node_pooling_args": {"pooling_method": "sum"},
     "verbose": 10,
     "output_embedding": "graph", "output_to_tensor": True,
+    "predict_dipole": False,
     "use_output_mlp": False,
     "output_mlp": {"use_bias": [True, True], "units": [64, 1],
                    "activation": ["swish", "linear"]},
@@ -342,11 +384,13 @@ model_default_atom_wise = {
 def make_model_atom_wise(inputs: list = None,
                          input_tensor_type: str = None,
                          cast_disjoint_kwargs: dict = None,
+                         has_charge_input: bool = None,
                          node_pooling_args: dict = None,
                          name: str = None,
                          verbose: int = None,
                          mlp_kwargs: dict = None,
                          output_embedding: str = None,
+                         predict_dipole: bool = None,
                          use_output_mlp: bool = None,
                          output_to_tensor: bool = None,
                          output_mlp: dict = None,
@@ -375,6 +419,7 @@ def make_model_atom_wise(inputs: list = None,
         inputs (list): List of dictionaries unpacked in :obj:`Input`. Order must match model definition.
         input_tensor_type (str): Input type of graph tensor. Default is "padded".
         cast_disjoint_kwargs (dict): Dictionary of arguments for casting layer.
+        has_charge_input (bool): Whether the model needs total charge as input. Default is False.
         node_pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layers.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
@@ -384,6 +429,7 @@ def make_model_atom_wise(inputs: list = None,
         output_to_tensor (bool): Deprecated in favour of `output_tensor_type` .
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
+        predict_dipole (bool): Whether to predict additional dipole based on charges. Default is False.
         output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
         output_tensor_type (str): Output type of graph tensors such as nodes or edges. Default is "padded".
 
@@ -397,36 +443,51 @@ def make_model_atom_wise(inputs: list = None,
         model_inputs,
         input_tensor_type=input_tensor_type,
         cast_disjoint_kwargs=cast_disjoint_kwargs,
-        mask_assignment=[0, 0],
-        index_assignment=[None, None]
+        mask_assignment=[0, 0] + ([None] if has_charge_input else []),
+        index_assignment=[None, None] + ([None] if has_charge_input else [])
     )
 
-    n, x, batch_id_node, node_id, count_nodes = dj
+    if has_charge_input:
+        n, x, tot_charge, batch_id_node, node_id, count_nodes = dj
+    else:
+        n, x, batch_id_node, node_id, count_nodes = dj
+        tot_charge = None
+
     batch_id_edge, edge_id, count_edges = None, None, None
 
     out = model_disjoint_atom_wise(
-        [n, x, batch_id_node, count_nodes],
+        [n, x, tot_charge, batch_id_node, count_nodes],
         node_pooling_args=node_pooling_args,
         mlp_kwargs=mlp_kwargs,
         output_embedding=output_embedding,
         use_output_mlp=use_output_mlp,
-        output_mlp=output_mlp
+        output_mlp=output_mlp,
+        predict_dipole=predict_dipole
     )
+
+    if not isinstance(out, list):
+        out = [out]
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
+        # We will only apply scale to first output, i.e. energy.
+        out_scaled = out[0]
         if scaler.extensive:
             # Node information must be numbers, or we need an additional input.
-            out = scaler([out, n, batch_id_node])
+            out_scaled = scaler([out_scaled, n, batch_id_node])
         else:
-            out = scaler(out)
+            out_scaled = scaler(out_scaled)
+        out[0] = out_scaled
 
     # Output embedding choice
-    out = template_cast_output(
-        [out, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
+    out = [template_cast_output(
+        [out_to_cast, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges],
         output_embedding=output_embedding, output_tensor_type=output_tensor_type,
         input_tensor_type=input_tensor_type, cast_disjoint_kwargs=cast_disjoint_kwargs,
-    )
+    ) for out_to_cast in out]
+
+    if len(out) == 1:
+        out = out[0]
 
     model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
 
