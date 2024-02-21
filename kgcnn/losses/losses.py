@@ -13,7 +13,8 @@ class MeanAbsoluteError(Loss):
         super(MeanAbsoluteError, self).__init__(reduction=reduction, name=name, dtype=dtype)
 
     def call(self, y_true, y_pred):
-        return mean_absolute_error(y_true, y_pred)
+        out = mean_absolute_error(y_true, y_pred)
+        return out
 
     def get_config(self):
         config = super(MeanAbsoluteError, self).get_config()
@@ -35,7 +36,7 @@ class ForceMeanAbsoluteError(Loss):
             check_nonzero = ops.cast(ops.logical_not(
                 ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=2)), dtype="int32")
             row_count = ops.sum(check_nonzero, axis=1)
-            row_count = ops.where(row_count < 1, 1, row_count)
+            row_count = ops.where(row_count < 1, 1, row_count)  # Prevent divide by 0.
             norm = 1/ops.cast(row_count, dtype=y_true.dtype)
         else:
             norm = 1/ops.shape(y_true)[1]

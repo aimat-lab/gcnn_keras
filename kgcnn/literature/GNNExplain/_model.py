@@ -207,6 +207,9 @@ class GNNExplainer:
 
         gnnx_optimizer.compile(**self.compile_options)
 
+        # Build gnnx_optimizer with example graph instance.
+        gnnx_optimizer.predict(graph_instance, steps=1)
+
         gnnx_optimizer.fit(x=graph_instance, y=gnnx_optimizer.output_to_explain, **fit_options)
 
         # Read out information from inspection_callback
@@ -375,7 +378,7 @@ class GNNExplainerOptimizer(ks.Model):
             )
             self.output_to_explain.assign(output_to_explain)
         else:
-            self.output_to_explain = output_to_explain
+            self.output_to_explain = ops.stop_gradient(ops.convert_to_tensor(output_to_explain))
 
         # Configuration Parameters
         self.edge_mask_loss_weight = edge_mask_loss_weight

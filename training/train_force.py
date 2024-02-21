@@ -14,7 +14,7 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.models.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.training.hyper import HyperParameter
-from kgcnn.losses.losses import ForceMeanAbsoluteError
+from kgcnn.losses.losses import ForceMeanAbsoluteError, MeanAbsoluteError
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledForceMeanAbsoluteError
 from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
 
@@ -22,7 +22,7 @@ from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_md17.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="EGNN.EnergyForceModel")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet.EnergyForceModel")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
@@ -161,7 +161,7 @@ for current_split, (train_index, test_index) in enumerate(train_test_indices):
     # Compile model with optimizer and loss
     model.compile(**hyper.compile(
         loss={
-            "energy": "mean_absolute_error",
+            "energy": "mean_absolute_error", # MeanAbsoluteError(),
             "force": ForceMeanAbsoluteError()
         },
         metrics=scaled_metrics

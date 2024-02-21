@@ -12,6 +12,9 @@ if backend() == "tensorflow":
     import tensorflow as tf
 elif backend() == "torch":
     import torch
+elif backend() == "jax":
+    import jax.numpy as jnp
+    import jax
 else:
     raise NotImplementedError("Backend '%s' not supported for force model." % backend())
 
@@ -60,8 +63,7 @@ class EnergyForceModel(ks.models.Model):
             is_physical_force (bool): Whether to return the physical force, e.g. the negative gradient of the energy.
             use_batch_jacobian: Deprecated.
             name (str): Name of the model.
-            outputs: List of outputs as dictionary kwargs similar to inputs. Not used by the model but can be passed
-                for external use.
+            outputs: List of outputs as dictionary kwargs similar to inputs.
         """
         super().__init__()
         if model_energy is None:
@@ -101,6 +103,9 @@ class EnergyForceModel(ks.models.Model):
         else:
             self.output_as_dict_use = False
 
+        energy_output_config = outputs[self.output_as_dict_names[0]] if self.output_as_dict_use else output[0]
+        self._expected_energy_states = energy_output_config["shape"][0]
+
         # We can try to infer the model inputs from energy model, if not given explicit.
         self._inputs_to_force_model = inputs
         if self._inputs_to_force_model is None:
@@ -111,6 +116,8 @@ class EnergyForceModel(ks.models.Model):
             self._call_grad_backend = self._call_grad_tf
         elif backend() == "torch":
             self._call_grad_backend = self._call_grad_torch
+        elif backend() == "jax":
+            self._call_grad_backend = self._call_grad_jax
         else:
             raise NotImplementedError("Backend '%s' not supported for force model." % backend())
 
@@ -149,11 +156,27 @@ class EnergyForceModel(ks.models.Model):
             eng = self.energy_model.call(inputs, training=training, **kwargs)
             eng_sum = eng.sum(dim=0)
             e_grad = torch.cat([
-                torch.unsqueeze(torch.autograd.grad(eng_sum[i], x, create_graph=True)[0], dim=-1) for i in
+                torch.unsqueeze(torch.autograd.grad(eng_sum[i], x, create_graph=True, allow_unused=True)[0], dim=-1) for i in
                 range(eng.shape[-1])], dim=-1)
 
         if self.output_squeeze_states:
             e_grad = torch.squeeze(e_grad, dim=-1)
+        return eng, e_grad
+
+    def _call_grad_jax(self, inputs, training=False, **kwargs):
+
+        def energy_reduce(*inputs, pos: int = 0):
+            eng = self.energy_model(inputs, training=training, **kwargs)
+            eng_sum = jnp.sum(eng, axis=0)[pos]
+            return eng_sum
+
+        grad_fn = jax.value_and_grad(energy_reduce, argnums=self.coordinate_input)
+        states = [grad_fn(*inputs, pos=i) for i in range(self._expected_energy_states)]
+        eng = jnp.concatenate([jnp.expand_dims(x[0], axis=-1) for x in states], axis=-1)
+        e_grad = jnp.concatenate([jnp.expand_dims(x[1], axis=-1) for x in states], axis=-1)
+
+        if self.output_squeeze_states:
+            e_grad = jnp.squeeze(e_grad, axis=-1)
         return eng, e_grad
 
     def call(self, inputs, training=False, **kwargs):

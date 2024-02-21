@@ -33,7 +33,7 @@ def check_device():
     elif backend() == "jax":
         import jax
         jax_devices = jax.devices()
-        cuda_is_available = any([x.device_kind == "gpu" for x in jax_devices])
+        cuda_is_available = any([x.device_kind in ["gpu", "cuda"] for x in jax_devices])
         physical_device_name = [x for x in jax_devices]
         logical_device_list = [x.id for x in jax_devices]
         memory_info = [x.memory_stats() for x in jax_devices]

@@ -226,7 +226,7 @@ hyper = {
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
-                "cast_disjoint_kwargs": {},
+                "cast_disjoint_kwargs": {"padded_disjoint": False},
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 8, "output_dim": 64},
                 "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
@@ -354,7 +354,7 @@ hyper = {
                     {"shape": (), "name": "total_edges", "dtype": "int64"},
                     {"shape": (), "name": "total_reverse", "dtype": "int64"}
                 ],
-                "cast_disjoint_kwargs": {},
+                "cast_disjoint_kwargs": {"padded_disjoint": False},
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
                 "input_graph_embedding": {"input_dim": 100, "output_dim": 64},
@@ -682,7 +682,9 @@ hyper = {
                     {"shape": (), "name": "total_edges", "dtype": "int64"},
                     {"shape": (), "name": "total_reverse", "dtype": "int64"}
                 ],
-                "input_embedding": None,
+                "input_tensor_type": "padded",
+                "input_embedding": None,  # deprecated
+                "cast_disjoint_kwargs": {"padded_disjoint": False},  # padded_disjoint does not work with normalization.
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
                 "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],

@@ -125,6 +125,7 @@ hyper = {
                             {"shape": (), "name": "total_ranges", "dtype": "int64"}
                         ],
                         "input_embedding": None,
+                        "cast_disjoint_kwargs": {"padded_disjoint": False},
                         "input_node_embedding": {"input_dim": 95, "output_dim": 128},
                         "equiv_initialize_kwargs": {"dim": 3, "method": "eps"},
                         "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
