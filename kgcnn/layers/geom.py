@@ -10,6 +10,8 @@ from kgcnn.layers.polynom import tf_spherical_bessel_jn, tf_spherical_harmonics_
 from kgcnn.layers.polynom import SphericalBesselJnExplicit, SphericalHarmonicsYl
 from kgcnn.ops.axis import get_positive_axis
 from kgcnn.ops.core import cross as kgcnn_cross
+from kgcnn import __geom_euclidean_norm_add_eps__ as global_geom_euclidean_norm_add_eps
+from kgcnn import __geom_euclidean_norm_no_nan__ as global_geom_euclidean_norm_no_nan
 
 
 class NodePosition(Layer):
@@ -142,8 +144,11 @@ class EuclideanNorm(Layer):
     with :obj:`invert_norm` layer arguments.
     """
 
-    def __init__(self, axis: int = -1, keepdims: bool = False, invert_norm: bool = False, add_eps: bool = False,
-                 no_nan: bool = True, square_norm: bool = False, **kwargs):
+    def __init__(self, axis: int = -1, keepdims: bool = False,
+                 invert_norm: bool = False,
+                 add_eps: bool = global_geom_euclidean_norm_add_eps,
+                 no_nan: bool = global_geom_euclidean_norm_no_nan,
+                 square_norm: bool = False, **kwargs):
         """Initialize layer.
 
         Args:
@@ -177,7 +182,7 @@ class EuclideanNorm(Layer):
 
     @staticmethod
     def _compute_euclidean_norm(inputs, axis: int = -1, keepdims: bool = False, invert_norm: bool = False,
-                                add_eps: bool = False, no_nan: bool = True, square_norm: bool = False):
+                                add_eps: bool = False, no_nan: bool = False, square_norm: bool = False):
         """Function to compute euclidean norm for inputs.
 
         Args:
@@ -306,7 +311,10 @@ class NodeDistanceEuclidean(Layer):
     the output of :obj:`NodePosition`.
     """
 
-    def __init__(self, add_eps: bool = False, no_nan: bool = True, **kwargs):
+    def __init__(self,
+                 add_eps: bool = global_geom_euclidean_norm_add_eps,
+                 no_nan: bool = global_geom_euclidean_norm_no_nan,
+                 **kwargs):
         r"""Initialize layer instance of :obj:`NodeDistanceEuclidean`. """
         super(NodeDistanceEuclidean, self).__init__(**kwargs)
         self.layer_subtract = Subtract()
@@ -354,7 +362,9 @@ class EdgeDirectionNormalized(Layer):
     As the first index defines the incoming edge.
     """
 
-    def __init__(self, add_eps: bool = False, no_nan: bool = True, **kwargs):
+    def __init__(self, add_eps: bool = global_geom_euclidean_norm_add_eps,
+                 no_nan: bool = global_geom_euclidean_norm_no_nan,
+                 **kwargs):
         """Initialize layer."""
         super(EdgeDirectionNormalized, self).__init__(**kwargs)
         self.layer_subtract = Subtract()

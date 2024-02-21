@@ -7,7 +7,6 @@ from kgcnn import __indices_axis__ as global_axis_indices
 
 
 def _pad_left(t):
-    # return ops.concatenate([ops.zeros_like(t[:1]), t], axis=0)
     return ops.pad(t, [[1, 0]] + [[0, 0] for _ in range(len(ops.shape(t)) - 1)])
 
 

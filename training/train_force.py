@@ -4,6 +4,7 @@ import os
 import argparse
 import keras as ks
 from datetime import timedelta
+import kgcnn
 import kgcnn.training.schedule
 import kgcnn.training.scheduler
 from kgcnn.data.utils import save_pickle_file
@@ -17,6 +18,9 @@ from kgcnn.training.hyper import HyperParameter
 from kgcnn.losses.losses import ForceMeanAbsoluteError, MeanAbsoluteError
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledForceMeanAbsoluteError
 from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
+
+# For force gradients
+kgcnn.__geom_euclidean_norm_add_eps__ = True
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
