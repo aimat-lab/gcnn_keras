@@ -13,7 +13,11 @@ template_cast_output_docs = r"""
     The return tensor type is determined by :obj:`output_tensor_type` . Options are:
 
     graph:
-        Tensor: Graph labels of shape `(batch, F)` .
+        Tensor: Graph labels of either type
+        
+            - padded (Tensor): Batched tensor of graphs of shape `(batch, F)` .
+            - disjoint (Tensor): Tensor with potential disjoint padded graphs of shape `(batch, F)` .
+            - ragged (Tensor): Tensor of shape `(batch, F)` . No ragged dimension is needed here.
 
     nodes:
         Tensor: Node labels for the graph of either type:
@@ -54,9 +58,14 @@ def template_cast_output(model_outputs,
 
     # Output embedding choice
     if output_embedding == 'graph':
-        # Here we could also modify the behaviour for direct disjoint without removing the padding via
-        # remove_padded_disjoint_from_batched_output
-        out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
+        if output_tensor_type in ["padded", "masked"]:
+            # Here we could also modify the behaviour for direct disjoint without removing the padding via
+            # remove_padded_disjoint_from_batched_output
+            out = CastDisjointToBatchedGraphState(**cast_disjoint_kwargs)(out)
+        elif output_tensor_type in ["ragged", "jagged"]:
+            pass
+        else:
+            pass
     elif output_embedding == 'node':
         if output_tensor_type in ["padded", "masked"]:
             if "static_batched_node_output_shape" in cast_disjoint_kwargs:

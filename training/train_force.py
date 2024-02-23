@@ -19,9 +19,6 @@ from kgcnn.losses.losses import ForceMeanAbsoluteError, MeanAbsoluteError
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledForceMeanAbsoluteError
 from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
 
-# For force gradients
-kgcnn.__geom_euclidean_norm_add_eps__ = True
-
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
