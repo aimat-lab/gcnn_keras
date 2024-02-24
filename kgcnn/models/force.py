@@ -117,8 +117,8 @@ class EnergyForceModel(ks.models.Model):
             self._call_grad_backend = self._call_grad_tf
         elif backend() == "torch":
             self._call_grad_backend = self._call_grad_torch
-        # elif backend() == "jax":
-        #     self._call_grad_backend = self._call_grad_jax
+        elif backend() == "jax":
+            self._call_grad_backend = self._call_grad_jax
         else:
             raise NotImplementedError("Backend '%s' not supported for force model." % backend())
 
