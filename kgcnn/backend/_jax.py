@@ -53,7 +53,8 @@ def scatter_reduce_mean(indices, values, shape):
     zeros = jnp.zeros(shape, values.dtype)
     counts = jnp.zeros(shape, values.dtype)
     counts = counts.at[indices].add(jnp.ones_like(values))
-    return zeros.at[indices].add(values)/counts
+    inverse_counts = jnp.nan_to_num(jnp.reciprocal(counts))
+    return zeros.at[indices].add(values)*inverse_counts
 
 
 def scatter_reduce_softmax(indices, values, shape, normalize: bool = False):

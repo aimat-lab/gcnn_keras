@@ -16,6 +16,7 @@ causing clashes with built-in functions. We catch defaults to be at least as bac
 * Added simple ragged support for ``train_force.py``
 * Implemented random equivariant initialize for PAiNN
 * Implemented charge and dipole output for HDNNP2nd
+* Implemented jax backend for force models.
 
 
 v4.0.0
