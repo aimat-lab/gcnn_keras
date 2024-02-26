@@ -3,8 +3,8 @@ from keras.layers import Layer
 from keras import ops
 from keras import InputSpec
 from kgcnn.ops.scatter import scatter_reduce_sum
-from keras.layers import LayerNormalization as _LayerNormalization
-from keras.layers import BatchNormalization as _BatchNormalization
+from keras.layers import LayerNormalization
+from keras.layers import BatchNormalization
 
 global_normalization_args = {
     "GraphNormalization": (
@@ -27,11 +27,8 @@ global_normalization_args = {
     ),
 }
 
-# GraphLayerNormalization = _LayerNormalization
-# GraphBatchNormalization = _BatchNormalization
 
-
-class GraphLayerNormalization(_LayerNormalization):
+class GraphLayerNormalization(LayerNormalization):
 
     def __init__(self, **kwargs):
         super(GraphLayerNormalization, self).__init__(**kwargs)
@@ -42,19 +39,18 @@ class GraphLayerNormalization(_LayerNormalization):
     def build(self, input_shape):
         super(GraphLayerNormalization, self).build(input_shape[0])
 
-    def call(self, inputs):
+    def call(self, inputs, **kwargs):
         return super(GraphLayerNormalization, self).call(inputs[0])
 
     def get_config(self):
         return super(GraphLayerNormalization, self).get_config()
 
 
-class GraphBatchNormalization(_BatchNormalization):
+class GraphBatchNormalization(BatchNormalization):
 
     def __init__(self, padded_disjoint: bool = False, **kwargs):
         super(GraphBatchNormalization, self).__init__(**kwargs)
         self.padded_disjoint = padded_disjoint
-        assert not self.padded_disjoint, "Not implemented error"
 
     def compute_output_shape(self, input_shape):
         return super(GraphBatchNormalization, self).compute_output_shape(input_shape[0])
@@ -67,8 +63,12 @@ class GraphBatchNormalization(_BatchNormalization):
             InputSpec(ndim=len(input_shape[2])),
         ]
 
-    def call(self, inputs, **kwargs):
-        return super(GraphBatchNormalization, self).call(inputs[0])
+    def call(self, inputs, training=None, **kwargs):
+        if not self.padded_disjoint:
+            return super(GraphBatchNormalization, self).call(inputs[0], training=training)
+        else:
+            padded_mask = inputs[1] > 0
+            return super(GraphBatchNormalization, self).call(inputs[0], training=training, mask=padded_mask)
 
     def get_config(self):
         config = super(GraphBatchNormalization, self).get_config()

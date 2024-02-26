@@ -15,7 +15,7 @@ setup(
     url="https://github.com/aimat-lab/gcnn_keras",
     install_requires=[
         # "dm-tree",
-        "keras>=3.0.0",
+        "keras>=3.0.5",
         # Backends
         # "tf-nightly-cpu==2.16.0.dev20240101",
         # "torch>=2.1.0",
