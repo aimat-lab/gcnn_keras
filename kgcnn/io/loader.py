@@ -189,7 +189,7 @@ def tf_dataset_disjoint_generator(
                 if assignment_to_id[i] is None:
                     values = np.array(array_list, dtype=inputs[i]["dtype"])
                     if padded_disjoint:
-                        out = pad_at_axis(values, (1, 0), axis=0)
+                        values = pad_at_axis(values, (1, 0), axis=0)
                     out[i] = values
                 else:
                     values = np.concatenate(array_list, axis=0)
@@ -207,14 +207,17 @@ def tf_dataset_disjoint_generator(
                         counts = np.concatenate([np.array([num_pad_required], dtype=counts.dtype), counts], axis=0)
                         out_counts[i] = counts
 
-                    if out[pos_count[ids]] is None:
-                        out[pos_count[ids]] = counts
-                    if out[pos_batch_id[ids]] is None:
-                        out[pos_batch_id[ids]] = np.repeat(
-                            np.arange(len(counts), dtype="int64"), repeats=counts)
-                    if out[pos_subgraph_id[ids]] is None:
-                        out[pos_subgraph_id[ids]] = np.concatenate(
-                            [np.arange(x, dtype="int64") for x in counts], axis=0)
+                    if ids in pos_count:
+                        if out[pos_count[ids]] is None:
+                            out[pos_count[ids]] = counts
+                    if ids in pos_batch_id:
+                        if out[pos_batch_id[ids]] is None:
+                            out[pos_batch_id[ids]] = np.repeat(
+                                np.arange(len(counts), dtype="int64"), repeats=counts)
+                    if ids in pos_subgraph_id:
+                        if out[pos_subgraph_id[ids]] is None:
+                            out[pos_subgraph_id[ids]] = np.concatenate(
+                                [np.arange(x, dtype="int64") for x in counts], axis=0)
 
             # Indices
             for i in inputs.keys():
