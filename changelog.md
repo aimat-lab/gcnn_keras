@@ -18,6 +18,8 @@ causing clashes with built-in functions. We catch defaults to be at least as bac
 * Implemented charge and dipole output for HDNNP2nd
 * Implemented jax backend for force models.
 * Fix ``GraphBatchNormalization`` .
+* Fix error in ``kgcnn.io.loader`` for unused IDs and graph state input.
+* Added experimental ``DisjointForceMeanAbsoluteError``
 
 
 v4.0.0
