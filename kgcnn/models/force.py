@@ -1,5 +1,6 @@
 import keras as ks
 import keras.saving
+from keras import ops
 from typing import Union
 from kgcnn.models.utils import get_model_class
 from keras.saving import deserialize_keras_object, serialize_keras_object
@@ -87,12 +88,10 @@ class EnergyForceModel(ks.models.Model):
         # Additional parameters of io and behavior of this class.
         self.ragged_validate = ragged_validate
         self.coordinate_input = coordinate_input
-        # self.output_to_tensor = output_to_tensor
         self.output_squeeze_states = output_squeeze_states
         self.is_physical_force = is_physical_force
         self.nested_model_config = nested_model_config
         self._force_outputs = outputs
-        # self.use_batch_jacobian = use_batch_jacobian
 
         self.output_as_dict = output_as_dict
         if isinstance(output_as_dict, bool):

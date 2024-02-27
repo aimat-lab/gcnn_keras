@@ -4,6 +4,7 @@ from keras.losses import Loss
 from keras.losses import mean_absolute_error
 import keras.saving
 from kgcnn.ops.core import decompose_ragged_tensor
+# from kgcnn.ops.scatter import scatter_reduce_mean
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='MeanAbsoluteError')
@@ -61,25 +62,27 @@ class ForceMeanAbsoluteError(Loss):
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='DisjointForceMeanAbsoluteError')
 class DisjointForceMeanAbsoluteError(Loss):
-    """This is dummy class. Not working at the moment as intended.
+    """This is an experimental class for force loss of disjoint output."""
 
-    We need to pass the node ids here somehow.
-    """
+    # Ideally we want to pass batch IDs and energy shape to the loss to do scatter mean.
+    # However, passing as attribute similar to mask, has not been working yet.
 
     def __init__(self, reduction="sum_over_batch_size", name="force_mean_absolute_error",
-                 squeeze_states: bool = True, find_padded_atoms: bool = True, dtype=None):
+                 squeeze_states: bool = True, padded_disjoint: bool = False, dtype=None):
         super(DisjointForceMeanAbsoluteError, self).__init__(reduction=reduction, name=name, dtype=dtype)
         self.squeeze_states = squeeze_states
-        self.find_padded_atoms = find_padded_atoms
+        self.padded_disjoint = padded_disjoint
 
     def call(self, y_true, y_pred):
         # Shape: ([N], 3, S)
-        if self.find_padded_atoms:
-            check_nonzero = ops.logical_not(
-                ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=1))
-            y_pred = y_pred * ops.cast(ops.expand_dims(check_nonzero, axis=1), dtype=y_pred.dtype)
-            row_count = ops.sum(ops.cast(check_nonzero, dtype="int32"), axis=0)
+
+        if self.padded_disjoint:
+            # Mask Shape: ([N, S])
+            mask = ops.logical_not(ops.all(ops.isclose(y_true, ops.convert_to_tensor(0., dtype=y_true.dtype)), axis=1))
+            y_pred = y_pred * ops.cast(ops.expand_dims(mask, axis=1), dtype=y_pred.dtype)
+            row_count = ops.sum(ops.cast(mask, dtype="int32"), axis=0)
             row_count = ops.where(row_count < 1, 1, row_count)  # Prevent divide by 0.
+            # roq count shape ([S])
             norm = 1 / ops.cast(row_count, dtype=y_true.dtype)
         else:
             norm = 1/ops.shape(y_true)[0]
@@ -87,6 +90,7 @@ class DisjointForceMeanAbsoluteError(Loss):
         diff = ops.abs(y_true-y_pred)
         out = ops.mean(diff, axis=1)
         out = ops.sum(out, axis=0)*norm
+
         if not self.squeeze_states:
             out = ops.mean(out, axis=-1)
 
