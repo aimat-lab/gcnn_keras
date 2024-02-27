@@ -1,3 +1,7 @@
+v4.0.2
+
+
+
 v4.0.1
 
 * Removed unused layers and added manual built in scripts and training functions, since with keras==3.0.5 the pytorch trainer tries to rebuild the model,

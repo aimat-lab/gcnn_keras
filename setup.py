@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf8") as fh:
 
 setup(
     name="kgcnn",
-    version="4.0.1",  # If version is updated, change version in `kgcnn.__init__` too. (and update changelog)
+    version="4.0.2",  # If version is updated, change version in `kgcnn.__init__` too. (and update changelog)
     author="Patrick Reiser",
     author_email="patrick.reiser@kit.edu",
     description="General Base Layers for Graph Convolutions with Keras",
