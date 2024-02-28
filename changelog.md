@@ -1,5 +1,6 @@
 v4.0.2
 
+* Fix error in ``plot_predict_true`` for `train_force` giving wrong error metric due to padding.
 
 
 v4.0.1

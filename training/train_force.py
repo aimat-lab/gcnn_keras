@@ -23,7 +23,7 @@ from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_md17.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet.EnergyForceModel")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="EGNN.EnergyForceModel")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
@@ -203,8 +203,9 @@ for current_split, (train_index, test_index) in enumerate(train_test_indices):
                       file_name=f"predict_energy{postfix_file}_fold_{splits_done}.png",
                       scaled_predictions=scaled_predictions)
 
-    plot_predict_true(np.concatenate([np.array(f) for f in predicted_y["force"]], axis=0),
-                      np.concatenate([np.array(f) for f in true_y["force"]], axis=0),
+    num_forces = [len(x) for x in dataset_test.get("force")]
+    plot_predict_true(np.concatenate([np.array(f)[:l] for f, l in zip(predicted_y["force"], num_forces)], axis=0),
+                      np.concatenate([np.array(f)[:l] for f, l in zip(true_y["force"], num_forces)], axis=0),
                       filepath=filepath, data_unit=label_units,
                       model_name=hyper.model_name, dataset_name=hyper.dataset_class, target_names=label_names,
                       file_name=f"predict_force{postfix_file}_fold_{splits_done}.png",
