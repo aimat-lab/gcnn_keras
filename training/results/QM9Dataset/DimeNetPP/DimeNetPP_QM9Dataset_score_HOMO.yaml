@@ -1,0 +1,79 @@
+OS: posix_linux
+backend: tensorflow
+cuda_available: 'True'
+data_unit: '[''eV'']'
+date_time: '2024-03-24 18:18:12'
+device_id: '[LogicalDevice(name=''/device:CPU:0'', device_type=''CPU''), LogicalDevice(name=''/device:GPU:0'',
+  device_type=''GPU'')]'
+device_memory: '[]'
+device_name: '[{}, {''compute_capability'': (7, 0), ''device_name'': ''Tesla V100-SXM2-32GB''}]'
+epochs:
+- 600
+- 600
+execute_folds:
+- 3
+kgcnn_version: 4.0.1
+loss:
+- 0.005621917080134153
+- 0.00561577919870615
+max_loss:
+- 0.3294568657875061
+- 0.33053842186927795
+max_scaled_mean_absolute_error:
+- 0.19851791858673096
+- 0.19896641373634338
+max_scaled_root_mean_squared_error:
+- 0.2926676273345947
+- 0.29251179099082947
+max_val_loss:
+- 0.10414715856313705
+- 0.1003655269742012
+max_val_scaled_mean_absolute_error:
+- 0.06269031018018723
+- 0.06037885695695877
+max_val_scaled_root_mean_squared_error:
+- 0.09375123679637909
+- 0.08823802322149277
+min_loss:
+- 0.005608322098851204
+- 0.005492119584232569
+min_scaled_mean_absolute_error:
+- 0.0033793302718549967
+- 0.0033058912958949804
+min_scaled_root_mean_squared_error:
+- 0.0046747042797505856
+- 0.0046160463243722916
+min_val_loss:
+- 0.04799223318696022
+- 0.04828876256942749
+min_val_scaled_mean_absolute_error:
+- 0.02886221557855606
+- 0.029051648452878
+min_val_scaled_root_mean_squared_error:
+- 0.04968913644552231
+- 0.05029897391796112
+model_class: make_model
+model_name: DimeNetPP
+model_version: '2023-12-04'
+multi_target_indices:
+- 5
+number_histories: 2
+scaled_mean_absolute_error:
+- 0.0033875287044793367
+- 0.0033803347032517195
+scaled_root_mean_squared_error:
+- 0.004697032272815704
+- 0.004739508498460054
+seed: 42
+time_list:
+- 1 day, 9:46:40.387562
+- 1 day, 9:59:13.148100
+val_loss:
+- 0.04799223318696022
+- 0.04854681342840195
+val_scaled_mean_absolute_error:
+- 0.02886221557855606
+- 0.029207797721028328
+val_scaled_root_mean_squared_error:
+- 0.0497230626642704
+- 0.050450123846530914

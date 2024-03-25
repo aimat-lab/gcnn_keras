@@ -1,0 +1,88 @@
+OS: posix_linux
+backend: tensorflow
+cuda_available: 'True'
+data_unit: '[''eV'']'
+date_time: '2024-03-23 17:02:52'
+device_id: '[LogicalDevice(name=''/device:CPU:0'', device_type=''CPU''), LogicalDevice(name=''/device:GPU:0'',
+  device_type=''GPU'')]'
+device_memory: '[]'
+device_name: '[{}, {''compute_capability'': (7, 0), ''device_name'': ''Tesla V100-SXM2-32GB''}]'
+epochs:
+- 800
+- 800
+execute_folds:
+- 3
+kgcnn_version: 4.0.1
+learning_rate:
+- 1.927654702527093e-09
+- 1.927654702527093e-09
+loss:
+- 0.0010756702395156026
+- 0.0011008529691025615
+max_learning_rate:
+- 0.0005000000237487257
+- 0.0005000000237487257
+max_loss:
+- 4.407474517822266
+- 3.408555746078491
+max_scaled_mean_absolute_error:
+- 4.813329219818115
+- 3.725175380706787
+max_scaled_root_mean_squared_error:
+- 95.80032348632812
+- 75.86785125732422
+max_val_loss:
+- 0.6639952659606934
+- 0.7039309740066528
+max_val_scaled_mean_absolute_error:
+- 0.7249158024787903
+- 0.7690656185150146
+max_val_scaled_root_mean_squared_error:
+- 0.9143601059913635
+- 0.9589051008224487
+min_learning_rate:
+- 1.927654702527093e-09
+- 1.927654702527093e-09
+min_loss:
+- 0.0010756702395156026
+- 0.0011008529691025615
+min_scaled_mean_absolute_error:
+- 0.0011744957882910967
+- 0.0012029350036755204
+min_scaled_root_mean_squared_error:
+- 0.0016492840368300676
+- 0.0016721710562705994
+min_val_loss:
+- 0.008818797767162323
+- 0.009190385229885578
+min_val_scaled_mean_absolute_error:
+- 0.009606427513062954
+- 0.0100205447524786
+min_val_scaled_root_mean_squared_error:
+- 0.03540008142590523
+- 0.032759107649326324
+model_class: make_model
+model_name: EGNN
+model_version: '2023-12-04'
+multi_target_indices:
+- 12
+number_histories: 2
+scaled_mean_absolute_error:
+- 0.0011744957882910967
+- 0.0012029350036755204
+scaled_root_mean_squared_error:
+- 0.0016492840368300676
+- 0.0016721710562705994
+seed: 42
+time_list:
+- '8:53:14.618473'
+- '9:22:14.404742'
+val_loss:
+- 0.008818797767162323
+- 0.009190516546368599
+val_scaled_mean_absolute_error:
+- 0.009606427513062954
+- 0.010020695626735687
+val_scaled_root_mean_squared_error:
+- 0.03576206788420677
+- 0.03538968786597252

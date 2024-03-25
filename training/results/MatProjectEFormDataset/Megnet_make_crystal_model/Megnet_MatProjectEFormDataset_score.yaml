@@ -1,0 +1,65 @@
+OS: posix_linux
+backend: tensorflow
+cuda_available: 'True'
+data_unit: eV/atom
+date_time: '2024-03-01 15:58:56'
+device_id: '[LogicalDevice(name=''/device:CPU:0'', device_type=''CPU''), LogicalDevice(name=''/device:GPU:0'',
+  device_type=''GPU'')]'
+device_memory: '[]'
+device_name: '[{}, {''compute_capability'': (8, 0), ''device_name'': ''NVIDIA A100
+  80GB PCIe''}]'
+epochs:
+- 1000
+execute_folds:
+- 0
+kgcnn_version: 4.0.1
+learning_rate:
+- 5.549999968934571e-06
+loss:
+- 0.004087877459824085
+max_learning_rate:
+- 0.0005000000237487257
+max_loss:
+- 0.24293601512908936
+max_scaled_mean_absolute_error:
+- 0.28267571330070496
+max_scaled_root_mean_squared_error:
+- 0.46570608019828796
+max_val_loss:
+- 0.08681195974349976
+max_val_scaled_mean_absolute_error:
+- 0.10100412368774414
+max_val_scaled_root_mean_squared_error:
+- 0.18269585072994232
+min_learning_rate:
+- 5.549999968934571e-06
+min_loss:
+- 0.004087877459824085
+min_scaled_mean_absolute_error:
+- 0.0047565787099301815
+min_scaled_root_mean_squared_error:
+- 0.012960121035575867
+min_val_loss:
+- 0.023371437564492226
+min_val_scaled_mean_absolute_error:
+- 0.027191713452339172
+min_val_scaled_root_mean_squared_error:
+- 0.06932297348976135
+model_class: make_crystal_model
+model_name: Megnet
+model_version: '2023-12-05'
+multi_target_indices: null
+number_histories: 1
+scaled_mean_absolute_error:
+- 0.0047565787099301815
+scaled_root_mean_squared_error:
+- 0.012960121035575867
+seed: 42
+time_list:
+- 1 day, 23:14:50.795494
+val_loss:
+- 0.023371437564492226
+val_scaled_mean_absolute_error:
+- 0.027191713452339172
+val_scaled_root_mean_squared_error:
+- 0.07003486901521683

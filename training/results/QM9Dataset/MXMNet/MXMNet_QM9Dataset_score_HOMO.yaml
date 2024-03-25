@@ -1,0 +1,124 @@
+OS: posix_linux
+backend: tensorflow
+cuda_available: 'True'
+data_unit: '[''eV'']'
+date_time: '2024-03-24 13:11:12'
+device_id: '[LogicalDevice(name=''/device:CPU:0'', device_type=''CPU''), LogicalDevice(name=''/device:GPU:0'',
+  device_type=''GPU'')]'
+device_memory: '[]'
+device_name: '[{}, {''compute_capability'': (7, 0), ''device_name'': ''Tesla V100-SXM2-32GB''}]'
+epochs:
+- 900
+- 900
+execute_folds:
+- 3
+kgcnn_version: 4.0.1
+learning_rate:
+- 3.186606409144588e-05
+- 3.186606409144588e-05
+loss:
+- 0.01078067161142826
+- 0.00478322384878993
+max_learning_rate:
+- 0.0010000000474974513
+- 0.0010000000474974513
+max_loss:
+- 3608025.25
+- 3608167.0
+max_mean_absolute_error:
+- 3608055.0
+- 3608097.75
+max_mean_squared_error:
+- 16038961872896.0
+- 16010225647616.0
+max_scaled_mean_absolute_error:
+- 3608055.0
+- 3608097.75
+max_scaled_root_mean_squared_error:
+- 4004867.25
+- 4001278.0
+max_val_loss:
+- 0.11132214218378067
+- 0.24343882501125336
+max_val_mean_absolute_error:
+- 0.11099009960889816
+- 0.24326354265213013
+max_val_mean_squared_error:
+- 0.020909026265144348
+- 1.187813639640808
+max_val_scaled_mean_absolute_error:
+- 0.11099009960889816
+- 0.24326354265213013
+max_val_scaled_root_mean_squared_error:
+- 0.1445995420217514
+- 1.0898686647415161
+mean_absolute_error:
+- 0.010778913274407387
+- 0.004784419666975737
+mean_squared_error:
+- 0.0001861106138676405
+- 4.498466296354309e-05
+min_learning_rate:
+- 0.0
+- 0.0
+min_loss:
+- 0.008195515722036362
+- 0.003713286481797695
+min_mean_absolute_error:
+- 0.008196063339710236
+- 0.00371303828433156
+min_mean_squared_error:
+- 0.0001453463191865012
+- 2.6165618692175485e-05
+min_scaled_mean_absolute_error:
+- 0.008196063339710236
+- 0.00371303828433156
+min_scaled_root_mean_squared_error:
+- 0.012055966071784496
+- 0.005115233827382326
+min_val_loss:
+- 0.031849466264247894
+- 0.031604230403900146
+min_val_mean_absolute_error:
+- 0.03171669691801071
+- 0.031424228101968765
+min_val_mean_squared_error:
+- 0.0022724990267306566
+- 0.00259683420881629
+min_val_scaled_mean_absolute_error:
+- 0.03171669691801071
+- 0.031424228101968765
+min_val_scaled_root_mean_squared_error:
+- 0.04767073318362236
+- 0.05095914006233215
+model_class: make_model
+model_name: MXMNet
+model_version: '2023-12-09'
+multi_target_indices:
+- 5
+number_histories: 2
+scaled_mean_absolute_error:
+- 0.010778913274407387
+- 0.004784419666975737
+scaled_root_mean_squared_error:
+- 0.013642235659062862
+- 0.006707060616463423
+seed: 42
+time_list:
+- 1 day, 4:56:14.212757
+- 1 day, 4:47:31.396423
+val_loss:
+- 0.036266177892684937
+- 0.03359147906303406
+val_mean_absolute_error:
+- 0.036107782274484634
+- 0.03340762108564377
+val_mean_squared_error:
+- 0.0028413906693458557
+- 0.002803423907607794
+val_scaled_mean_absolute_error:
+- 0.036107782274484634
+- 0.03340762108564377
+val_scaled_root_mean_squared_error:
+- 0.05330469459295273
+- 0.05294736847281456
