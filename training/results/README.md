@@ -169,6 +169,8 @@ Materials Project dataset from Matbench with 132752 crystal structures and their
 | model                     | kgcnn   |   epochs | MAE [eV/atom]          | RMSE [eV/atom]         |
 |:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
 | CGCNN.make_crystal_model  | 4.0.0   |     1000 | 0.0298 &pm; 0.0002     | 0.0747 &pm; 0.0029     |
+| Megnet.make_crystal_model | 4.0.1   |     1000 | 0.0272 &pm; nan        | 0.0700 &pm; nan        |
+| PAiNN.make_crystal_model  | 4.0.1   |      800 | 0.0241 &pm; 0.0003     | 0.0558 &pm; 0.0018     |
 | Schnet.make_crystal_model | 4.0.0   |      800 | **0.0211 &pm; 0.0003** | **0.0510 &pm; 0.0024** |
 
 #### MatProjectGapDataset
@@ -177,7 +179,9 @@ Materials Project dataset from Matbench with 106113 crystal structures and their
 
 | model                     | kgcnn   |   epochs | MAE [eV]               | RMSE [eV]              |
 |:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
-| CGCNN.make_crystal_model  | 4.0.0   |     1000 | **0.2039 &pm; 0.0050** | **0.4882 &pm; 0.0213** |
+| CGCNN.make_crystal_model  | 4.0.0   |     1000 | 0.2039 &pm; 0.0050     | 0.4882 &pm; 0.0213     |
+| Megnet.make_crystal_model | 4.0.1   |     1000 | **0.2028 &pm; 0.0041** | **0.4871 &pm; 0.0109** |
+| PAiNN.make_crystal_model  | 4.0.1   |      800 | 0.2250 &pm; 0.0128     | 1.4224 &pm; 1.7103     |
 | Schnet.make_crystal_model | 4.0.0   |      800 | 1.2226 &pm; 1.0573     | 58.3713 &pm; 114.2957  |
 
 #### MatProjectIsMetalDataset
@@ -187,7 +191,8 @@ Materials Project dataset from Matbench with 106113 crystal structures and their
 | model                     | kgcnn   |   epochs | Accuracy               | AUC                    |
 |:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
 | CGCNN.make_crystal_model  | 4.0.0   |      100 | 0.8910 &pm; 0.0027     | 0.9406 &pm; 0.0024     |
-| Megnet.make_crystal_model | 4.0.0   |      100 | **0.8966 &pm; 0.0033** | **0.9506 &pm; 0.0026** |
+| Megnet.make_crystal_model | 4.0.0   |      100 | 0.8966 &pm; 0.0033     | **0.9506 &pm; 0.0026** |
+| PAiNN.make_crystal_model  | 4.0.0   |       80 | **0.8989 &pm; 0.0034** | 0.9338 &pm; 0.0035     |
 | Schnet.make_crystal_model | 4.0.0   |       80 | 0.8953 &pm; 0.0058     | 0.9506 &pm; 0.0053     |
 
 #### MatProjectJdft2dDataset
@@ -312,11 +317,15 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 
 QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels include geometric, energetic, electronic, and thermodynamic properties. We use a random 5-fold cross-validation, but not all splits are evaluated for cheaper evaluation. Test errors are MAE and for energies are given in [eV]. 
 
-| model   | kgcnn   |   epochs | HOMO [eV]          | LUMO [eV]              | U0 [eV]            | H [eV]             | G [eV]                 |
-|:--------|:--------|---------:|:-------------------|:-----------------------|:-------------------|:-------------------|:-----------------------|
-| Megnet  | 4.0.0   |      800 | **nan &pm; nan**   | 0.0407 &pm; 0.0009     | **nan &pm; nan**   | **nan &pm; nan**   | 0.0169 &pm; 0.0006     |
-| PAiNN   | 4.0.0   |      872 | 0.0483 &pm; 0.0275 | **0.0268 &pm; 0.0002** | 0.0099 &pm; 0.0003 | 0.0101 &pm; 0.0003 | **0.0110 &pm; 0.0002** |
-| Schnet  | 4.0.0   |      800 | 0.0402 &pm; 0.0007 | 0.0340 &pm; 0.0001     | 0.0142 &pm; 0.0002 | 0.0146 &pm; 0.0002 | 0.0143 &pm; 0.0002     |
+| model     | kgcnn   |   epochs | HOMO [eV]              | LUMO [eV]              | U0 [eV]                | H [eV]                 | G [eV]                 |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|:-----------------------|
+| DimeNetPP | 4.0.1   |      600 | **0.0291 &pm; 0.0004** | 0.0284 &pm; 0.0005     | 0.0097 &pm; 0.0002     | 0.0100 &pm; 0.0004     | 0.0108 &pm; 0.0005     |
+| EGNN      | 4.0.1   |      800 | 0.0307 &pm; 0.0008     | **0.0265 &pm; 0.0005** | **0.0096 &pm; 0.0002** | 0.0098 &pm; 0.0003     | 0.0108 &pm; 0.0003     |
+| Megnet    | 4.0.1   |      800 | 0.0478 &pm; 0.0012     | 0.0407 &pm; 0.0009     | 0.0169 &pm; 0.0005     | 0.0168 &pm; 0.0005     | 0.0169 &pm; 0.0006     |
+| MXMNet    | 4.0.1   |      900 | 0.0342 &pm; 0.0016     | 0.0292 &pm; 0.0022     | 0.0105 &pm; 0.0051     | **0.0095 &pm; 0.0034** | **0.0102 &pm; 0.0013** |
+| NMPN      | 4.0.1   |      700 | 0.0844 &pm; 0.0004     | 0.0885 &pm; 0.0019     | 0.0541 &pm; 0.0014     | 0.0546 &pm; 0.0011     | 0.0528 &pm; 0.0010     |
+| PAiNN     | 4.0.0   |      872 | 0.0483 &pm; 0.0275     | 0.0268 &pm; 0.0002     | 0.0099 &pm; 0.0003     | 0.0101 &pm; 0.0003     | 0.0110 &pm; 0.0002     |
+| Schnet    | 4.0.0   |      800 | 0.0402 &pm; 0.0007     | 0.0340 &pm; 0.0001     | 0.0142 &pm; 0.0002     | 0.0146 &pm; 0.0002     | 0.0143 &pm; 0.0002     |
 
 #### SIDERDataset
 
@@ -338,6 +347,7 @@ Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different target
 | model     | kgcnn   |   epochs | Accuracy               | AUC(ROC)               | BACC                   |
 |:----------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|
 | DMPNN     | 4.0.0   |       50 | **0.9272 &pm; 0.0024** | **0.8321 &pm; 0.0103** | **0.6995 &pm; 0.0130** |
+| EGNN      | 4.0.1   |       50 | 0.9164 &pm; 0.0030     | 0.7655 &pm; 0.0080     | 0.6839 &pm; 0.0053     |
 | GAT       | 4.0.0   |       50 | 0.9243 &pm; 0.0022     | 0.8279 &pm; 0.0092     | 0.6504 &pm; 0.0074     |
 | GATv2     | 4.0.0   |       50 | 0.9222 &pm; 0.0019     | 0.8251 &pm; 0.0069     | 0.6760 &pm; 0.0140     |
 | GIN       | 4.0.0   |       50 | 0.9220 &pm; 0.0024     | 0.7986 &pm; 0.0180     | 0.6741 &pm; 0.0143     |
