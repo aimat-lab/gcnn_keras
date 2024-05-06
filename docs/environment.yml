@@ -29,3 +29,4 @@ dependencies:
     - nbsphinx
     - click
     - pyxtal
+    - dm-tree>=0.1.8

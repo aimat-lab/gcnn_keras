@@ -20,3 +20,4 @@ click>=7.1.2
 brotli>=1.0.9
 pyxtal>=0.6.4
 h5py>=3.9.0
+dm-tree>=0.1.8

@@ -16,3 +16,4 @@ nbsphinx
 ipykernel
 ipython
 pyxtal
+dm-tree>=0.1.8
